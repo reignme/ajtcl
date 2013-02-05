@@ -1,0 +1,87 @@
+# Copyright 2012-2013, Qualcomm Innovation Center, Inc.
+# 
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+# 
+#        http://www.apache.org/licenses/LICENSE-2.0
+# 
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+import os
+
+vars = Variables()
+vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
+vars.Add(EnumVariable('HOST', 'Host platform variant', 'win32', allowed_values=('win32', 'linux')))
+
+env = Environment(variables = vars)
+
+env.Append(CPPDEFINES = ['AJ_MAIN'])
+
+if env['HOST'] == 'win32':
+    if(os.environ.has_key('OPENSSL_BASE')):
+        env.Append(OPENSSL_DIR=os.environ.get('OPENSSL_BASE'))
+    else:
+        env.Append(OPENSSL_DIR='c:\OpenSSL-Win64')
+    libs = ['wsock32', 'libeay32']
+    env.Append(CFLAGS=['/I${OPENSSL_DIR}\include', '/J', '/W3'])
+    env.Append(CPPDEFINES=['_CRT_SECURE_NO_WARNINGS'])
+    env.Append(LINKFLAGS=['/LIBPATH:${OPENSSL_DIR}\lib'])
+    if env['VARIANT'] == 'debug':
+        env.Append(CFLAGS=['/MD', '/Zi', '/Od'])
+        env.Append(LINKFLAGS=['/debug'])
+    else:
+        env.Append(CPPDEFINES = ['NDEBUG'])
+        env.Append(CFLAGS=['/MD', '/Gy', '/O1', '/GF', '/Og'])
+        env.Append(LINKFLAGS=['/opt:ref'])
+        env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
+        env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
+elif env['HOST'] == 'linux':
+    libs = ['rt', 'crypto']
+    #env.Append(CFLAGS=['-m32'])
+    #env.Append(LINKFLAGS=['-m32'])
+    env.Append(LINKFLAGS=[''])
+    env.Append(CFLAGS=['-Wall',
+                       '-pipe',
+                       '-static',
+                       '-funsigned-char',
+                       '-Wpointer-sign',
+                       '-Wimplicit-function-declaration',
+                       '-fno-strict-aliasing'])
+    if env['VARIANT'] == 'debug':
+        env.Append(CFLAGS='-g')
+    else:
+        env.Append(CPPDEFINES=['NDEBUG'])
+        env.Append(CFLAGS='-Os')
+        env.Append(LINKFLAGS='-s')
+else:
+    libs = ['rt']
+    env.Append(CFLAGS=['-m32'])
+    env.Append(LINKFLAGS=['-m32'])
+    env.Append(CFLAGS=['-Wall',
+                       '-pipe',
+                       '-fno-strict-aliasing',
+                       '-funsigned-char',
+                       '-Wno-long-long'])
+    if env['VARIANT'] == 'debug':
+        env.Append(CFLAGS='-g')
+    else:
+        env.Append(CPPDEFINES =['NDEBUG'])
+        env.Append(CFLAGS='-Os')
+        env.Append(LINKFLAGS='-s')
+
+aj_srcs = [Glob('../../src/*.c')]
+aj_host_srcs = [Glob('../../host/' + env['HOST'] + '/*.c')]
+
+includes = ['../../inc', '../../host/${HOST}']
+
+env.VariantDir('build/${HOST}/${VARIANT}', '.', 0)
+
+aj_obj = env.Object(aj_srcs + aj_host_srcs, CPPPATH=includes)
+
+env.Program('SecureClient', ['SecureClient.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+env.Program('SecureService', ['SecureService.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
