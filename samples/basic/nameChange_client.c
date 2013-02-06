@@ -76,7 +76,7 @@ static const AJ_Object AppObjects[] = {
 #define UNMARSHAL_TIMEOUT  (1000 * 5)
 #define METHOD_TIMEOUT     (100 * 10)
 
-AJ_Status SendNewName(AJ_BusAttachment* bus, uint32_t sessionId, char *newName)
+AJ_Status SendNewName(AJ_BusAttachment* bus, uint32_t sessionId, char*newName)
 {
     AJ_Status status;
     AJ_Message msg;
@@ -97,16 +97,16 @@ AJ_Status SendNewName(AJ_BusAttachment* bus, uint32_t sessionId, char *newName)
     return status;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char*argv[])
 {
     AJ_Status status = AJ_ERR_INVALID;
 
-    if(argc > 1) {
+    if (argc > 1) {
         AJ_BusAttachment bus;
         uint8_t connected = FALSE;
         uint8_t done = FALSE;
         uint32_t sessionId = 0;
-        char *newName = argv[1];
+        char*newName = argv[1];
 
         status = AJ_OK;
 
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 
             status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
 
-            if(AJ_ERR_TIMEOUT == status) {
+            if (AJ_ERR_TIMEOUT == status) {
                 continue;
             }
 

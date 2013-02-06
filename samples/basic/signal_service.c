@@ -31,7 +31,7 @@ static char propertyName[128] = "Default name";
 /**
  * Static constants.
  */
-static const size_t propertyNameSize = sizeof(propertyName)/sizeof(propertyName[0]);
+static const size_t propertyNameSize = sizeof(propertyName) / sizeof(propertyName[0]);
 static const int ConnectAttempts = 10;
 static const char InterfaceName[] = "org.alljoyn.Bus.signal_sample";
 static const char ServiceName[] = "org.alljoyn.Bus.signal_sample";
@@ -73,7 +73,7 @@ static const AJ_Object AppObjects[] = {
  * object path in AppObjects (above), interface in sampleInterfaces (above), and
  * member indices in the interface.
  * The 'nameChanged' index is 0 because the first entry in sampleInterface is the interface name.
- * This makes the first index (index 0 of the methods) the second string in 
+ * This makes the first index (index 0 of the methods) the second string in
  * sampleInterface[].
  *
  * See also .\inc\aj_introspect.h
@@ -117,7 +117,7 @@ static AJ_Status SetName(AJ_Message* replyMsg, uint32_t propId, void* context)
     AJ_Status status = AJ_ERR_UNEXPECTED;
 
     if (propId == BASIC_SIGNAL_SERVICE_NAME_ID) {
-        char *string;
+        char*string;
         AJ_UnmarshalArgs(replyMsg, "s", &string);
         strcpy_s(propertyName, propertyNameSize, string);
         printf("Set 'name' property was called changing name to '%s'.\n", propertyName);
@@ -168,7 +168,7 @@ int main(void)
 
         status = AJ_UnmarshalMsg(&busAttachment, &msg, UNMARSHAL_TIMEOUT);
 
-        if(AJ_ERR_TIMEOUT == status) {
+        if (AJ_ERR_TIMEOUT == status) {
             continue;
         }
 
@@ -194,7 +194,7 @@ int main(void)
             case BASIC_SIGNAL_SERVICE_SET_NAME:
                 status = AJ_BusPropSet(&msg, SetName, NULL);
 
-                if(AJ_OK == status) {
+                if (AJ_OK == status) {
                     status = SendSignal();
                     printf("SendSignal reports status 0x%04x.\n", status);
                 }

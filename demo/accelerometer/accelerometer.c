@@ -131,14 +131,14 @@ void InitializeI2C(void)
      * port, we have to ask the Clock Management Unit to start giving it clock
      * signals.
      */
-     CMU_ClockEnable(cmuClock_I2C0, true);
+    CMU_ClockEnable(cmuClock_I2C0, true);
 
-    /*   
+    /*
      * GPIO is arranged in a bank of six GPIO registers.  These registers are
      * called GPIO A through GPIO F.  Only 56 of the 96 outputs are wired to
      * pins on the Gecko EFM32G230 Microcontroller.  The naming convention is
      * that bit 0 of GPIO Port A is called PA0.
-     * 
+     *
      * If you look at the pinout of the microcontroller, you will find that
      * PA0 is pin 1 of the chip.  If you then go to the RTX documentation for
      * the RTX4100 WSAB, you will find that they use the naming convention
@@ -156,7 +156,7 @@ void InitializeI2C(void)
      * provides some information for deciphering the gibberish above.  For
      * example, pin PA0 has alternate functionality listed as "I2C0 Serial
      * Data input / output" which is the expansion of I2C_SDA.  PA0 has
-     * another alternate function listed as "Timer 0 Capture Compare input / 
+     * another alternate function listed as "Timer 0 Capture Compare input /
      * output channel 0" which is the translation of TIM0_CC0.
      *
      * Of interest to us are PA0 and PA1 which will have the functions I2C0_SDA
@@ -176,48 +176,48 @@ void InitializeI2C(void)
      * bits in the GPIO register to let the I2C serial port take them over when
      * we initialize it below.
      */
-     GPIO_PinModeSet(gpioPortA, 1, gpioModeWiredAnd, 1);
-     GPIO_PinModeSet(gpioPortA, 0, gpioModeWiredAnd, 1);
-     
-     /*
-      * We have disabled the GPIO pins so they are not going to interfere with
-      * the I2C controller, but we have got to enable the I2C pins to be able
-      * to wiggle the PA0 and PA1 pins.
-      *
-      * Each module has an I/O Routing Register associated with it.  This
-      * register is one of the memory mapped registers used to control the
-      * function.  In the case of the I2C interface, the routing register is
-      * entered in the typedef called I2C_TypeDef.  The definition for I2C0
-      * is a pointer to one of these memory mapped types.  Thus when we refer
-      * to I2C0->ROUTE below we are setting the I/O Routing register for the
-      * Inter Integrated Circuit serial bus.
-      *
-      * I2C_ROUTE_SDAPEN is the SDA Pin Enable bit which allows the I2C function
-      * to drive the I2C0_SDA function.  I2C_ROUTE_SCLPEN is the SCL Pin Enable
-      * bit which causes the I2C0_SCL function to be driven.  As mentioned
-      * above there is an alternate functionality overview in table 4.2 of the
-      * microcontroller datasheet. We saw above that the pin connected to the
-      * serial data pin of the LSM303DLHC accelerometer was the microcontroller
-      * pin named PA0/TIM0_CC0/I2C0_SDA.  This tells us that we need to connect
-      * the internal I2C0 functionality to the PA0 pin of the processor.  If
-      * we look in table 4.2 for the functionality I2C0_SDA we find that it
-      * can be connected to three locations.  Location 0 corresponds to PA0.
-      * If we look in table 4.2 for the functionality I2C0_SCL we find that it
-      * can be connected to three locations.  Location 0 corresponds to PA1.
-      * Therefore if we set location 0 in the I/O routing register, we will
-      * route the I2C functionality out pins PA0 and PA1, and if we set the
-      * two enable bits, we have made our I/O subsystem connection from teh
-      * microcontroller to the accelerometer.  Since the location is zero,
-      * all we need to do is to set the enable bits in the routing register.
-      */
-     I2C0->ROUTE = I2C_ROUTE_SDAPEN | I2C_ROUTE_SCLPEN;
-     
+    GPIO_PinModeSet(gpioPortA, 1, gpioModeWiredAnd, 1);
+    GPIO_PinModeSet(gpioPortA, 0, gpioModeWiredAnd, 1);
+
+    /*
+     * We have disabled the GPIO pins so they are not going to interfere with
+     * the I2C controller, but we have got to enable the I2C pins to be able
+     * to wiggle the PA0 and PA1 pins.
+     *
+     * Each module has an I/O Routing Register associated with it.  This
+     * register is one of the memory mapped registers used to control the
+     * function.  In the case of the I2C interface, the routing register is
+     * entered in the typedef called I2C_TypeDef.  The definition for I2C0
+     * is a pointer to one of these memory mapped types.  Thus when we refer
+     * to I2C0->ROUTE below we are setting the I/O Routing register for the
+     * Inter Integrated Circuit serial bus.
+     *
+     * I2C_ROUTE_SDAPEN is the SDA Pin Enable bit which allows the I2C function
+     * to drive the I2C0_SDA function.  I2C_ROUTE_SCLPEN is the SCL Pin Enable
+     * bit which causes the I2C0_SCL function to be driven.  As mentioned
+     * above there is an alternate functionality overview in table 4.2 of the
+     * microcontroller datasheet. We saw above that the pin connected to the
+     * serial data pin of the LSM303DLHC accelerometer was the microcontroller
+     * pin named PA0/TIM0_CC0/I2C0_SDA.  This tells us that we need to connect
+     * the internal I2C0 functionality to the PA0 pin of the processor.  If
+     * we look in table 4.2 for the functionality I2C0_SDA we find that it
+     * can be connected to three locations.  Location 0 corresponds to PA0.
+     * If we look in table 4.2 for the functionality I2C0_SCL we find that it
+     * can be connected to three locations.  Location 0 corresponds to PA1.
+     * Therefore if we set location 0 in the I/O routing register, we will
+     * route the I2C functionality out pins PA0 and PA1, and if we set the
+     * two enable bits, we have made our I/O subsystem connection from teh
+     * microcontroller to the accelerometer.  Since the location is zero,
+     * all we need to do is to set the enable bits in the routing register.
+     */
+    I2C0->ROUTE = I2C_ROUTE_SDAPEN | I2C_ROUTE_SCLPEN;
+
     /*
      * Call the Energy Micro Library function to actually initialize the I2C
      * serial port we have so carefully conected up.
      */
-     I2C_Init(I2C0, &I2C_INIT);
- }
+    I2C_Init(I2C0, &I2C_INIT);
+}
 
 /*
  * @brief Read a register from one of the I2C devices we're concerned with.
@@ -233,7 +233,7 @@ void InitializeI2C(void)
 void ReadRegister(
     unsigned short slaveAddress,
     unsigned char registerAddress,
-    unsigned char *pData)
+    unsigned char*pData)
 {
     I2C_TransferSeq_TypeDef sequence;
     I2C_TransferReturn_TypeDef rc;
@@ -248,7 +248,7 @@ void ReadRegister(
      * driver will go through when you kick off the transfer.  The EFM library
      * define for the desired sequence is I2C_FLAG_WRITE_READ which indicates
      * the appropriate sequence.
-     * 
+     *
      *     S - Start
      *     Sr - Repeated start
      *     ADDR(W) - address with W/R bit cleared
@@ -287,11 +287,11 @@ void ReadRegister(
      * then poll for completion.
      */
     rc = I2C_TransferInit(I2C0, &sequence);
-    
-    while(rc == i2cTransferInProgress) {
+
+    while (rc == i2cTransferInProgress) {
         rc = I2C_Transfer(I2C0);
     }
-    
+
     if (rc != i2cTransferDone) {
         printf("ReadRegister(): Error %d\n", rc);
     }
@@ -325,7 +325,7 @@ void WriteRegister(
      * driver will go through when you kick off the transfer.  The EFM library
      * define for the desired sequence is I2C_FLAG_WRITE_WRITE which indicates
      * the appropriate sequence.
-     * 
+     *
      *     S - Start
      *     ADDR(W) - address with W/R bit cleared
      *     DATA - Data written
@@ -361,11 +361,11 @@ void WriteRegister(
      * then poll for completion.
      */
     rc = I2C_TransferInit(I2C0, &sequence);
-    
-    while(rc == i2cTransferInProgress) {
+
+    while (rc == i2cTransferInProgress) {
         rc = I2C_Transfer(I2C0);
     }
-    
+
     if (rc != i2cTransferDone) {
         printf("WriteRegister(): Error %d\n", rc);
     }
@@ -379,7 +379,7 @@ void WriteRegister(
  * there to do a tilt compensated electronic compass, so we call the service
  * the ecompass sample service.
  */
-static const char     SERVICE_NAME[] = "org.alljoyn.bus.samples.ecompass";
+static const char SERVICE_NAME[] = "org.alljoyn.bus.samples.ecompass";
 static const uint16_t SERVICE_PORT = 42;
 
 /*
@@ -421,7 +421,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
     unsigned char data, dataL, dataH;
     static short Ax, Ay, Az, Mx, My, Mz;
     bool accelerationChanged = false, magneticFieldChanged = false;
-    
+
     if (initialized == FALSE) {
         InitializeI2C();
         initialized = TRUE;
@@ -431,19 +431,19 @@ static void AppDoWork(AJ_BusAttachment* bus)
          * provide updates at a 25 Hz rate.  We pick 25 hertz because we
          * want the updates to happen at about the same frame rate as would
          * happen in a video.
-         * 
+         *
          * XXX How much bandwidth is this actually going to take up on our
          * wireless network?
          *
          * This is going to start our accelerometer making acceleration
          * measurements.  Again, we're not going to do anything fancy,
          * we're just going to poll for new data and ship it out below.
-         */      
+         */
         data = CTRL_REG1_A_XEN |
                CTRL_REG1_A_YEN |
                CTRL_REG1_A_ZEN |
                CTRL_REG1_A_ODR_25_HZ;
-                               
+
         printf("Write 0x%x to CTRL_REG1_A\n", data);
         WriteRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, CTRL_REG1_A, data);
         data = 0;
@@ -470,7 +470,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
         data = 0;
         ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, CTRL_REG4_A, &data);
         printf("Read back 0x%x from CTRL_REG4_A\n", data);
-   }
+    }
 
     /*
      * We have asked the accelerometer to update periodically basedn on the
@@ -490,7 +490,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
      * the battery switch is the "back" and corresponds to the -X-axis.  The
      * "right" side of the WSAB is the side that does not have the switches
      * and corresponds to the +Y-axis.  The switch side is therefore the
-     * -Y-axis. 
+     * -Y-axis.
      *
      * The bottom line is that when the WSAB is sitting on a flat surface with
      * the batteries up, the +Z-axis is pointing up so you get a -Az
@@ -503,34 +503,34 @@ static void AppDoWork(AJ_BusAttachment* bus)
      * We set the full scale selection bits in CTRL_REG4_A to be +- 2g, so one
      * gravity should correspond to half of the capacity of a signed 16-bit
      * integer, or plus or minus 16384.
-     */ 
+     */
     ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, STATUS_REG_A, &data);
     if (data & STATUS_REG_ZYXDA) {
-      
+
         if (data & STATUS_REG_XDA) {
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_X_L_A, &dataL);
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_X_H_A, &dataH);
             Ax = (short)dataH << 8 | (short)dataL;
         }
-        
+
         if (data & STATUS_REG_YDA) {
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_Y_L_A, &dataL);
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_Y_H_A, &dataH);
             Ay = (short)dataH << 8 | (short)dataL;
         }
-        
+
         if (data & STATUS_REG_ZDA) {
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_Z_L_A, &dataL);
             ReadRegister(ACCELEROMETER_I2C_SLAVE_ADDRESS, OUT_Z_H_A, &dataH);
             Az = (short)dataH << 8 | (short)dataL;
         }
-        
+
         printf("******** Ax = %d, Ay = %d, Az = %d\n", Ax, Ay, Az);
         accelerationChanged = true;
     }
-    
+
     Mx = My = Mz = 0;
-    
+
     if (accelerationChanged || magneticFieldChanged) {
         /*
          * Send an AllJoyn signal with the new raw Ax, Ay, Az, Mx, My, Mz values.

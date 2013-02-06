@@ -89,15 +89,14 @@ uint32_t get_line(char*str, int num, FILE*fp)
 static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
 {
     char inputBuffer[16];
-    const int bufSize = sizeof(inputBuffer)/sizeof(inputBuffer[0]);
+    const int bufSize = sizeof(inputBuffer) / sizeof(inputBuffer[0]);
     uint32_t maxCopyLength;
 
     /* Take input from stdin and send it. */
     printf("Please enter one time password : ");
     maxCopyLength = get_line(inputBuffer, bufSize, stdin);
 
-    if(maxCopyLength > bufLen)
-    {
+    if (maxCopyLength > bufLen) {
         maxCopyLength = bufLen;
     }
 
@@ -201,21 +200,21 @@ int main(void)
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
 
-        if(AJ_ERR_TIMEOUT == status) {
+        if (AJ_ERR_TIMEOUT == status) {
             continue;
         }
 
-        if(AJ_OK == status) {
+        if (AJ_OK == status) {
             switch (msg.msgId) {
             case AJ_REPLY_ID(PRX_PING):
                 {
                     AJ_Arg arg;
 
-                    if(AJ_OK == AJ_UnmarshalArg(&msg, &arg)) {
+                    if (AJ_OK == AJ_UnmarshalArg(&msg, &arg)) {
                         printf("%s.Ping (path=%s) returned \"%s\".\n", InterfaceName,
-                            ServicePath, arg.val.v_string);
+                               ServicePath, arg.val.v_string);
 
-                        if(strcmp(arg.val.v_string, pingString) == 0) {
+                        if (strcmp(arg.val.v_string, pingString) == 0) {
                             printf("Ping was successful.\n");
                         } else {
                             printf("Ping returned different string.\n");

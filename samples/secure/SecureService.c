@@ -61,7 +61,7 @@ static const AJ_Object AppObjects[] = {
  * object path in AppObjects (above), interface in sampleInterfaces (above), and
  * member indices in the interface.
  * The 'ping' index is 0 because the first entry in sampleInterface is the interface name.
- * This makes the first index (index 0 of the methods) the second string in 
+ * This makes the first index (index 0 of the methods) the second string in
  * secureInterfaces[].
  *
  * See also .\inc\aj_introspect.h
@@ -76,9 +76,9 @@ static AJ_Status AppHandlePing(AJ_Message* msg)
 
     status = AJ_UnmarshalArg(msg, &arg);
 
-    if(AJ_OK == status) {
+    if (AJ_OK == status) {
 
-        if(arg.typeId == AJ_ARG_STRING) {
+        if (arg.typeId == AJ_ARG_STRING) {
             printf("Received ping request '%s'.\n", arg.val.v_string);
         } else {
             printf("Unexpected arg type '%d' in ping request.\n", arg.typeId);
@@ -86,13 +86,13 @@ static AJ_Status AppHandlePing(AJ_Message* msg)
 
         status = AJ_MarshalReplyMsg(msg, &reply);
 
-        if(AJ_OK == status) {
+        if (AJ_OK == status) {
             /*
              * Just return the arg we received
              */
             status = AJ_MarshalArg(&reply, &arg);
 
-            if(AJ_OK == status) {
+            if (AJ_OK == status) {
                 status = AJ_DeliverMsg(&reply);
             }
         }
@@ -165,7 +165,7 @@ int main(void)
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
 
-        if(AJ_ERR_TIMEOUT == status) {
+        if (AJ_ERR_TIMEOUT == status) {
             continue;
         }
 

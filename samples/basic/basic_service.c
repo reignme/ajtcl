@@ -60,7 +60,7 @@ static const AJ_Object AppObjects[] = {
  * object path in AppObjects (above), interface in sampleInterfaces (above), and
  * member indices in the interface.
  * The 'cat' index is 1 because the first entry in sampleInterface is the interface name.
- * This makes the first index (index 0 of the methods) the second string in 
+ * This makes the first index (index 0 of the methods) the second string in
  * sampleInterface[] which, for illustration purposes is a dummy entry.
  * The index of the method we implement for basic_service, 'cat', is 1 which is the third string
  * in the array of strings sampleInterface[].

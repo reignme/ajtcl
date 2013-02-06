@@ -80,7 +80,7 @@ static void AppDoWork()
     /*
      * This function is called if there are no messages to unmarshal
      */
-  printf("do work\n");
+    printf("do work\n");
 }
 
 static const char PWD[] = "ABCDEFGH";
