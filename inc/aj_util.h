@@ -50,6 +50,14 @@ uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative);
 #define AJ_InitTimer(timer)  (void)AJ_GetElapsedTime(timer, FALSE)
 
 /**
+ * Suspend to low-power mode on embedded devices
+ *
+ * @param msec milliseconds to wait before waking up
+ */
+AJ_Status AJ_SuspendWifi(uint32_t msec);
+
+
+/**
  * Pause the current thread for a number of milliseconds
  */
 void AJ_Sleep(uint32_t time);

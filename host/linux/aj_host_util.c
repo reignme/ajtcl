@@ -24,6 +24,10 @@
 #include "aj_host.h"
 #include "aj_util.h"
 
+AJ_Status AJ_SuspendWifi(uint32_t msec)
+{
+    return AJ_OK;
+}
 
 void AJ_Sleep(uint32_t time)
 {
