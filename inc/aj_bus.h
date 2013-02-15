@@ -130,6 +130,8 @@ AJ_Status AJ_BusFindAdvertisedName(AJ_BusAttachment* bus, const char* namePrefix
 #define AJ_SESSION_TRAFFIC_RAW_UNRELIABLE 0x02   /**< Not supported by this implementation */
 #define AJ_SESSION_TRAFFIC_RAW_RELIABLE   0x04   /**< Not supported by this implementation */
 
+#define AJ_SESSION_PORT_ANY                       0x00   /**< Use a daemon assigned ephemeral session port */
+
 /**
  * Type for describing session options
  */
@@ -144,7 +146,8 @@ typedef struct _AJ_SessionOpts {
  * Make a method call to bind a session port.
  *
  * @param bus          The bus attachment
- * @param port         The port to bind
+ * @param port         The port to bind, if AJ_SESSION_PORT_ANY is passed in, the daemon
+ *                     will assign an ephemeral session port
  * @param opts         Options for establishing a session, if NULL defaults are used.
  *
  * @return
