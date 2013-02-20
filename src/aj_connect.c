@@ -202,5 +202,5 @@ void AJ_Disconnect(AJ_BusAttachment* bus)
     /*
      * Host-specific network shutdown procedure
      */
-    AJ_Net_Down(&bus->sock);
+    AJ_Net_Down();
 }
