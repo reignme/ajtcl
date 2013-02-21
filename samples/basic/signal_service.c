@@ -95,7 +95,7 @@ static AJ_Status SendSignal()
     printf("Emitting Name Changed Signal. New value for property 'name' is '%s'.\n", propertyName);
 
     /* For the signal to transmit outside of the current process the session ID must be 0. */
-    AJ_MarshalSignal(&busAttachment, &msg, BASIC_SIGNAL_SERVICE_SIGNAL, NULL, 0, AJ_FLAG_GLOBAL_BROADCAST);
+    AJ_MarshalSignal(&busAttachment, &msg, BASIC_SIGNAL_SERVICE_SIGNAL, NULL, 0, AJ_FLAG_GLOBAL_BROADCAST, 0);
     AJ_MarshalArgs(&msg, "s", propertyName);
 
     return AJ_DeliverMsg(&msg);

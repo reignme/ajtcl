@@ -301,12 +301,14 @@ AJ_Status AJ_MarshalMethodCall(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t 
  * @param sessionId    The session this message is for. For the signal to transmit outside of the
  *                     current process this must be 0.
  * @param flags        A logical OR of the applicable message flags
+ * @param ttl          Time to live for this signal in milliseconds. This parameter should be set to 0
+ *                     for a signal with no ttl.
  *
  * @return  - AJ_OK if a message header was succesfully marshaled
  *          - AJ_ERR_RESOURCES if the message is too big to marshal into the message buffer
  *          - AJ_ERR_WRITE if there was a write failure
  */
-AJ_Status AJ_MarshalSignal(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t msgId, const char* destination, AJ_SessionId sessionId, uint8_t flags);
+AJ_Status AJ_MarshalSignal(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t msgId, const char* destination, AJ_SessionId sessionId, uint8_t flags, uint32_t ttl);
 
 /**
  * Initialize and marshal a message that is a reply to a method call.

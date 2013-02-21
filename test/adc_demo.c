@@ -99,7 +99,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
     // send the message
     if (value != savedValue) {
         savedValue = value;
-        AJ_MarshalSignal(bus, &msg, APP_MY_ADC_SIGNAL, NULL, 0, 0);
+        AJ_MarshalSignal(bus, &msg, APP_MY_ADC_SIGNAL, NULL, 0, 0, 0);
         AJ_MarshalArgs(&msg, "u", value);
         AJ_DeliverMsg(&msg);
     }

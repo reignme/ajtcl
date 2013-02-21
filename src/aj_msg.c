@@ -1292,6 +1292,10 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
 
         case AJ_HDR_TIMESTAMP:
             if (msg->ttl) {
+                AJ_Time timer;
+                timer.seconds = 0;
+                timer.milliseconds = 0;
+                msg->timestamp = AJ_GetElapsedTime(&timer, FALSE);
                 hdrVal.val.v_uint32 = &msg->timestamp;
             }
             break;
@@ -1595,12 +1599,13 @@ AJ_Status AJ_MarshalMethodCall(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t 
     return status;
 }
 
-AJ_Status AJ_MarshalSignal(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t msgId, const char* destination, AJ_SessionId sessionId, uint8_t flags)
+AJ_Status AJ_MarshalSignal(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t msgId, const char* destination, AJ_SessionId sessionId, uint8_t flags, uint32_t ttl)
 {
     memset(msg, 0, sizeof(AJ_Message));
     msg->bus = bus;
     msg->destination = destination;
     msg->sessionId = sessionId;
+    msg->ttl = ttl;
     return MarshalMsg(msg, AJ_MSG_SIGNAL, msgId, flags);
 }
 

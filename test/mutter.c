@@ -154,7 +154,7 @@ int main()
 
     for (i = 0; i < ArraySize(testSignature); ++i) {
 
-        status = AJ_MarshalSignal(&bus, &txMsg, i, "mutter.service", 0, 0);
+        status = AJ_MarshalSignal(&bus, &txMsg, i, "mutter.service", 0, 0, 0);
         if (status != AJ_OK) {
             break;
         }

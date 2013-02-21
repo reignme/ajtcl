@@ -126,7 +126,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
         oldX = x;
         oldY = y;
 
-        AJ_MarshalSignal(bus, &msg, APP_GYROSCOPE_UPDATE_SIGNAL, NULL, 0, 0);
+        AJ_MarshalSignal(bus, &msg, APP_GYROSCOPE_UPDATE_SIGNAL, NULL, 0, 0, 0);
         AJ_MarshalArgs(&msg, "uu", x, y);
         AJ_DeliverMsg(&msg);
     }
@@ -149,7 +149,7 @@ static uint32_t PasswordFunc(uint8_t* buffer, uint32_t bufLen)
 void sendClickSignal(AJ_BusAttachment* bus, int pushed)
 {
     AJ_Message msg;
-    AJ_MarshalSignal(bus, &msg, APP_BUTTON_DOWN_SIGNAL, NULL, 0, 0);
+    AJ_MarshalSignal(bus, &msg, APP_BUTTON_DOWN_SIGNAL, NULL, 0, 0, 0);
     AJ_MarshalArgs(&msg, "u", pushed);
     AJ_DeliverMsg(&msg);
 }

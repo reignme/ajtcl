@@ -536,7 +536,7 @@ static void AppDoWork(AJ_BusAttachment* bus)
          * Send an AllJoyn signal with the new raw Ax, Ay, Az, Mx, My, Mz values.
          */
         AJ_Message msg;
-        AJ_MarshalSignal(bus, &msg, APP_RAW_ECOMPASS_SIGNAL, NULL, 0, 0);
+        AJ_MarshalSignal(bus, &msg, APP_RAW_ECOMPASS_SIGNAL, NULL, 0, 0, 0);
         AJ_MarshalArgs(&msg, "nnnnnn", Ax, Ay, Az, Mx, My, Mz);
         AJ_DeliverMsg(&msg);
     }
