@@ -88,9 +88,9 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     unsigned long Recv_lastCall = millis();
 
 #ifndef NDEBUG
-        printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
+    printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
 #endif
-        rx = min(rx, len);
+    rx = min(rx, len);
 
 #ifdef WIFI_UDP_WORKING
     WiFiClient* pClient = (WiFiClient*)buf->context;
@@ -138,10 +138,10 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
             printf("ret now %d\n", ret);
             AJ_DumpBytes("Recv", buf->writePtr, ret);
 
-            if (ret > (askFor)) {
+            if (ret > askFor) {
                 printf("new leftover %d\n", ret - askFor);
                 // now shove the extra into the stash
-                memcpy(rxDataStash+rxLeftover, buf->writePtr + askFor, ret - askFor);
+                memcpy(rxDataStash + rxLeftover, buf->writePtr + askFor, ret - askFor);
                 rxLeftover += (ret - askFor);
                 buf->writePtr += rx;
             } else {
