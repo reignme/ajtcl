@@ -109,10 +109,10 @@ extern const char AJ_BusDestination[16];
 /**
  * Error message strings
  */
-extern const char AJ_ErrSecurityViolation[34];
-extern const char AJ_ErrTimeout[24];
-extern const char AJ_ErrRejected[25];
-extern const char AJ_ErrServiceUnknown[41];
+extern const char AJ_ErrSecurityViolation[35];
+extern const char AJ_ErrTimeout[25];
+extern const char AJ_ErrRejected[26];
+extern const char AJ_ErrServiceUnknown[42];
 
 /**
  * The properties interface. This interface must be included in the property lists of all local and

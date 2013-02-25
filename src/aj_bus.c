@@ -31,7 +31,7 @@
 /**
  * Timeout for the method calls in this module
  */
-#define TIMEOUT  (100* 10)
+#define TIMEOUT  (1000* 3)
 
 const char* AJ_GetUniqueName(AJ_BusAttachment* bus)
 {

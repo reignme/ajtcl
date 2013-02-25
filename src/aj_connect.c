@@ -75,7 +75,7 @@ static AJ_Status AuthAdvance(AJ_SASL_Context* context, AJ_IOBuffer* rxBuf, AJ_IO
          * All the authentication messages end in a CR/LF so read until we get a newline
          */
         while ((AJ_IO_BUF_AVAIL(rxBuf) == 0) || (*(rxBuf->writePtr - 1) != '\n')) {
-            status = rxBuf->recv(rxBuf, AJ_IO_BUF_SPACE(rxBuf), 500);
+            status = rxBuf->recv(rxBuf, AJ_IO_BUF_SPACE(rxBuf), 3500);
             if (status != AJ_OK) {
                 break;
             }
@@ -125,6 +125,11 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     service.ipv4port = 9955;
     service.ipv4 = 0x0100007F;
     service.addrTypes = AJ_ADDR_IPV4;
+#elif defined ARDUINO
+    service.ipv4port = 9955;
+    service.ipv4 = 0x6501A8C0; // 192.168.1.101
+    service.addrTypes = AJ_ADDR_IPV4;
+    status = AJ_Discover(serviceName, &service, timeout);
 #else
     status = AJ_Discover(serviceName, &service, timeout);
     if (status != AJ_OK) {
@@ -157,7 +162,7 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     }
     if (status == AJ_OK) {
         AJ_Message helloResponse;
-        status = AJ_UnmarshalMsg(bus, &helloResponse, 1000);
+        status = AJ_UnmarshalMsg(bus, &helloResponse, 5000);
         if (status == AJ_OK) {
             /*
              * The only error we might get is a timeout

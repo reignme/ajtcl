@@ -260,7 +260,7 @@ static AJ_Status DecryptMessage(AJ_Message* msg)
         status = AJ_ERR_SECURITY;
     } else {
         InitNonce(msg, role, nonce);
-        status = AJ_Decrypt_CCM(key, ioBuf->bufStart, mlen - MAC_LENGTH, hLen, MAC_LENGTH, nonce, sizeof(nonce));
+        status = AJ_Decrypt_CCM(key, ioBuf->bufStart, mlen - MAC_LENGTH, hLen, MAC_LENGTH, (const char*)nonce, sizeof(nonce));
     }
     return status;
 }
@@ -295,7 +295,7 @@ static AJ_Status EncryptMessage(AJ_Message* msg)
         status = AJ_ERR_SECURITY;
     } else {
         InitNonce(msg, role, nonce);
-        status = AJ_Encrypt_CCM(key, ioBuf->bufStart, mlen, hlen, MAC_LENGTH, nonce, sizeof(nonce));
+        status = AJ_Encrypt_CCM(key, ioBuf->bufStart, mlen, hlen, MAC_LENGTH, (const char*)nonce, sizeof(nonce));
     }
     return status;
 }
@@ -336,7 +336,7 @@ AJ_Status AJ_DeliverMsg(AJ_Message* msg)
 /*
  * Timeout after we have started to unmarshal a message
  */
-#define UNMARSHAL_TIMEOUT 250
+#define UNMARSHAL_TIMEOUT 550ul
 
 /*
  * Make sure we have the required number of bytes in the I/O buffer
@@ -743,7 +743,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
             break;
         }
         fieldId = ioBuf->readPtr[0];
-        fieldSig = &ioBuf->readPtr[2];
+        fieldSig = (const char*)&ioBuf->readPtr[2];
         ioBuf->readPtr += 4;
         /*
          * Now unmarshal the field value
@@ -1548,7 +1548,7 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
         /*
          * If the array element is 8 byte aligned check if there was padding after the length
          */
-        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 4)) {
+        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 7)) {
             arg->len -= 4;
         }
         /*

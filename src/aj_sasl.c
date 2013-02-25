@@ -224,8 +224,8 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
      */
     if (cmd == CMD_ERROR || ((cmd == CMD_CANCEL) && (context->state != AJ_SASL_WAIT_FOR_AUTH))) {
         status = SetStr(context->mechanism->name, outStr, outLen);
-        status |= PrependStr(CMD_REJECTED, outStr, outLen, FALSE);
-        status |= AppendCRLF(outStr, outLen);
+        status = (AJ_Status)(status | PrependStr(CMD_REJECTED, outStr, outLen, FALSE));
+        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
         context->state = AJ_SASL_WAIT_FOR_AUTH;
         return status;
     }
@@ -265,11 +265,11 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
                     rsp = CMD_OK;
                     context->state = AJ_SASL_WAIT_FOR_BEGIN;
                 } else if (result == AJ_AUTH_STATUS_CONTINUE) {
-                    status |= PrependStr(CMD_DATA, outStr, outLen, TRUE);
+                    status = (AJ_Status)(status | PrependStr(CMD_DATA, outStr, outLen, TRUE));
                     context->state = AJ_SASL_WAIT_FOR_DATA;
                 } else if (result == AJ_AUTH_STATUS_RETRY) {
                     status = SetStr(context->mechanism->name, outStr, outLen);
-                    status |= PrependStr(CMD_REJECTED, outStr, outLen, FALSE);
+                    status = (AJ_Status)(status | PrependStr(CMD_REJECTED, outStr, outLen, FALSE));
                 } else if (result == AJ_AUTH_STATUS_FAILURE) {
                     status = AJ_ERR_SECURITY;
                 } else {
@@ -299,7 +299,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
         if (rsp != outStr) {
             status = SetStr(rsp, outStr, outLen);
         }
-        status |= AppendCRLF(outStr, outLen);
+        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
     }
     return status;
 }
@@ -333,9 +333,9 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
         }
         result = context->mechanism->Response(NULL, outStr, outLen);
         if ((result == AJ_AUTH_STATUS_SUCCESS) || (result == AJ_AUTH_STATUS_CONTINUE)) {
-            status |= PrependStr(context->mechanism->name, outStr, outLen, TRUE);
-            status |= PrependStr(CMD_AUTH, outStr, outLen, FALSE);
-            status |= AppendCRLF(outStr, outLen);
+            status = (AJ_Status)(status | PrependStr(context->mechanism->name, outStr, outLen, TRUE));
+            status = (AJ_Status)(status | PrependStr(CMD_AUTH, outStr, outLen, FALSE));
+            status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
             context->state = (result == AJ_AUTH_STATUS_SUCCESS) ? AJ_SASL_WAIT_FOR_OK : AJ_SASL_WAIT_FOR_DATA;
         } else {
             status = AJ_ERR_SECURITY;
@@ -350,7 +350,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
             if (status == AJ_OK) {
                 result = context->mechanism->Response(inStr, outStr, outLen);
                 if (result == AJ_AUTH_STATUS_SUCCESS) {
-                    status |= PrependStr(CMD_DATA, outStr, outLen, TRUE);
+                    status = (AJ_Status)(status | PrependStr(CMD_DATA, outStr, outLen, TRUE));
                     context->state = AJ_SASL_WAIT_FOR_OK;
                 } else if (result == AJ_AUTH_STATUS_ERROR) {
                     status = context->mechanism->Init(AJ_AUTH_RESPONDER, context->pwdFunc);
@@ -373,7 +373,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
     case AJ_SASL_WAIT_FOR_OK:
         if (cmd == CMD_OK) {
             status = AJ_GUID_ToString(AJ_GetLocalGUID(), outStr, outLen);
-            status |= PrependStr(CMD_BEGIN, outStr, outLen, FALSE);
+            status = (AJ_Status)(status | PrependStr(CMD_BEGIN, outStr, outLen, FALSE));
             context->state = AJ_SASL_AUTHENTICATED;
         } else if (cmd == CMD_DATA) {
             rsp = CMD_CANCEL;
@@ -398,7 +398,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
         if (rsp != outStr) {
             status = SetStr(rsp, outStr, outLen);
         }
-        status |= AppendCRLF(outStr, outLen);
+        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
     }
     return status;
 }

@@ -93,7 +93,7 @@ static AJ_Status ComputeVerifier(const char* label, char* buffer, size_t bufLen)
 
     data[0] = context.masterSecret;
     lens[0] = MASTER_SECRET_LEN;
-    data[1] = label;
+    data[1] = (uint8_t*)label;
     lens[1] = (uint8_t)strlen(label);
 
     status = AJ_Crypto_PRF(data, lens, ArraySize(data), (uint8_t*)buffer, VERIFIER_LEN);
@@ -126,7 +126,7 @@ static AJ_Status ComputeMS(const uint8_t* nonce)
     lens[1] = NONCE_LEN;
     data[2] = nonce;
     lens[2] = NONCE_LEN;
-    data[3] = "master secret";
+    data[3] = (uint8_t*)"master secret";
     lens[3] = 13;
     /*
      * Use the PRF function to compute the master secret

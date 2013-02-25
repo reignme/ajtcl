@@ -146,7 +146,7 @@ static CCM_Context* InitCCMContext(const char* nonce, uint32_t nLen, uint32_t hd
 
     assert(nLen <= 15);
 
-    context = AJ_Malloc(sizeof(CCM_Context));
+    context = (CCM_Context*)AJ_Malloc(sizeof(CCM_Context));
     if (context) {
         memset(context, 0, sizeof(CCM_Context));
         /*
@@ -290,7 +290,7 @@ AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
     /*
      * Need 16 bytes at the end for the CCM-MAC
      */
-    inBuf = AJ_Malloc(inLen + 16);
+    inBuf = (uint8_t*)AJ_Malloc(inLen + 16);
     if (!inBuf) {
         return AJ_ERR_RESOURCES;
     }
@@ -313,7 +313,7 @@ AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
     inBuf += 16;
     while (outLen) {
         uint32_t len =  min(16, outLen);
-        status = AJ_Encrypt_CCM(key, inBuf, inLen, inLen, 16, nonce, sizeof(nonce));
+        status = AJ_Encrypt_CCM(key, inBuf, inLen, inLen, 16, (const char*)nonce, sizeof(nonce));
         if (status != AJ_OK) {
             break;
         }
@@ -332,6 +332,6 @@ AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
 
 AJ_Status AJ_RandHex(char* rand, uint32_t bufLen, uint32_t len)
 {
-    AJ_RandBytes(rand, len);
-    return AJ_RawToHex(rand, len, rand, bufLen);
+    AJ_RandBytes((uint8_t*)rand, len);
+    return AJ_RawToHex((const uint8_t*)rand, len, rand, bufLen);
 }

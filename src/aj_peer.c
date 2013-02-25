@@ -41,22 +41,22 @@
 #define MIN_AUTH_VERSION  0x0001
 #define MAX_AUTH_VERSION  0x0001
 
-#define REQUIRED_AUTH_VERSION  ((MAX_AUTH_VERSION << 16) | MIN_KEYGEN_VERSION)
+#define REQUIRED_AUTH_VERSION  (((uint32_t)MAX_AUTH_VERSION << 16) | MIN_KEYGEN_VERSION)
 
 /*
  * Maximum time to allow an incomplete authentication conversation to proceed
  */
-#define MAX_AUTH_TIME  (5 * 60 * 1000)
+#define MAX_AUTH_TIME  (5 * 60 * 1000ul)
 
 /*
  * Long timeout for an authentication method calls to allow time for user interaction.
  */
-#define AUTH_CALL_TIMEOUT   (2 * 60 * 1000)
+#define AUTH_CALL_TIMEOUT   (2 * 60 * 1000ul)
 
 /*
  * Timeout for all other method calls
  */
-#define CALL_TIMEOUT        (1000 * 5)
+#define CALL_TIMEOUT        (1000ul * 5)
 
 
 #define VERIFIER_LEN  12
@@ -150,7 +150,7 @@ AJ_Status AJ_PeerHandleAuthChallenge(AJ_Message* msg, AJ_Message* reply)
     /*
      * Need a short-lived buffer to compose the response
      */
-    buf = AJ_Malloc(AUTH_BUF_LEN);
+    buf = (char*)AJ_Malloc(AUTH_BUF_LEN);
     if (!buf) {
         status = AJ_ERR_RESOURCES;
         goto FailAuth;
@@ -192,11 +192,11 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
     }
     data[0] = cred->secret;
     lens[0] = (uint32_t)sizeof(cred->secret);
-    data[1] = nonce1;
+    data[1] = (uint8_t*)nonce1;
     lens[1] = (uint32_t)strlen(nonce1);
-    data[2] = nonce2;
+    data[2] = (uint8_t*)nonce2;
     lens[2] = (uint32_t)strlen(nonce2);
-    data[3] = "session key";
+    data[3] = (uint8_t*)"session key";
     lens[3] = (uint32_t)strlen("session key");
 
     /*
@@ -358,7 +358,7 @@ static AJ_Status AuthResponse(AJ_Message* msg, char* inStr)
     /*
      * Need a short-lived buffer to compose the response
      */
-    buf = AJ_Malloc(AUTH_BUF_LEN);
+    buf = (char*)AJ_Malloc(AUTH_BUF_LEN);
     if (!buf) {
         status = AJ_ERR_RESOURCES;
     } else {
