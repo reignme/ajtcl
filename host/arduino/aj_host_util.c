@@ -41,7 +41,7 @@ uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative)
     now.milliseconds =  millis();
     elapsed = (uint32_t)now.milliseconds - (timer->seconds * 1000 + timer->milliseconds);  // watch for wraparound
     if (!cumulative) {
-        timer->seconds = (uint32_t)(now.milliseconds/ 1000);
+        timer->seconds = (uint32_t)(now.milliseconds / 1000);
         timer->milliseconds = (uint16_t)(now.milliseconds % 1000);
     }
     return elapsed;

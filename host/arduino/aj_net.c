@@ -119,7 +119,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 
     if (pClient->connected()) {
         // Wait until there is enough data or the timeout has happened.
-        while ((pClient->available() == 0) && (millis() - Recv_lastCall < timeout)){
+        while ((pClient->available() == 0) && (millis() - Recv_lastCall < timeout)) {
             delay(50); // wait for data or timeout
         }
         printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, pClient->available());
@@ -141,11 +141,10 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
             if (ret > (askFor)) {
                 printf("new leftover %d\n", ret - askFor);
                 // now shove the extra into the stash
-                memcpy(rxDataStash+rxLeftover, buf->writePtr+(askFor), ret - askFor);
+                memcpy(rxDataStash+rxLeftover, buf->writePtr + askFor, ret - askFor);
                 rxLeftover += (ret - askFor);
                 buf->writePtr += rx;
-            }
-            else {
+            } else {
                 buf->writePtr += ret;
             }
             status = AJ_OK;
@@ -189,7 +188,7 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
 
 void AJ_Net_Disconnect(AJ_NetSocket* netSock)
 {
-     g_client.stop();
+    g_client.stop();
 }
 
 AJ_Status SendTo(AJ_IOBuffer* buf)
@@ -238,7 +237,7 @@ AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     unsigned long Recv_lastCall = millis();
 
 #ifndef NDEBUG
-        printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
+    printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
 #endif
 
     rx = min(rx, len);
@@ -248,7 +247,7 @@ AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     EthernetUDP* pUDP = (EthernetUDP*)buf->context;
 #endif
 
-    while ((pUDP->parsePacket() == 0) && (millis() - Recv_lastCall < timeout)){
+    while ((pUDP->parsePacket() == 0) && (millis() - Recv_lastCall < timeout)) {
         delay(10); // wait for data or timeout
     }
 
