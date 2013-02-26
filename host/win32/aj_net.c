@@ -302,7 +302,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
         0, pinfo, &infoLen);
 
     // iterate through the adaptor addresses.
-    for ( ; pinfo; pinfo = pinfo->Next) {
+    for (; pinfo; pinfo = pinfo->Next) {
         IP_ADAPTER_UNICAST_ADDRESS* paddr;
 
         // we only care about WIFI adaptors that support multicast
