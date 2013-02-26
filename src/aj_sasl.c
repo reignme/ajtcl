@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 /*
  * Sanity check value to prevent broken implementations from looping the state machine.
  */
-#define MAX_AUTH_COUNT 64
+#define MAX_AUTH_COUNT 8
 
 static const char CMD_AUTH[]     = "AUTH";
 static const char CMD_CANCEL[]   = "CANCEL";
@@ -49,39 +49,42 @@ static const char* const CmdList[] = {
     CMD_OK
 };
 
-AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* mechanism, uint8_t role, AJ_AuthPwdFunc pwdFunc)
+AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* const* mechList, uint8_t role, AJ_AuthPwdFunc pwdFunc)
 {
-    if (!context || !mechanism) {
+    if (!context || !mechList || !*mechList) {
         return AJ_ERR_NULL;
     }
     context->role = role;
     context->authCount = 0;
     context->state = (role == AJ_AUTH_RESPONDER) ? AJ_SASL_SEND_AUTH_REQ : AJ_SASL_WAIT_FOR_AUTH;
     context->pwdFunc = pwdFunc;
-    context->mechanism = mechanism;
+    context->mechList = mechList;
+    context->mechanism = NULL;
     return AJ_OK;
 }
 
 /*
- * Currentl this implementation on supports a single authentication mechanism so if
- * the string matches the authentication mechanism is valid.
+ * Check if the string matches any of the authentication mechanisms.
  */
-static int ValidMechanism(AJ_SASL_Context* context, char** str)
+static const AJ_AuthMechanism* MatchMechanism(AJ_SASL_Context* context, char** str)
 {
-    size_t len = strlen(*str);
-    size_t sz = strlen(context->mechanism->name);
-    if ((len >= sz) && (memcmp(context->mechanism->name, *str, sz) == 0)) {
-        *str += sz;
-        /*
-         * There might be initial response data following the auth mechanism name
-         */
-        if ((*str)[0] == ' ') {
-            *str += 1;
+    const AJ_AuthMechanism* const* mech = context->mechList;
+    while (*mech) {
+        size_t len = strlen(*str);
+        size_t sz = strlen((*mech)->name);
+        if ((len >= sz) && (memcmp((*mech)->name, *str, sz) == 0)) {
+            *str += sz;
+            /*
+             * There might be initial response data following the auth mechanism name
+             */
+            if ((*str)[0] == ' ') {
+                *str += 1;
+            }
+            return *mech;
         }
-        return TRUE;
-    } else {
-        return FALSE;
+        ++mech;
     }
+    return NULL;
 }
 
 /*
@@ -210,6 +213,27 @@ AJ_Status AppendCRLF(char* buf, uint32_t bufLen)
 }
 
 /*
+ * Compose a REJECTED response that lists the supported authentication mechanisms
+ */
+static AJ_Status Rejected(AJ_SASL_Context* context, char* outStr, uint32_t outLen)
+{
+    const AJ_AuthMechanism* const* mech = context->mechList;
+
+    SetStr(CMD_REJECTED, outStr, outLen);
+    outLen -= (uint32_t)sizeof(CMD_REJECTED);
+    while (*mech) {
+        outLen -= (uint32_t)(strlen((*mech)->name) + 1);
+        if ((int32_t)outLen < 0) {
+            return AJ_ERR_RESOURCES;
+        }
+        strcat(outStr, " ");
+        strcat(outStr, (*mech)->name);
+        ++mech;
+    }
+    return AJ_OK;
+}
+
+/*
  * Challenger side of the SASL conversation
  */
 static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, uint32_t outLen)
@@ -223,8 +247,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
      * The ERROR command is handled the same in all states.
      */
     if (cmd == CMD_ERROR || ((cmd == CMD_CANCEL) && (context->state != AJ_SASL_WAIT_FOR_AUTH))) {
-        status = SetStr(context->mechanism->name, outStr, outLen);
-        status = (AJ_Status)(status | PrependStr(CMD_REJECTED, outStr, outLen, FALSE));
+        status = Rejected(context, outStr, outLen);
         status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
         context->state = AJ_SASL_WAIT_FOR_AUTH;
         return status;
@@ -233,7 +256,8 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
     switch (context->state) {
     case AJ_SASL_WAIT_FOR_AUTH:
         if (cmd == CMD_AUTH) {
-            if (!ValidMechanism(context, &inStr)) {
+            context->mechanism = MatchMechanism(context, &inStr);
+            if (!context->mechanism) {
                 result = AJ_AUTH_STATUS_RETRY;
             } else {
                 status = context->mechanism->Init(AJ_AUTH_CHALLENGER, context->pwdFunc);
@@ -253,7 +277,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
                 break;
             }
         }
-    /* Falling through */
+        /* Falling through */
 
     case AJ_SASL_WAIT_FOR_DATA:
         if (cmd == CMD_DATA) {
@@ -268,8 +292,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
                     status = (AJ_Status)(status | PrependStr(CMD_DATA, outStr, outLen, TRUE));
                     context->state = AJ_SASL_WAIT_FOR_DATA;
                 } else if (result == AJ_AUTH_STATUS_RETRY) {
-                    status = SetStr(context->mechanism->name, outStr, outLen);
-                    status = (AJ_Status)(status | PrependStr(CMD_REJECTED, outStr, outLen, FALSE));
+                    status = Rejected(context, outStr, outLen);
                 } else if (result == AJ_AUTH_STATUS_FAILURE) {
                     status = AJ_ERR_SECURITY;
                 } else {
@@ -304,6 +327,23 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
     return status;
 }
 
+static const AJ_AuthMechanism* SelectAuth(AJ_SASL_Context* context, char* inStr)
+{
+    const AJ_AuthMechanism* mech = NULL;
+
+    if (!*inStr) {
+        return context->mechList[0];
+    }
+    while (!mech && *inStr) {
+        int32_t pos = AJ_StringFindFirstOf(inStr, " ");
+        if (pos > 0) {
+            inStr[pos] = '\0';
+        }
+        mech = MatchMechanism(context, &inStr);
+        inStr += pos;
+    }
+    return mech;
+}
 
 /*
  * Responder side of the SASL conversation
@@ -324,6 +364,13 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
      * The REJECTED command is handled the same in all states
      */
     if (cmd == CMD_REJECTED) {
+        context->mechanism = SelectAuth(context, inStr);
+        if (!context->mechanism) {
+            /*
+             * No mechanism in common so authentication fails.
+             */
+            return AJ_ERR_SECURITY;
+        }
         status = context->mechanism->Init(AJ_AUTH_RESPONDER, context->pwdFunc);
         /*
          * Initialization must succeed
@@ -368,7 +415,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
             }
             break;
         }
-    /* Fallthrough */
+        /* Fallthrough */
 
     case AJ_SASL_WAIT_FOR_OK:
         if (cmd == CMD_OK) {
