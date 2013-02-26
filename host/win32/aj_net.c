@@ -19,7 +19,12 @@
 
 #include <Winsock2.h>
 #include <Mswsock.h>
+
 #include <ws2tcpip.h>
+#pragma comment(lib, "Ws2_32.lib")
+
+#include <iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
 
 #include <assert.h>
 #include <stdio.h>
@@ -122,6 +127,7 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
         sa->sin_port = htons(port);
         sa->sin_addr.s_addr = *addr;
         addrSize = sizeof(*sa);
+        printf("CONNECT: %s\n", inet_ntoa(sa->sin_addr));
     } else {
         struct sockaddr_in6* sa = (struct sockaddr_in6*)&addrBuf;
         sa->sin6_family = AF_INET6;
@@ -155,14 +161,20 @@ void AJ_Net_Disconnect(AJ_NetSocket* netSock)
     }
 }
 
+static SOCKET* McastSocks = NULL;
+static size_t NumMcastSocks = 0;
+
 static AJ_Status SendTo(AJ_IOBuffer* buf)
 {
     DWORD ret;
     DWORD tx = AJ_IO_BUF_AVAIL(buf);
+    int numWrites = 0;
 
     assert(buf->direction == AJ_IO_BUF_TX);
+    assert(NumMcastSocks > 0);
 
     if (tx > 0) {
+        int i;
         /*
          * Only multicasting over IPv4 for now
          */
@@ -170,10 +182,24 @@ static AJ_Status SendTo(AJ_IOBuffer* buf)
         sin.sin_family = AF_INET;
         sin.sin_port = htons(AJ_UDP_PORT);
         sin.sin_addr.s_addr = inet_addr(AJ_IPV4_MULTICAST_GROUP);
-        ret = sendto((SOCKET)buf->context, buf->readPtr, tx, 0, (struct sockaddr*)&sin, sizeof(sin));
-        if (ret == SOCKET_ERROR) {
+
+        // our daemon (hopefully) lives on one of the networks but we don't know which one.
+        // send the WhoHas packet to all of them.
+        for (i = 0; i < NumMcastSocks; ++i) {
+            SOCKET sock = McastSocks[i];
+            ret = sendto(sock, buf->readPtr, tx, 0, (struct sockaddr*) &sin, sizeof(sin));
+            if (ret == SOCKET_ERROR) {
 #ifndef NDEBUG
-            fprintf(stderr, "sendto() failed: %d\n", WSAGetLastError());
+                fprintf(stderr, "sendto() failed: %d\n", WSAGetLastError());
+#endif
+            } else {
+                ++numWrites;
+            }
+        }
+
+        if (numWrites == 0) {
+#ifndef NDEBUG
+            fprintf(stderr, "Did not sendto at least one socket\n");
 #endif
             return AJ_ERR_WRITE;
         }
@@ -190,24 +216,50 @@ static AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     DWORD rx = AJ_IO_BUF_SPACE(buf);
     fd_set fds;
     int rc = 0;
+    int i;
     const struct timeval tv = { timeout / 1000, 1000 * (timeout % 1000) };
+    SOCKET sock;
 
     assert(buf->direction == AJ_IO_BUF_RX);
+    assert(NumMcastSocks > 0);
 
+    // one per interface
     FD_ZERO(&fds);
-    FD_SET((SOCKET)buf->context, &fds);
-    rc = select(1, &fds, NULL, NULL, &tv);
-    if (rc == 0) {
-        return AJ_ERR_TIMEOUT;
+    for (i = 0; i < NumMcastSocks; ++i) {
+        SOCKET sock = McastSocks[i];
+        FD_SET(sock, &fds);
     }
 
+
+    rc = select(NumMcastSocks, &fds, NULL, NULL, &tv);
+    if (rc == 0) {
+        return AJ_ERR_TIMEOUT;
+    } else if (rc < 0) {
+        // error occured
+        return AJ_ERR_READ;
+    }
+
+    // we sent the WhoHas packet out on ALL multicast WIFI interfaces
+    // now we need to listen to all of them for a reply
+    // ignore multiple replies; only consider the first one to arrive
     rx = min(rx, len);
-    ret = recvfrom((SOCKET)buf->context, buf->writePtr, rx, 0, NULL, 0);
-    if (ret == SOCKET_ERROR) {
-        status = AJ_ERR_READ;
+    for (i = 0; i < NumMcastSocks; ++i) {
+        if (FD_ISSET(McastSocks[i], &fds)) {
+            sock = McastSocks[i];
+            break;
+        }
+    }
+
+    if (sock != INVALID_SOCKET) {
+        ret = recvfrom(sock, buf->writePtr, rx, 0, NULL, 0);
+        if (ret == SOCKET_ERROR) {
+            status = AJ_ERR_READ;
+        } else {
+            buf->writePtr += ret;
+            status = AJ_OK;
+        }
     } else {
-        buf->writePtr += ret;
-        status = AJ_OK;
+        status = AJ_ERR_READ;
     }
     return status;
 }
@@ -215,70 +267,154 @@ static AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 static uint8_t rxDataMCast[256];
 static uint8_t txDataMCast[256];
 
+
+
+/* The following function is very ugly.  Because of the way Windows does multicast, we need
+ * to iterate through our network adaptors and bind each that supports multicast to a separate
+ * socket.  Then on each socket, join the NameService mcast group.
+ *
+ * Note: this does not yet support IPV6.
+ *
+ */
+
 AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 {
-    DWORD ret;
+    AJ_Status status;
+    DWORD ret = 0;
     struct ip_mreq mreq;
-    SOCKADDR_IN sin;
-    WSADATA wsaData;
-    WORD version = MAKEWORD(2, 0);
-    SOCKET sock;
-    int reuse = 1;
+    struct sockaddr_in sin;
+    int i;
 
-    WSAStartup(version, &wsaData);
+    IP_ADAPTER_ADDRESSES info, * parray = NULL, * pinfo = NULL;
+    ULONG infoLen = sizeof(info);
 
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == INVALID_SOCKET) {
-        return AJ_ERR_READ;
+
+    // find out how many Adapter addresses we have and get the list
+    GetAdaptersAddresses(
+        AF_INET,
+        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+        0, &info, &infoLen);
+    parray = pinfo = (IP_ADAPTER_ADDRESSES*) malloc(infoLen);
+
+    GetAdaptersAddresses(
+        AF_INET,
+        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+        0, pinfo, &infoLen);
+
+    // iterate through the adaptor addresses.
+    for ( ; pinfo; pinfo = pinfo->Next) {
+        IP_ADAPTER_UNICAST_ADDRESS* paddr;
+
+        // we only care about WIFI adaptors that support multicast
+        if (pinfo->IfType != IF_TYPE_IEEE80211) {
+            continue;
+        }
+
+        if (pinfo->Flags & IP_ADAPTER_NO_MULTICAST) {
+            continue;
+        }
+
+        // iterate through the IP addressses
+        for (paddr = pinfo->FirstUnicastAddress; paddr; paddr = paddr->Next) {
+            SOCKET sock = INVALID_SOCKET;
+            char buffer[NI_MAXHOST];
+
+            // get the IP address
+            memset(buffer, 0, NI_MAXHOST);
+            getnameinfo(paddr->Address.lpSockaddr, paddr->Address.iSockaddrLength,
+                        buffer, sizeof(buffer), NULL, 0, NI_NUMERICHOST);
+
+            // create a socket
+            sock = socket(AF_INET, SOCK_DGRAM, 0);
+            if (sock == INVALID_SOCKET) {
+                printf("socket: %s\n", WSAGetLastError());
+                continue;
+            }
+
+            // bind the socket to the address
+            memset((char*) &sin, 0, sizeof(SOCKADDR_IN));
+            sin.sin_family = AF_INET;
+            sin.sin_port = htons(AJ_UDP_PORT);
+            sin.sin_addr.s_addr = inet_addr(buffer);
+
+            ret = bind(sock, (struct sockaddr*) &sin, sizeof(sin));
+            if (ret == SOCKET_ERROR) {
+                printf("Bind: %s\n", WSAGetLastError());
+                closesocket(sock);
+                continue;
+            }
+
+            // because routers are advertised silently, the reply will be unicast
+            // however, Windows forces us to join the multicast group before we can broadcast our WhoHas packets
+            memset((char*) &mreq, 0, sizeof(struct ip_mreq));
+            mreq.imr_multiaddr.s_addr = inet_addr(AJ_IPV4_MULTICAST_GROUP);
+            mreq.imr_interface.s_addr = inet_addr(buffer);
+            ret = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq));
+            if (ret == SOCKET_ERROR) {
+                printf("setsockopt: %s\n", WSAGetLastError());
+                continue;
+            }
+
+            // add the socket to the socket vector
+            ++NumMcastSocks;
+            McastSocks = realloc(McastSocks, sizeof(SOCKET) * NumMcastSocks);
+            McastSocks[NumMcastSocks - 1] = sock;
+        }
     }
 
-    /*
-     * Bind our multicast port
-     */
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(AJ_UDP_PORT);
-    sin.sin_addr.s_addr = INADDR_ANY;
-    ret = bind(sock, (struct sockaddr*)&sin, sizeof(sin));
-    if (ret == SOCKET_ERROR) {
-        closesocket(sock);
-        return AJ_ERR_READ;
+    // if we don't have at least one good socket for multicast, error
+    if (NumMcastSocks == 0) {
+        status = AJ_ERR_READ;
+        printf("No Sockets Found\n");
+        goto ErrorExit;
     }
 
-    /*
-     * Join our multicast group
-     */
-    mreq.imr_multiaddr.s_addr = inet_addr(AJ_IPV4_MULTICAST_GROUP);
-    mreq.imr_interface.s_addr = INADDR_ANY;
-    ret = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq));
-    if (ret == SOCKET_ERROR) {
-        memset(netSock, 0, sizeof(AJ_NetSocket));
-        closesocket(sock);
-        return AJ_ERR_READ;
-    } else {
-        AJ_IOBufInit(&netSock->rx, rxDataMCast, sizeof(rxDataMCast), AJ_IO_BUF_RX, (void*)sock);
-        netSock->rx.recv = RecvFrom;
-        AJ_IOBufInit(&netSock->tx, txDataMCast, sizeof(txDataMCast), AJ_IO_BUF_TX, (void*)sock);
-        netSock->tx.send = SendTo;
-        return AJ_OK;
+
+
+    AJ_IOBufInit(&netSock->rx, rxDataMCast, sizeof(rxDataMCast), AJ_IO_BUF_RX, (void*) McastSocks);
+    netSock->rx.recv = RecvFrom;
+    AJ_IOBufInit(&netSock->tx, txDataMCast, sizeof(txDataMCast), AJ_IO_BUF_TX, (void*) McastSocks);
+    netSock->tx.send = SendTo;
+    return AJ_OK;
+
+ErrorExit:
+    free(parray);
+    if (status != AJ_OK && McastSocks) {
+        int i;
+        for (i = 0; i < NumMcastSocks; ++i) {
+            closesocket(McastSocks[i]);
+        }
+
+        NumMcastSocks = 0;
+        free(McastSocks);
+        McastSocks = NULL;
     }
+
+    return status;
 }
 
 void AJ_Net_MCastDown(AJ_NetSocket* netSock)
 {
+    int i;
     struct ip_mreq mreq;
-    SOCKET sock = (SOCKET)netSock->rx.context;
-    if (sock) {
-        /*
-         * Leave our multicast group
-         */
+
+    /*
+     * Leave our multicast group
+     */
+    for (i = 0; i < NumMcastSocks; ++i) {
+        SOCKET sock = McastSocks[i];
         mreq.imr_multiaddr.s_addr = inet_addr(AJ_IPV4_MULTICAST_GROUP);
         mreq.imr_interface.s_addr = INADDR_ANY;
         setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*) &mreq, sizeof(mreq));
         shutdown(sock, 0);
         closesocket(sock);
-        memset(netSock, 0, sizeof(AJ_NetSocket));
     }
-    WSACleanup();
+
+
+    NumMcastSocks = 0;
+    free(McastSocks);
+    McastSocks = NULL;
+    memset(netSock, 0, sizeof(AJ_NetSocket));
 }
 
 AJ_Status AJ_Net_Up(void)
