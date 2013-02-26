@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,9 +32,16 @@
 #include "aj_bus.h"
 #include "aj_disco.h"
 #include "aj_std.h"
+#include "aj_auth.h"
 
 
 static const char daemonService[] = "org.alljoyn.Daemon";
+
+static uint32_t BusAuthPwd(uint8_t* buffer, uint32_t bufLen)
+{
+    strcpy(buffer, "1234");
+    return 4;
+}
 
 static AJ_AuthResult AnonMechAdvance(const char* inStr, char* outStr, uint32_t outLen)
 {
@@ -53,6 +60,11 @@ static const AJ_AuthMechanism authAnonymous = {
     NULL,
     "ANONYMOUS"
 };
+
+/*
+ * Authentication mechanisms in order of preference
+ */
+static const AJ_AuthMechanism* mechList[] = { &AJ_AuthPin, &authAnonymous, NULL };
 
 static AJ_Status SendHello(AJ_BusAttachment* bus)
 {
@@ -149,7 +161,7 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     if (status != AJ_OK) {
         goto ExitConnect;
     }
-    AJ_SASL_InitContext(&sasl, &authAnonymous, AJ_AUTH_RESPONDER, NULL);
+    AJ_SASL_InitContext(&sasl, mechList, AJ_AUTH_RESPONDER, BusAuthPwd);
     while (TRUE) {
         status = AuthAdvance(&sasl, &bus->sock.rx, &bus->sock.tx);
         if ((status != AJ_OK) || (sasl.state == AJ_SASL_FAILED)) {
@@ -207,5 +219,5 @@ void AJ_Disconnect(AJ_BusAttachment* bus)
     /*
      * Host-specific network shutdown procedure
      */
-    AJ_Net_Down();
+    AJ_Net_Down(&bus->sock);
 }

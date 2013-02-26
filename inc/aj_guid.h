@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -62,12 +62,13 @@ void AJ_GUID_ClearNameMap(void);
  * Adds a unique name to the GUID map.
  *
  * @param guid        The GUID to add
- * @param uniqueName  The unique name that maps to the GUID
+ * @param uniqueName  A unique name that maps to the GUID
+ * @param serviceName A service name that maps to the GUID
  *
  * @return  - AJ_OK if the mapping was added
  *          - AJ_ERR_RESOURCES if there is no room to the mapping
  */
-AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName);
+AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName, const char* serviceName);
 
 #define AJ_ROLE_KEY_UNDEFINED   0  /**< Indicates the session key role is undefined (only applies for group keys) */
 #define AJ_ROLE_KEY_INITIATOR   1  /**< Indicates the session key was initiated by this peer */
@@ -81,13 +82,13 @@ AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName);
 void AJ_GUID_DeleteNameMapping(const char* uniqueName);
 
 /**
- * Looks up the GUID for a unique name
+ * Looks up the GUID for a name
  *
- * @param uniqueName  The unique name to lookup
+ * @param name  The unique or well-known name to lookup
  *
  * @return  Returns a pointer to a GUID or NULL if there is no mapping.
  */
-const AJ_GUID* AJ_GUID_Find(const char* uniqueName);
+const AJ_GUID* AJ_GUID_Find(const char* name);
 
 /**
  * Sets a session key for an entry in the GUID map
@@ -115,24 +116,24 @@ AJ_Status AJ_SetGroupKey(const char* uniqueName, const uint8_t* key);
 /**
  * Gets a session key for an entry from the GUID map
  *
- * @param uniqueNam  The unique name for a remote peer
- * @param key        Buffer to receive the 16 byte session key
- * @param role       Indicates which peer initiated the session key
+ * @param name  The unique or well-known name for a remote peer
+ * @param key   Buffer to receive the 16 byte session key
+ * @param role  Indicates which peer initiated the session key
  *
  * @return  - AJ_OK if the key was obtained
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
-AJ_Status AJ_GetSessionKey(const char* uniqueName, uint8_t* key, uint8_t* role);
+AJ_Status AJ_GetSessionKey(const char* name, uint8_t* key, uint8_t* role);
 
 /**
  * Gets a group key for an entry from the GUID map
  *
- * @param uniqueNam  The unique name for a remote peer or NULL to get the local group key.
+ * @param uniqueNam  The unique or well-known name for a remote peer or NULL to get the local group key.
  * @param key        Buffer to receive the 16 byte group key
  *
  * @return  - AJ_OK if the key was obtained
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
-AJ_Status AJ_GetGroupKey(const char* uniqueName, uint8_t* key);
+AJ_Status AJ_GetGroupKey(const char* name, uint8_t* key);
 
 #endif

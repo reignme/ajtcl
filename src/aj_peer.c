@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, 2013 Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -69,10 +69,16 @@ typedef struct _AuthContext {
     char nonce[2 * NONCE_LEN + 1];   /* Nonce as ascii hex */
     AJ_SASL_Context sasl;            /* The SASL state machine context */
     const AJ_GUID* peerGuid;         /* GUID pointer for the currently authenticating peer */
+    const char* peerName;            /* Name of the peer being authenticated */
     AJ_Time timer;                   /* Timer for detecting failed authentication attempts */
 } AuthContext;
 
 static AuthContext authContext;
+
+/*
+ * Authentication mechanisms (currently on one)
+ */
+static const AJ_AuthMechanism* authMechanisms[] = { &AJ_AuthPin, NULL };
 
 /*
  * Check that we are in an authentication with the peer
@@ -96,7 +102,7 @@ AJ_Status AJ_PeerHandleExchangeGUIDs(AJ_Message* msg, AJ_Message* reply)
 
     AJ_UnmarshalArgs(msg, "su", &str, &version);
     AJ_GUID_FromString(&remoteGuid, str);
-    AJ_GUID_AddNameMapping(&remoteGuid, msg->sender);
+    AJ_GUID_AddNameMapping(&remoteGuid, msg->sender, NULL);
     /*
      * We are not currently negotiating versions so we tell the peer what version we require.
      */
@@ -142,7 +148,7 @@ AJ_Status AJ_PeerHandleAuthChallenge(AJ_Message* msg, AJ_Message* reply)
         /*
          * Initialize SASL state machine
          */
-        AJ_SASL_InitContext(&authContext.sasl, &AJ_AuthPin, AJ_AUTH_CHALLENGER, msg->bus->pwdCallback);
+        AJ_SASL_InitContext(&authContext.sasl, authMechanisms, AJ_AUTH_CHALLENGER, msg->bus->pwdCallback);
     }
     if (AJ_UnmarshalArg(msg, &arg) != AJ_OK) {
         goto FailAuth;
@@ -163,7 +169,7 @@ AJ_Status AJ_PeerHandleAuthChallenge(AJ_Message* msg, AJ_Message* reply)
     AJ_MarshalArgs(reply, "s", buf);
     AJ_Free(buf);
     if (authContext.sasl.state == AJ_SASL_AUTHENTICATED) {
-        AJ_AuthPin.Final(peerGuid);
+        authContext.sasl.mechanism->Final(peerGuid);
         memset(&authContext, 0, sizeof(AuthContext));
     }
     return AJ_OK;
@@ -174,7 +180,9 @@ FailAuth:
     /*
      * Clear current authentication context then return an error response
      */
-    AJ_AuthPin.Final(peerGuid);
+    if (authContext.sasl.mechanism) {
+        authContext.sasl.mechanism->Final(peerGuid);
+    }
     memset(&authContext, 0, sizeof(AuthContext));
     return AJ_MarshalErrorMsg(msg, reply, AJ_ErrSecurityViolation);
 }
@@ -197,7 +205,7 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
     data[2] = (uint8_t*)nonce2;
     lens[2] = (uint32_t)strlen(nonce2);
     data[3] = (uint8_t*)"session key";
-    lens[3] = (uint32_t)strlen("session key");
+    lens[3] = 11;
 
     /*
      * We use the outBuf to store both the key and verifier string.
@@ -316,6 +324,7 @@ AJ_Status AJ_PeerAuthenticate(AJ_BusAttachment* bus, const char* peerName, AJ_Pe
     }
     authContext.callback = callback;
     authContext.cbContext = cbContext;
+    authContext.peerName = peerName;
     AJ_InitTimer(&authContext.timer);
     /*
      * Kick off autnetication with an ExchangeGUIDS method call
@@ -330,7 +339,9 @@ static AJ_Status GenSessionKey(AJ_Message* msg)
 {
     AJ_Message call;
 
-    AJ_AuthPin.Final(authContext.peerGuid);
+    if (authContext.sasl.mechanism) {
+        authContext.sasl.mechanism->Final(authContext.peerGuid);
+    }
     authContext.sasl.state = AJ_SASL_IDLE;
     AJ_MarshalMethodCall(msg->bus, &call, AJ_METHOD_GEN_SESSION_KEY, msg->sender, 0, AJ_NO_FLAGS, CALL_TIMEOUT);
     /*
@@ -375,7 +386,9 @@ static AJ_Status AuthResponse(AJ_Message* msg, char* inStr)
      * If there was an error finalize the auth mechanism
      */
     if (status != AJ_OK) {
-        AJ_AuthPin.Final(authContext.peerGuid);
+        if (authContext.sasl.mechanism) {
+            authContext.sasl.mechanism->Final(authContext.peerGuid);
+        }
         /*
          * Report authentication failure to application
          */
@@ -411,6 +424,7 @@ AJ_Status AJ_PeerHandleExchangeGUIDsReply(AJ_Message* msg)
     const char* guidStr;
     AJ_GUID remoteGuid;
     uint32_t version;
+    char nul = '\0';
 
     status = AJ_UnmarshalArgs(msg, "su", &guidStr, &version);
     if (status != AJ_OK) {
@@ -421,7 +435,10 @@ AJ_Status AJ_PeerHandleExchangeGUIDsReply(AJ_Message* msg)
         return AJ_OK;
     }
     AJ_GUID_FromString(&remoteGuid, guidStr);
-    AJ_GUID_AddNameMapping(&remoteGuid, msg->sender);
+    /*
+     * Two name mappings to add, the well known name, and the unique name from the message.
+     */
+    AJ_GUID_AddNameMapping(&remoteGuid, msg->sender, authContext.peerName);
     /*
      * Remember which peer is being authenticated
      */
@@ -429,11 +446,11 @@ AJ_Status AJ_PeerHandleExchangeGUIDsReply(AJ_Message* msg)
     /*
      * Initialize SASL state machine
      */
-    AJ_SASL_InitContext(&authContext.sasl, &AJ_AuthPin, AJ_AUTH_RESPONDER, msg->bus->pwdCallback);
+    AJ_SASL_InitContext(&authContext.sasl, authMechanisms, AJ_AUTH_RESPONDER, msg->bus->pwdCallback);
     /*
      * Start the authentication conversation
      */
-    status = AuthResponse(msg, NULL);
+    status = AuthResponse(msg, &nul);
     if (status != AJ_OK) {
         PeerAuthComplete(status);
     }
@@ -450,7 +467,7 @@ AJ_Status AJ_PeerHandleGenSessionKeyReply(AJ_Message* msg)
      * (to store 16 bytes key in addition to the 12 bytes verifier).
      * Hence we allocate, the maximum of (12 * 2 + 1) and (16 + 12).
      */
-    char verifier[KEY_LEN + VERIFIER_LEN];
+    char verifier[VERIFIER_LEN * 2 + 1];
     char* nonce;
     char* remVerifier;
 

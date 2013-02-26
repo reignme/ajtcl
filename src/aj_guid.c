@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 typedef struct _NameToGUID {
     uint8_t keyRole;
     char uniqueName[MAX_NAME_SIZE + 1];
+    const char* serviceName;
     AJ_GUID guid;
     uint8_t sessionKey[16];
     uint8_t groupKey[16];
@@ -47,18 +48,21 @@ AJ_Status AJ_GUID_FromString(AJ_GUID* guid, const char* str)
     return AJ_HexToRaw(str, 32, guid->val, 16);
 }
 
-static NameToGUID* LookupName(const char* uniqueName)
+static NameToGUID* LookupName(const char* name)
 {
     uint32_t i;
     for (i = 0; i < NAME_MAP_GUID_SIZE; ++i) {
-        if (strcmp(nameMap[i].uniqueName, uniqueName) == 0) {
+        if (strcmp(nameMap[i].uniqueName, name) == 0) {
+            return &nameMap[i];
+        }
+        if (nameMap[i].serviceName && (strcmp(nameMap[i].serviceName, name)) == 0) {
             return &nameMap[i];
         }
     }
     return NULL;
 }
 
-AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName)
+AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName, const char* serviceName)
 {
     size_t len = strlen(uniqueName);
 
@@ -69,6 +73,7 @@ AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName)
     if (mapping && (len <= MAX_NAME_SIZE)) {
         memcpy(&mapping->guid, guid, sizeof(AJ_GUID));
         memcpy(&mapping->uniqueName, uniqueName, len + 1);
+        mapping->serviceName = serviceName;
         return AJ_OK;
     } else {
         return AJ_ERR_RESOURCES;
@@ -83,9 +88,9 @@ void AJ_GUID_DeleteNameMapping(const char* uniqueName)
     }
 }
 
-const AJ_GUID* AJ_GUID_Find(const char* uniqueName)
+const AJ_GUID* AJ_GUID_Find(const char* name)
 {
-    NameToGUID* mapping = LookupName(uniqueName);
+    NameToGUID* mapping = LookupName(name);
     return mapping ? &mapping->guid : NULL;
 }
 
@@ -118,9 +123,9 @@ AJ_Status AJ_SetSessionKey(const char* uniqueName, const uint8_t* key, uint8_t r
     }
 }
 
-AJ_Status AJ_GetSessionKey(const char* uniqueName, uint8_t* key, uint8_t* role)
+AJ_Status AJ_GetSessionKey(const char* name, uint8_t* key, uint8_t* role)
 {
-    NameToGUID* mapping = LookupName(uniqueName);
+    NameToGUID* mapping = LookupName(name);
     if (mapping) {
         *role = mapping->keyRole;
         memcpy(key, mapping->sessionKey, 16);
@@ -130,10 +135,10 @@ AJ_Status AJ_GetSessionKey(const char* uniqueName, uint8_t* key, uint8_t* role)
     }
 }
 
-AJ_Status AJ_GetGroupKey(const char* uniqueName, uint8_t* key)
+AJ_Status AJ_GetGroupKey(const char* name, uint8_t* key)
 {
-    if (uniqueName) {
-        NameToGUID* mapping = LookupName(uniqueName);
+    if (name) {
+        NameToGUID* mapping = LookupName(name);
         if (!mapping) {
             return AJ_ERR_NO_MATCH;
         }
