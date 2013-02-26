@@ -1,0 +1,176 @@
+diff --git a/libraries/WiFi/WiFi.h b/libraries/WiFi/WiFi.h
+index 9a86701..c98598c 100755
+--- a/libraries/WiFi/WiFi.h
++++ b/libraries/WiFi/WiFi.h
+@@ -3,6 +3,8 @@
+ 
+ #include <inttypes.h>
+ 
++#include <SPI.h>
++
+ extern "C" {
+ 	#include "utility/wl_definitions.h"
+ 	#include "utility/wl_types.h"
+diff --git a/libraries/WiFi/WiFiClient.cpp b/libraries/WiFi/WiFiClient.cpp
+index 1fc34e0..a02c87f 100755
+--- a/libraries/WiFi/WiFiClient.cpp
++++ b/libraries/WiFi/WiFiClient.cpp
+@@ -1,7 +1,11 @@
+ extern "C" {
+   #include "utility/wl_definitions.h"
+   #include "utility/wl_types.h"
++#if 0
+   #include "socket.h"
++#else
++#define SOCK_NOT_AVAIL 255
++#endif
+   #include "string.h"
+   #include "utility/debug.h"
+ }
+diff --git a/libraries/WiFi/WiFiUdp.cpp b/libraries/WiFi/WiFiUdp.cpp
+index 7020df8..75bda19 100644
+--- a/libraries/WiFi/WiFiUdp.cpp
++++ b/libraries/WiFi/WiFiUdp.cpp
+@@ -1,5 +1,6 @@
+ 
+ extern "C" {
++  #include <stdint.h>
+   #include "utility/debug.h"
+   #include "utility/wifi_spi.h"
+ }
+diff --git a/libraries/WiFi/utility/server_drv.cpp b/libraries/WiFi/utility/server_drv.cpp
+index 0f48c6b..51df1b2 100644
+--- a/libraries/WiFi/utility/server_drv.cpp
++++ b/libraries/WiFi/utility/server_drv.cpp
+@@ -175,7 +175,7 @@ bool ServerDrv::getData(uint8_t sock, uint8_t *data, uint8_t peek)
+     return false;
+ }
+ 
+-bool ServerDrv::getDataBuf(uint8_t sock, uint8_t *_data, uint16_t *_dataLen)
++bool ServerDrv::getDataBuf(uint8_t sock, uint8_t *_data, size_t *_dataLen)
+ {
+ 	WAIT_FOR_SLAVE_SELECT();
+     // Send Command
+@@ -185,8 +185,13 @@ bool ServerDrv::getDataBuf(uint8_t sock, uint8_t *_data, uint16_t *_dataLen)
+     //Wait the reply elaboration
+     SpiDrv::waitForSlaveReady();
+ 
++    if (*_dataLen > UINT16_MAX)
++    {
++        WARN("data length truncated to 16-bits");
++    }
++    uint16_t _dataLen16 = *_dataLen;
+     // Wait for reply
+-    if (!SpiDrv::waitResponseData16(GET_DATABUF_TCP_CMD, _data, _dataLen))
++    if (!SpiDrv::waitResponseData16(GET_DATABUF_TCP_CMD, _data, &_dataLen16))
+     {
+         WARN("error waitResponse");
+     }
+diff --git a/libraries/WiFi/utility/server_drv.h b/libraries/WiFi/utility/server_drv.h
+index 1076639..bca9845 100644
+--- a/libraries/WiFi/utility/server_drv.h
++++ b/libraries/WiFi/utility/server_drv.h
+@@ -2,6 +2,7 @@
+ #define Server_Drv_h
+ 
+ #include <inttypes.h>
++#include <stddef.h>
+ #include "wifi_spi.h"
+ 
+ typedef enum eProtMode {TCP_MODE, UDP_MODE}tProtMode;
+@@ -23,7 +24,7 @@ public:
+ 
+     static bool getData(uint8_t sock, uint8_t *data, uint8_t peek = 0);
+ 
+-    static bool getDataBuf(uint8_t sock, uint8_t *data, uint16_t *len);
++    static bool getDataBuf(uint8_t sock, uint8_t *data, size_t *len);
+ 
+     static bool insertDataBuf(uint8_t sock, const uint8_t *_data, uint16_t _dataLen);
+ 
+diff --git a/libraries/WiFi/utility/spi_drv.cpp b/libraries/WiFi/utility/spi_drv.cpp
+index 12a320b..a68044a 100644
+--- a/libraries/WiFi/utility/spi_drv.cpp
++++ b/libraries/WiFi/utility/spi_drv.cpp
+@@ -1,5 +1,6 @@
+ 
+ #include "Arduino.h"
++#include <SPI.h>
+ #include "spi_drv.h"                   
+ #include "pins_arduino.h"
+ //#define _DEBUG_
+@@ -15,20 +16,12 @@ extern "C" {
+ #define WIFILED 	9  // led on wifi shield
+ 
+ #define DELAY_100NS do { asm volatile("nop"); }while(0);
+-#define DELAY_SPI(X) { int ii=0; do {  asm volatile("nop"); }while(++ii<X);}
++#define DELAY_SPI(X) { int ii=0; do {  asm volatile("nop"); }while(++ii<X*6);}
+ #define DELAY_TRANSFER() DELAY_SPI(10)
+ 
+ void SpiDrv::begin()
+ {
+-	  // Set direction register for SCK and MOSI pin.
+-	  // MISO pin automatically overrides to INPUT.
+-	  // When the SS pin is set as OUTPUT, it can be used as
+-	  // a general purpose output port (it doesn't influence
+-	  // SPI operations).
+-
+-	  pinMode(SCK, OUTPUT);
+-	  pinMode(MOSI, OUTPUT);
+-	  pinMode(SS, OUTPUT);
++      SPI.begin();
+ 	  pinMode(SLAVESELECT, OUTPUT);
+ 	  pinMode(SLAVEREADY, INPUT);
+ 	  pinMode(WIFILED, OUTPUT);
+@@ -42,17 +35,10 @@ void SpiDrv::begin()
+ #ifdef _DEBUG_
+ 	  INIT_TRIGGER()
+ #endif
+-
+-	  // Warning: if the SS pin ever becomes a LOW INPUT then SPI
+-	  // automatically switches to Slave, so the data direction of
+-	  // the SS pin MUST be kept as OUTPUT.
+-	  SPCR |= _BV(MSTR);
+-	  SPCR |= _BV(SPE);
+-	  //SPSR |= _BV(SPI2X);
+ }
+ 
+ void SpiDrv::end() {
+-  SPCR &= ~_BV(SPE);
++    SPI.end();
+ }
+ 
+ void SpiDrv::spiSlaveSelect()
+@@ -66,23 +52,19 @@ void SpiDrv::spiSlaveDeselect()
+     digitalWrite(SLAVESELECT,HIGH);
+ }
+ 
+-void delaySpi()
+-{
+-	int i = 0;
+-	const int DELAY = 1000;
+-	for (;i<DELAY;++i)
+-	{
+-		int a =a+1;
+-	}
+-}
++//void delaySpi()
++//{
++//      int i = 0;
++//      const int DELAY = 1000;
++//  	for (;i<DELAY;++i)
++//  	{
++//          int a =a+1;
++//  	}
++//}
+ 
+ char SpiDrv::spiTransfer(volatile char data)
+ {
+-    SPDR = data;                    // Start the transmission
+-    while (!(SPSR & (1<<SPIF)))     // Wait the end of the transmission
+-    {
+-    };
+-    char result = SPDR;
++    char result = SPI.transfer(data);
+     DELAY_TRANSFER();
+ 
+     return result;                    // return the received byte
