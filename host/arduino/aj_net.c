@@ -101,7 +101,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     uint32_t M = 0;
     if (rxLeftover != 0) {
         // there was something leftover from before,
-        printf("leftover was: %d", rxLeftover);
+        printf("leftover was: %d\n", rxLeftover);
         M = min(rx, rxLeftover);
         memcpy(buf->writePtr, rxDataStash, M);  // copy leftover into buffer.
         buf->writePtr += M;  // move the data pointer over
@@ -124,11 +124,15 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
         }
         printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, pClient->available());
 
+        if ((millis() - Recv_lastCall >= timeout) && (pClient->available() == 0)) {
+            return AJ_ERR_TIMEOUT;
+        }
+
         uint32_t askFor = rx;
         askFor -= M;
         printf("ask for: %d\n", askFor);
         ret = pClient->read(buf->writePtr, askFor);
-        printf("Recv: ret %d  askfor %d", ret, askFor);
+        printf("Recv: ret %d  askfor %d\n", ret, askFor);
         if (ret == -1) {
 #ifndef NDEBUG
             printf("Recv failed\n");
