@@ -1,6 +1,6 @@
 SETLOCAL
 
-SET SRC=c:\cygwin\home\%USERNAME%\repos\alljoyn\ajtcl
+SET SRC=c:\cygwin\home\%USERNAME%\repos\alljoyn-tc\ajtcl
 SET DST=c:\arduino\arduino-1.5.2\hardware\arduino\sam\libraries\AllJoyn
 
 for %%I in (%DST%\*.cpp) do del %%I
