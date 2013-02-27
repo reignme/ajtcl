@@ -211,7 +211,7 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
      * We use the outBuf to store both the key and verifier string.
      * Check that there is enough space to do so.
      */
-    if (KEY_LEN + VERIFIER_LEN > len) {
+    if (len < (KEY_LEN + VERIFIER_LEN)) {
         return AJ_ERR_RESOURCES;
     }
 
@@ -221,8 +221,10 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
      */
     if (status == AJ_OK) {
         status = AJ_SetSessionKey(peerName, outBuf, role);
+    }
+    if (status == AJ_OK) {
         memmove(outBuf, outBuf + KEY_LEN, VERIFIER_LEN);
-        AJ_RawToHex(outBuf, VERIFIER_LEN, (char*)outBuf, len);
+        status = AJ_RawToHex(outBuf, VERIFIER_LEN, (char*)outBuf, len);
     }
     return status;
 }
@@ -467,7 +469,7 @@ AJ_Status AJ_PeerHandleGenSessionKeyReply(AJ_Message* msg)
      * (to store 16 bytes key in addition to the 12 bytes verifier).
      * Hence we allocate, the maximum of (12 * 2 + 1) and (16 + 12).
      */
-    char verifier[VERIFIER_LEN * 2 + 1];
+    char verifier[VERIFIER_LEN + KEY_LEN];
     char* nonce;
     char* remVerifier;
 
