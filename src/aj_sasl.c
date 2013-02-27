@@ -155,7 +155,7 @@ static const char* ParseCmd(char** str)
  * is that the input string is NUL terminated ascii string. This is true for all of the current
  * AllJoyn authentication mechanisms.
  */
-AJ_Status PrependStr(const char* str, char* buf, uint32_t bufLen, uint8_t hexify)
+static AJ_Status PrependStr(const char* str, char* buf, uint32_t bufLen, uint8_t hexify)
 {
     size_t used = strlen(buf);
     size_t sz = strlen(str);
@@ -185,7 +185,7 @@ AJ_Status PrependStr(const char* str, char* buf, uint32_t bufLen, uint8_t hexify
 /**
  * Copy a string to a buffer
  */
-AJ_Status SetStr(const char* str, char* buf, uint32_t bufLen)
+static AJ_Status SetStr(const char* str, char* buf, uint32_t bufLen)
 {
     size_t sz = strlen(str);
     if (sz >= bufLen) {
@@ -199,7 +199,7 @@ AJ_Status SetStr(const char* str, char* buf, uint32_t bufLen)
 /**
  * Append the final CRLF to the buffer. NUL terminate so strlen works.
  */
-AJ_Status AppendCRLF(char* buf, uint32_t bufLen)
+static AJ_Status AppendCRLF(char* buf, uint32_t bufLen)
 {
     size_t used = strlen(buf);
     if ((used + 3) > bufLen) {
@@ -248,7 +248,9 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
      */
     if (cmd == CMD_ERROR || ((cmd == CMD_CANCEL) && (context->state != AJ_SASL_WAIT_FOR_AUTH))) {
         status = Rejected(context, outStr, outLen);
-        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
+        if (status == AJ_OK) {
+            status = AppendCRLF(outStr, outLen);
+        }
         context->state = AJ_SASL_WAIT_FOR_AUTH;
         return status;
     }
@@ -277,7 +279,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
                 break;
             }
         }
-        /* Falling through */
+    /* Falling through */
 
     case AJ_SASL_WAIT_FOR_DATA:
         if (cmd == CMD_DATA) {
@@ -289,7 +291,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
                     rsp = CMD_OK;
                     context->state = AJ_SASL_WAIT_FOR_BEGIN;
                 } else if (result == AJ_AUTH_STATUS_CONTINUE) {
-                    status = (AJ_Status)(status | PrependStr(CMD_DATA, outStr, outLen, TRUE));
+                    status = PrependStr(CMD_DATA, outStr, outLen, TRUE);
                     context->state = AJ_SASL_WAIT_FOR_DATA;
                 } else if (result == AJ_AUTH_STATUS_RETRY) {
                     status = Rejected(context, outStr, outLen);
@@ -322,7 +324,9 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
         if (rsp != outStr) {
             status = SetStr(rsp, outStr, outLen);
         }
-        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
+    }
+    if (status == AJ_OK) {
+        status = AppendCRLF(outStr, outLen);
     }
     return status;
 }
@@ -380,9 +384,13 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
         }
         result = context->mechanism->Response(NULL, outStr, outLen);
         if ((result == AJ_AUTH_STATUS_SUCCESS) || (result == AJ_AUTH_STATUS_CONTINUE)) {
-            status = (AJ_Status)(status | PrependStr(context->mechanism->name, outStr, outLen, TRUE));
-            status = (AJ_Status)(status | PrependStr(CMD_AUTH, outStr, outLen, FALSE));
-            status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
+            status = PrependStr(context->mechanism->name, outStr, outLen, TRUE);
+            if (status == AJ_OK) {
+                status = PrependStr(CMD_AUTH, outStr, outLen, FALSE);
+            }
+            if (status == AJ_OK) {
+                status = AppendCRLF(outStr, outLen);
+            }
             context->state = (result == AJ_AUTH_STATUS_SUCCESS) ? AJ_SASL_WAIT_FOR_OK : AJ_SASL_WAIT_FOR_DATA;
         } else {
             status = AJ_ERR_SECURITY;
@@ -397,7 +405,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
             if (status == AJ_OK) {
                 result = context->mechanism->Response(inStr, outStr, outLen);
                 if (result == AJ_AUTH_STATUS_SUCCESS) {
-                    status = (AJ_Status)(status | PrependStr(CMD_DATA, outStr, outLen, TRUE));
+                    status = PrependStr(CMD_DATA, outStr, outLen, TRUE);
                     context->state = AJ_SASL_WAIT_FOR_OK;
                 } else if (result == AJ_AUTH_STATUS_ERROR) {
                     status = context->mechanism->Init(AJ_AUTH_RESPONDER, context->pwdFunc);
@@ -415,12 +423,14 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
             }
             break;
         }
-        /* Fallthrough */
+    /* Fallthrough */
 
     case AJ_SASL_WAIT_FOR_OK:
         if (cmd == CMD_OK) {
             status = AJ_GUID_ToString(AJ_GetLocalGUID(), outStr, outLen);
-            status = (AJ_Status)(status | PrependStr(CMD_BEGIN, outStr, outLen, FALSE));
+            if (status == AJ_OK) {
+                status = PrependStr(CMD_BEGIN, outStr, outLen, FALSE);
+            }
             context->state = AJ_SASL_AUTHENTICATED;
         } else if (cmd == CMD_DATA) {
             rsp = CMD_CANCEL;
@@ -445,7 +455,9 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
         if (rsp != outStr) {
             status = SetStr(rsp, outStr, outLen);
         }
-        status = (AJ_Status)(status | AppendCRLF(outStr, outLen));
+    }
+    if (status == AJ_OK) {
+        status = AppendCRLF(outStr, outLen);
     }
     return status;
 }
