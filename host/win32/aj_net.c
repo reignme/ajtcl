@@ -215,7 +215,7 @@ static AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     DWORD ret;
     DWORD rx = AJ_IO_BUF_SPACE(buf);
     fd_set fds;
-    int rc = 0;
+    size_t rc = 0;
     int i;
     const struct timeval tv = { timeout / 1000, 1000 * (timeout % 1000) };
     SOCKET sock;
@@ -283,7 +283,6 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
     DWORD ret = 0;
     struct ip_mreq mreq;
     struct sockaddr_in sin;
-    int i;
 
     IP_ADAPTER_ADDRESSES info, * parray = NULL, * pinfo = NULL;
     ULONG infoLen = sizeof(info);
