@@ -25,6 +25,7 @@ env.SConscript('test/SConstruct')
 if env['WS'] != 'off' and not env.GetOption('clean'):
     import sys
     sys.path.append('../alljoyn_master/build_core/tools/bin')
+    sys.path.append('../build_core/tools/bin')
     import whitespace
 
     def wsbuild(target, source, env):
