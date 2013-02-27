@@ -232,6 +232,10 @@ int AJ_Main(void)
             }
             break;
 
+        case AJ_REPLY_ID(PRX_SET_PROP):
+            printf("Set prop reply\n");
+            break;
+
         case AJ_SIGNAL_SESSION_LOST:
             /*
              * Force a disconnect
