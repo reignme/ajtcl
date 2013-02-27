@@ -35,7 +35,7 @@
 
 void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len)
 {
-    uint8_t i;
+    uint32_t i;
     char ascii[CHUNKING + 1];
 
     if (tag) {
