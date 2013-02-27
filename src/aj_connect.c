@@ -39,7 +39,7 @@ static const char daemonService[] = "org.alljoyn.Daemon";
 
 static uint32_t BusAuthPwd(uint8_t* buffer, uint32_t bufLen)
 {
-    strcpy(buffer, "1234");
+    strcpy((char*)buffer, "1234");
     return 4;
 }
 
@@ -219,5 +219,5 @@ void AJ_Disconnect(AJ_BusAttachment* bus)
     /*
      * Host-specific network shutdown procedure
      */
-    AJ_Net_Down(&bus->sock);
+    AJ_Net_Down();
 }
