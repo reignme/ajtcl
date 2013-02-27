@@ -102,11 +102,12 @@ typedef enum {
 
 typedef struct _AJ_SASL_Context {
 
-    uint8_t role;                       /**< Indicates if the role is Challenger or Responder */
-    uint8_t authCount;                  /**< Sanity check to terminate state machine */
-    AJ_SASL_State state;                /**< Current state of the SASL conversation */
-    AJ_AuthPwdFunc pwdFunc;             /**< Password function if applicable */
-    const AJ_AuthMechanism* mechanism;  /**< The authentication mechansim to use */
+    uint8_t role;                            /**< Indicates if the role is Challenger or Responder */
+    uint8_t authCount;                       /**< Sanity check to terminate state machine */
+    AJ_SASL_State state;                     /**< Current state of the SASL conversation */
+    AJ_AuthPwdFunc pwdFunc;                  /**< Password function if applicable */
+    const AJ_AuthMechanism* const* mechList; /**< NULL terminated array of authentication mechanismse */
+    const AJ_AuthMechanism* mechanism;       /**< The authentication mechansim current in use */
 
 } AJ_SASL_Context;
 
@@ -114,12 +115,12 @@ typedef struct _AJ_SASL_Context {
  * Initializes a context structure for starting a SASL conversation.
  *
  * @param context    A SASL context structure
- * @param mechanism  Interface to an authentication mechanism
+ * @param mechList   NULL terminated array of authentication mechanisms
  * @param role       Defines if the context is being initialized for the responder or challenger
  *                   side of an authentication conversation.
  * @param pwdFunc    Callback function for requesting a password, or NULL if not applicable.
  */
-AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* mechanism, uint8_t role, AJ_AuthPwdFunc pwdFunc);
+AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* const* mechList, uint8_t role, AJ_AuthPwdFunc pwdFunc);
 
 /**
  * Advances the SASL state machine.
