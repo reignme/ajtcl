@@ -1,4 +1,4 @@
-# Copyright 2012, Qualcomm Innovation Center, Inc.
+# Copyright 2012-2013, Qualcomm Innovation Center, Inc.
 # 
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import os
 
 vars = Variables()
 vars.Add(EnumVariable('WS', 'Whitespace Policy Checker', 'check', allowed_values=('check', 'detail', 'fix', 'off')))
+vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories',  os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 
 env = Environment(variables = vars)
 
@@ -23,9 +24,14 @@ env = Environment(variables = vars)
 env.SConscript('test/SConstruct')
 
 if env['WS'] != 'off' and not env.GetOption('clean'):
+    if not os.environ.get('ALLJOYN_DIR'):
+       print "ALLJOYN_DIR not set"
+       if not GetOption('help'):
+           Exit()
+
     import sys
-    sys.path.append('../alljoyn_master/build_core/tools/bin')
-    sys.path.append('../build_core/tools/bin')
+    bin_dir = os.environ.get('ALLJOYN_DIR') + '/build_core/tools/bin'
+    sys.path.append(bin_dir)
     import whitespace
 
     def wsbuild(target, source, env):
