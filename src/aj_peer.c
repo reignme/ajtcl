@@ -169,10 +169,10 @@ AJ_Status AJ_PeerHandleAuthChallenge(AJ_Message* msg, AJ_Message* reply)
     AJ_MarshalArgs(reply, "s", buf);
     AJ_Free(buf);
     if (authContext.sasl.state == AJ_SASL_AUTHENTICATED) {
-        authContext.sasl.mechanism->Final(peerGuid);
+        status = authContext.sasl.mechanism->Final(peerGuid);
         memset(&authContext, 0, sizeof(AuthContext));
     }
-    return AJ_OK;
+    return status;
 
 FailAuth:
 
