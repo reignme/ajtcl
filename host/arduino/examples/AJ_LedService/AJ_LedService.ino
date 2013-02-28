@@ -22,29 +22,18 @@
 
 #include <alljoyn.h>
 
-/*
-  Blink
- Turns on an LED on for one second, then off for one second, repeatedly.
- 
- This example code is in the public domain.
- */
-
 #include "due_led.h"
 #include <stdint.h>
 
-
-
-// Pin 13 has an LED connected on most Arduino boards.
-// give it a name:
 int led = 13;
 
-char ssid[] = "eric-wifi";     // the name of your network
+char ssid[] = "yourNetwork";     // the name of your network
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 
 void DUE_led_timed(uint32_t msec)
 {
-  printf("DUE_led\n");
+  printf("DUE_led_timed\n");
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(msec);               // wait for a second
   digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
@@ -54,13 +43,7 @@ void DUE_led_timed(uint32_t msec)
 void DUE_led(uint8_t on)
 {
   printf("DUE_led(%u)\n", on);
-  //if (on) {
-  //  digitalWrite(led, ? HIGH : LOW);
- // }
   digitalWrite(led, on ? HIGH : LOW);   // turn the LED on (HIGH is the voltage level)
-//  delay(msec);               // wait for a second
-//  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-//  delay(msec);               // wait for a second
 }
 
 
@@ -94,8 +77,6 @@ void setup() {
   Serial.print("Connected: ");
   Serial.println(ip);
 }
-
-
 
 // the loop routine runs over and over again forever:
 void loop() {
