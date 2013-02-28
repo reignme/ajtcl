@@ -152,9 +152,9 @@ int AJ_Main(void)
                     char* joiner;
                     AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
                     status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                    
+
                     if (status == AJ_OK) {
-                      printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+                        printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
                     } else {
                         printf("AJ_BusReplyAcceptSession: error %d\n", status);
                     }
@@ -168,6 +168,7 @@ int AJ_Main(void)
             case APP_ON:
                 AppHandleOnOff(&msg, TRUE);
                 break;
+
             case APP_OFF:
                 AppHandleOnOff(&msg, FALSE);
                 break;

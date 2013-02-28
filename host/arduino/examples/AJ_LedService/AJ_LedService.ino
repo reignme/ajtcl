@@ -33,55 +33,55 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 void DUE_led_timed(uint32_t msec)
 {
-  printf("DUE_led_timed\n");
-  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(msec);               // wait for a second
-  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-  delay(msec);               // wait for a second
+    printf("DUE_led_timed\n");
+    digitalWrite(led, HIGH); // turn the LED on (HIGH is the voltage level)
+    delay(msec);             // wait for a second
+    digitalWrite(led, LOW);  // turn the LED off by making the voltage LOW
+    delay(msec);             // wait for a second
 }
 
 void DUE_led(uint8_t on)
 {
-  printf("DUE_led(%u)\n", on);
-  digitalWrite(led, on ? HIGH : LOW);   // turn the LED on (HIGH is the voltage level)
+    printf("DUE_led(%u)\n", on);
+    digitalWrite(led, on ? HIGH : LOW); // turn the LED on (HIGH is the voltage level)
 }
 
 
 // the setup routine runs once when you press reset:
-void setup() {                
-  // initialize the digital pin as an output.
-  pinMode(led, OUTPUT);
+void setup() {
+    // initialize the digital pin as an output.
+    pinMode(led, OUTPUT);
 
-  Serial.begin(9600);
-  while (!Serial);
-  
-  digitalWrite(led, LOW);
-  
-  if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present"); 
-    // don't continue:
-    while(true);
-  }
-  
-  while (status != WL_CONNECTED) { 
-    Serial.print("Attempting to connect to open SSID: ");
-    Serial.println(ssid);
-    status = WiFi.begin(ssid);
+    Serial.begin(9600);
+    while (!Serial) ;
 
-    // wait 10 seconds for connection:
-    delay(10000);
-  }
-  
-  IPAddress ip = WiFi.localIP();
-  
-  Serial.print("Connected: ");
-  Serial.println(ip);
+    digitalWrite(led, LOW);
+
+    if (WiFi.status() == WL_NO_SHIELD) {
+        Serial.println("WiFi shield not present");
+        // don't continue:
+        while (true) ;
+    }
+
+    while (status != WL_CONNECTED) {
+        Serial.print("Attempting to connect to open SSID: ");
+        Serial.println(ssid);
+        status = WiFi.begin(ssid);
+
+        // wait 10 seconds for connection:
+        delay(10000);
+    }
+
+    IPAddress ip = WiFi.localIP();
+
+    Serial.print("Connected: ");
+    Serial.println(ip);
 }
 
 // the loop routine runs over and over again forever:
 void loop() {
-  printf("Hello\n");
-  AJ_Main();
+    printf("Hello\n");
+    AJ_Main();
 }
 
 
