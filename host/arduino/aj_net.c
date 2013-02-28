@@ -53,21 +53,24 @@ static const char AJ_IPV6_MULTICAST_GROUP[] = "ff02::13a";
  */
 #define AJ_UDP_PORT 9956
 
+#ifdef WIFI_UDP_WORKING
+static WiFiClient g_client;
+static WiFiUDP g_clientUDP;
+#else
+static EthernetClient g_client;
+static EthernetUDP g_clientUDP;
+#endif
+
 AJ_Status Send(AJ_IOBuffer* buf)
 {
     uint32_t ret;
     uint32_t tx = AJ_IO_BUF_AVAIL(buf);
 
     if (tx > 0) {
-#ifdef WIFI_UDP_WORKING
-        WiFiClient* pClient = (WiFiClient*)buf->context;
-#else
-        EthernetClient* pClient = (EthernetClient*)buf->context;
-#endif
-        ret = pClient->write(buf->readPtr, tx);
+        ret = g_client.write(buf->readPtr, tx);
         if (ret == 0) {
             #ifndef NDEBUG
-            printf("error sending %d\n", pClient->getWriteError());
+            printf("error sending %d\n", g_client.getWriteError());
             #endif
             return AJ_ERR_WRITE;
         }
@@ -92,12 +95,6 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 #endif
     rx = min(rx, len);
 
-#ifdef WIFI_UDP_WORKING
-    WiFiClient* pClient = (WiFiClient*)buf->context;
-#else
-    EthernetClient* pClient = (EthernetClient*)buf->context;
-#endif
-
     uint32_t M = 0;
     if (rxLeftover != 0) {
         // there was something leftover from before,
@@ -117,21 +114,21 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
         printf("M was: %d, rxLeftover was: %d\n", M, rxLeftover);
     }
 
-    if (pClient->connected()) {
+    if (g_client.connected()) {
         // Wait until there is enough data or the timeout has happened.
-        while ((pClient->available() == 0) && (millis() - Recv_lastCall < timeout)) {
+        while ((g_client.available() == 0) && (millis() - Recv_lastCall < timeout)) {
             delay(50); // wait for data or timeout
         }
-        printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, pClient->available());
+        printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_client.available());
 
-        if ((millis() - Recv_lastCall >= timeout) && (pClient->available() == 0)) {
+        if ((millis() - Recv_lastCall >= timeout) && (g_client.available() == 0)) {
             return AJ_ERR_TIMEOUT;
         }
 
         uint32_t askFor = rx;
         askFor -= M;
         printf("ask for: %d\n", askFor);
-        ret = pClient->read(buf->writePtr, askFor);
+        ret = g_client.read(buf->writePtr, askFor);
         printf("Recv: ret %d  askfor %d\n", ret, askFor);
         if (ret == -1) {
 #ifndef NDEBUG
@@ -162,20 +159,15 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 static uint8_t rxData[768];
 static uint8_t txData[768];
 
-#ifdef WIFI_UDP_WORKING
-static WiFiClient g_client;
-static WiFiUDP g_clientUDP;
-#else
-static EthernetClient g_client;
-static EthernetUDP g_clientUDP;
-#endif
-
 AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType, const uint32_t* addr)
 {
     int ret;
 
     IPAddress ip(*addr);
     ret = g_client.connect(ip, port);
+
+    Serial.print("Connecting to: ");
+    Serial.println(ip);
 
     if (ret == -1) {
         printf("connect() failed: %d\n", ret);
