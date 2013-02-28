@@ -74,8 +74,7 @@ static AJ_Status Send(AJ_IOBuffer* buf)
 
 static AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
-    AJ_Status status;
-    ssize_t ret;
+    AJ_Status status = AJ_OK;
     size_t rx = AJ_IO_BUF_SPACE(buf);
     fd_set fds;
     int maxFd = INVALID_SOCKET;
@@ -93,15 +92,16 @@ static AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     }
 
     rx = min(rx, len);
-    ret = recv((int)buf->context, buf->writePtr, rx, 0);
-    if (ret == -1) {
+    if (rx) {
+        ssize_t ret = recv((int)buf->context, buf->writePtr, rx, 0);
+        if ((ret == -1) || (ret == 0)) {
 #ifndef NDEBUG
-        fprintf(stderr, "recv() failed: %s\n", strerror(errno));
+            fprintf(stderr, "recv() failed: %s\n", strerror(errno));
 #endif
-        status = AJ_ERR_READ;
-    } else {
-        buf->writePtr += ret;
-        status = AJ_OK;
+            status = AJ_ERR_READ;
+        } else {
+            buf->writePtr += ret;
+        }
     }
     return status;
 }

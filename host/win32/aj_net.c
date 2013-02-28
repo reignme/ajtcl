@@ -75,8 +75,7 @@ static AJ_Status Send(AJ_IOBuffer* buf)
 
 static AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
-    AJ_Status status;
-    DWORD ret;
+    AJ_Status status = AJ_OK;
     DWORD rx = AJ_IO_BUF_SPACE(buf);
     fd_set fds;
     int rc = 0;
@@ -92,12 +91,13 @@ static AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     }
 
     rx = min(rx, len);
-    ret = recv((SOCKET)buf->context, buf->writePtr, rx, 0);
-    if (ret == SOCKET_ERROR) {
-        status = AJ_ERR_READ;
-    } else {
-        buf->writePtr += ret;
-        status = AJ_OK;
+    if (rx) {
+        DWORD ret = recv((SOCKET)buf->context, buf->writePtr, rx, 0);
+        if ((ret == SOCKET_ERROR) || (ret == 0)) {
+            status = AJ_ERR_READ;
+        } else {
+            buf->writePtr += ret;
+        }
     }
     return status;
 }
@@ -290,15 +290,15 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 
     // find out how many Adapter addresses we have and get the list
     GetAdaptersAddresses(
-        AF_INET,
-        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
-        0, &info, &infoLen);
+                         AF_INET,
+                         GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+                         0, &info, &infoLen);
     parray = pinfo = (IP_ADAPTER_ADDRESSES*) malloc(infoLen);
 
     GetAdaptersAddresses(
-        AF_INET,
-        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
-        0, pinfo, &infoLen);
+                         AF_INET,
+                         GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+                         0, pinfo, &infoLen);
 
     // iterate through the adaptor addresses.
     for (; pinfo; pinfo = pinfo->Next) {
