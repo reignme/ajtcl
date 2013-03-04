@@ -31,7 +31,7 @@
 #else
 #include <SPI.h>
 #include <Ethernet.h>
-#include <EthernetUDP.h>
+#include <EthernetUdp.h>
 #endif
 
 

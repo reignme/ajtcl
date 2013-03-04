@@ -45,10 +45,10 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 
 #ifdef WIFI_UDP_WORKING
     #include <WiFi.h>
-    #include <WiFiUDP.h>
+    #include <WiFiUdp.h>
 #else
     #include <Ethernet.h>
-    #include <EthernetUDP.h>
+    #include <EthernetUdp.h>
 #endif
 
 #endif
