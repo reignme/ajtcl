@@ -93,8 +93,9 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 #ifndef NDEBUG
     printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
 #endif
-    rx = min(rx, len);
 
+
+    // first we need to clear out our buffer
     uint32_t M = 0;
     if (rxLeftover != 0) {
         // there was something leftover from before,
@@ -105,31 +106,44 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
         memmove(rxDataStash, rxDataStash + M, rxLeftover - M); // shift left-overs toward the start.
         rxLeftover -= M;
         recvd += M;
+
+        // we have read as many bytes as we can
+        // higher level isn't requesting any more
         if (recvd == rx) {
-            status = AJ_OK;
-            return status;
+            return AJ_OK;
         }
     }
+
+
     if ((M != 0) && (rxLeftover != 0)) {
         printf("M was: %d, rxLeftover was: %d\n", M, rxLeftover);
     }
 
+    // wait for data to become available
+    // time out if nothing arrives
+    while (g_client.connected() &&
+           g_client.available() == 0 &&
+           (millis() - Recv_lastCall < timeout)) {
+        delay(50); // wait for data or timeout
+    }
+
+    // return timeout if nothing is available
+    printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_client.available());
+    if (g_client.connected() && (millis() - Recv_lastCall >= timeout) && (g_client.available() == 0)) {
+        return AJ_ERR_TIMEOUT;
+    }
+
     if (g_client.connected()) {
-        // Wait until there is enough data or the timeout has happened.
-        while ((g_client.available() == 0) && (millis() - Recv_lastCall < timeout)) {
-            delay(50); // wait for data or timeout
-        }
-        printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_client.available());
-
-        if ((millis() - Recv_lastCall >= timeout) && (g_client.available() == 0)) {
-            return AJ_ERR_TIMEOUT;
-        }
-
         uint32_t askFor = rx;
         askFor -= M;
         printf("ask for: %d\n", askFor);
         ret = g_client.read(buf->writePtr, askFor);
         printf("Recv: ret %d  askfor %d\n", ret, askFor);
+
+        if (askFor < ret) {
+            printf("BUFFER OVERRUN: askFor=%u, ret=%u\n", askFor, ret);
+        }
+
         if (ret == -1) {
 #ifndef NDEBUG
             printf("Recv failed\n");
@@ -156,8 +170,8 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 }
 
 
-static uint8_t rxData[768];
-static uint8_t txData[768];
+static uint8_t rxData[1024];
+static uint8_t txData[1024];
 
 AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType, const uint32_t* addr)
 {
@@ -193,18 +207,13 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
     uint32_t tx = AJ_IO_BUF_AVAIL(buf);
 
     if (tx > 0) {
-#ifdef WIFI_UDP_WORKING
-        WiFiUDP* pUDP = (WiFiUDP*)buf->context;
-#else
-        EthernetUDP* pUDP = (EthernetUDP*)buf->context;
-#endif
-        ret = pUDP->beginPacket(AJ_IPV4_MULTICAST_GROUP, AJ_UDP_PORT);
+        ret = g_clientUDP.beginPacket(AJ_IPV4_MULTICAST_GROUP, AJ_UDP_PORT);
         printf("SendTo beginPacket %d\n", ret);
         if (ret == 0) {
             printf("no sender\n");
         }
 
-        ret = pUDP->write(buf->readPtr, tx);
+        ret = g_clientUDP.write(buf->readPtr, tx);
         printf("SendTo write %d\n", ret);
         if (ret == 0) {
             printf("no bytes\n");
@@ -213,7 +222,7 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
 
         buf->readPtr += ret;
 
-        ret = pUDP->endPacket();
+        ret = g_clientUDP.endPacket();
         if (ret == 0) {
             printf("err endpacket\n");
             return AJ_ERR_WRITE;
@@ -237,18 +246,13 @@ AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 #endif
 
     rx = min(rx, len);
-#ifdef WIFI_UDP_WORKING
-    WiFiUDP* pUDP = (WiFiUDP*)buf->context;
-#else
-    EthernetUDP* pUDP = (EthernetUDP*)buf->context;
-#endif
 
-    while ((pUDP->parsePacket() == 0) && (millis() - Recv_lastCall < timeout)) {
+    while ((g_clientUDP.parsePacket() == 0) && (millis() - Recv_lastCall < timeout)) {
         delay(10); // wait for data or timeout
     }
 
-    printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, pUDP->available());
-    ret = pUDP->read(buf->writePtr, rx);
+    printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_clientUDP.available());
+    ret = g_clientUDP.read(buf->writePtr, rx);
     printf("RecvFrom: ret %d  rx %d\n", ret, rx);
 
     if (ret == -1) {
