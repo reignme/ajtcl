@@ -85,7 +85,9 @@ static AJ_Status AppHandleCat(AJ_Message* msg)
 
     /* We have the arguments. Now do the concatenation. */
     strncpy(buffer, string0, BUFFER_SIZE);
+    buffer[BUFFER_SIZE] = '\0';
     strncat(buffer, string1, BUFFER_SIZE - strlen(buffer));
+    buffer[BUFFER_SIZE] = '\0';
 
     AJ_InitArg(&replyArg, AJ_ARG_STRING, 0, buffer, 0);
     AJ_MarshalArg(&reply, &replyArg);

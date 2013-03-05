@@ -120,6 +120,7 @@ static AJ_Status SetName(AJ_Message* replyMsg, uint32_t propId, void* context)
         char*string;
         AJ_UnmarshalArgs(replyMsg, "s", &string);
         strncpy(propertyName, string, propertyNameSize);
+        propertyName[propertyNameSize - 1] = '\0';
         printf("Set 'name' property was called changing name to '%s'.\n", propertyName);
         status = AJ_OK;
     }
