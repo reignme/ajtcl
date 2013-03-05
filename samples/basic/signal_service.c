@@ -119,7 +119,7 @@ static AJ_Status SetName(AJ_Message* replyMsg, uint32_t propId, void* context)
     if (propId == BASIC_SIGNAL_SERVICE_NAME_ID) {
         char*string;
         AJ_UnmarshalArgs(replyMsg, "s", &string);
-        strcpy_s(propertyName, propertyNameSize, string);
+        strncpy(propertyName, string, propertyNameSize);
         printf("Set 'name' property was called changing name to '%s'.\n", propertyName);
         status = AJ_OK;
     }
