@@ -30,7 +30,6 @@
 
 #include <alljoyn.h>
 
-
 static uint8_t wireBuffer[16 * 1024];
 static size_t wireBytes = 0;
 
@@ -111,7 +110,7 @@ static const char* Fruits[] = {
 static const uint8_t Data8[] = { 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0, 0xA1, 0xB1, 0xC2, 0xD3 };
 static const uint16_t Data16[] = { 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF06 };
 
-#define CHECK(x) if ((status = (x)) != AJ_OK) { break; }
+#define CHECK(x) if ((status = (x)) != AJ_OK) { break; } else { printf("%d\n", __LINE__); }
 
 void setup() {
 
