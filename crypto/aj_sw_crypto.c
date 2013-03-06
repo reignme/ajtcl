@@ -32,46 +32,22 @@ typedef struct {
 
 static AES_CTX aes_context;
 
-/* Rotates 32-bit word left by 1, 2 or 3 uint8_t  */
-#define ROTL8(x)  (((x)<<8) |((x)>>24))
-#define ROTL16(x) (((x)<<16)|((x)>>16))
-#define ROTL24(x) (((x)<<24)|((x)>>8))
+#define ROTL8(x)  ((((uint32_t)(x)) << 8)  | (((uint32_t)(x)) >> 24))
+#define ROTL16(x) ((((uint32_t)(x)) << 16) | (((uint32_t)(x)) >> 16))
+#define ROTL24(x) ((((uint32_t)(x)) << 24) | (((uint32_t)(x)) >> 8))
 
-#define SHFL8(x)  ((x)<<8)
-#define SHFL16(x) ((x)<<16)
-#define SHFL24(x) ((x)<<24)
+#define SHFL8(x)  (((uint32_t)(x)) << 8)
+#define SHFL16(x) (((uint32_t)(x)) << 16)
+#define SHFL24(x) (((uint32_t)(x)) << 24)
 
 
 #define ROW_0(x)   (uint8_t)(x)
-#define ROW_1(x)   (uint8_t)(x>>8)
-#define ROW_2(x)   (uint8_t)(x>>16)
-#define ROW_3(x)   (uint8_t)(x>>24)
-
-#define XOR ^
+#define ROW_1(x)   (uint8_t)((x) >> 8)
+#define ROW_2(x)   (uint8_t)((x) >> 16)
+#define ROW_3(x)   (uint8_t)((x) >> 24)
 
 
-/* Fixed Data */
-
-static const uint8_t pow_table[256] = {
-   0x01,0x03,0x05,0x0f,0x11,0x33,0x55,0xff,0x1a,0x2e,0x72,0x96,0xa1,0xf8,0x13,0x35,
-   0x5f,0xe1,0x38,0x48,0xd8,0x73,0x95,0xa4,0xf7,0x02,0x06,0x0a,0x1e,0x22,0x66,0xaa,
-   0xe5,0x34,0x5c,0xe4,0x37,0x59,0xeb,0x26,0x6a,0xbe,0xd9,0x70,0x90,0xab,0xe6,0x31,
-   0x53,0xf5,0x04,0x0c,0x14,0x3c,0x44,0xcc,0x4f,0xd1,0x68,0xb8,0xd3,0x6e,0xb2,0xcd,
-   0x4c,0xd4,0x67,0xa9,0xe0,0x3b,0x4d,0xd7,0x62,0xa6,0xf1,0x08,0x18,0x28,0x78,0x88,
-   0x83,0x9e,0xb9,0xd0,0x6b,0xbd,0xdc,0x7f,0x81,0x98,0xb3,0xce,0x49,0xdb,0x76,0x9a,
-   0xb5,0xc4,0x57,0xf9,0x10,0x30,0x50,0xf0,0x0b,0x1d,0x27,0x69,0xbb,0xd6,0x61,0xa3,
-   0xfe,0x19,0x2b,0x7d,0x87,0x92,0xad,0xec,0x2f,0x71,0x93,0xae,0xe9,0x20,0x60,0xa0,
-   0xfb,0x16,0x3a,0x4e,0xd2,0x6d,0xb7,0xc2,0x5d,0xe7,0x32,0x56,0xfa,0x15,0x3f,0x41,
-   0xc3,0x5e,0xe2,0x3d,0x47,0xc9,0x40,0xc0,0x5b,0xed,0x2c,0x74,0x9c,0xbf,0xda,0x75,
-   0x9f,0xba,0xd5,0x64,0xac,0xef,0x2a,0x7e,0x82,0x9d,0xbc,0xdf,0x7a,0x8e,0x89,0x80,
-   0x9b,0xb6,0xc1,0x58,0xe8,0x23,0x65,0xaf,0xea,0x25,0x6f,0xb1,0xc8,0x43,0xc5,0x54,
-   0xfc,0x1f,0x21,0x63,0xa5,0xf4,0x07,0x09,0x1b,0x2d,0x77,0x99,0xb0,0xcb,0x46,0xca,
-   0x45,0xcf,0x4a,0xde,0x79,0x8b,0x86,0x91,0xa8,0xe3,0x3e,0x42,0xc6,0x51,0xf3,0x0e,
-   0x12,0x36,0x5a,0xee,0x29,0x7b,0x8d,0x8c,0x8f,0x8a,0x85,0x94,0xa7,0xf2,0x0d,0x17,
-   0x39,0x4b,0xdd,0x7c,0x84,0x97,0xa2,0xfd,0x1c,0x24,0x6c,0xb4,0xc7,0x52,0xf6,0x01
-};
-
-/* Looking up in this table gives the uint8_t substitution needed Encryption */
+/* The Rijndael S-box matrix */
 static const uint8_t sbox[256] = {
    0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
    0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
@@ -126,41 +102,35 @@ static const uint32_t ftable[256] = {
    0xc3414182,0xb0999929,0x772d2d5a,0x110f0f1e,0xcbb0b07b,0xfc5454a8,0xd6bbbb6d,0x3a16162c
 };
 
-static const uint32_t Rconst[30] = 
+static const uint32_t Rconst[12] = 
 {
-   0x00000001,0x00000002,0x00000004,0x00000008,0x00000010,0x00000020,0x00000040,0x00000080,
-   0x0000001b,0x00000036,0x0000006c,0x000000d8,0x000000ab,0x0000004d,0x0000009a,0x0000002f,
-   0x0000005e,0x000000bc,0x00000063,0x000000c6,0x00000097,0x00000035,0x0000006a,0x000000d4,
-   0x000000b3,0x0000007d,0x000000fa,0x000000ef,0x000000c5,0x00000091
+   0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x80,0x1b,0x36,0x6c,0xd8
 };
    
 
-#define round_column(y0, x0, x1, x2, x3, key)      \
-   y0 = ftable[ROW_0(x0)]  XOR   \
-        ROTL8( ftable[ROW_1(x1)]) XOR   \
-        ROTL16(ftable[ROW_2(x2)]) XOR   \
-        ROTL24(ftable[ROW_3(x3)]) XOR   \
-        (*key++);
+#define round_column(x0, x1, x2, x3) \
+    ftable[ROW_0(x0)] ^ ROTL8(ftable[ROW_1(x1)]) ^ ROTL16(ftable[ROW_2(x2)]) ^  ROTL24(ftable[ROW_3(x3)])
 
-#define lastround_column(y0, x0, x1, x2, x3, key)           \
-   y0 = (uint32_t)sbox[ROW_0(x0)] XOR   \
-        SHFL8( (uint32_t)sbox[ROW_1(x1)]) XOR   \
-        SHFL16((uint32_t)sbox[ROW_2(x2)]) XOR   \
-        SHFL24((uint32_t)sbox[ROW_3(x3)]) XOR   \
-        (*key++);
+/*
+ * yn are inputs xn are outputs
+ */
+#define round(y0, y1, y2, y3, x0, x1, x2, x3, key) \
+   y0 = round_column(x0, x1, x2, x3) ^ *key++; \
+   y1 = round_column(x1, x2, x3, x0) ^ *key++; \
+   y2 = round_column(x2, x3, x0, x1) ^ *key++; \
+   y3 = round_column(x3, x0, x1, x2) ^ *key++;
+   
+#define lastround_column(x0, x1, x2, x3) \
+   (uint32_t)sbox[ROW_0(x0)] ^ SHFL8(sbox[ROW_1(x1)]) ^ SHFL16(sbox[ROW_2(x2)]) ^ SHFL24(sbox[ROW_3(x3)])
 
-#define round(y0, y1, y2, y3, x0, x1, x2, x3, key)      \
-   round_column(y0, x0, x1, x2, x3, key);  \
-   round_column(y1, x1, x2, x3, x0, key);  \
-   round_column(y2, x2, x3, x0, x1, key);  \
-   round_column(y3, x3, x0, x1, x2, key);
-   
-   
-#define lastround(y0, y1, y2, y3, x0, x1, x2, x3, key)      \
-   lastround_column(y0, x0, x1, x2, x3, key);  \
-   lastround_column(y1, x1, x2, x3, x0, key);  \
-   lastround_column(y2, x2, x3, x0, x1, key);  \
-   lastround_column(y3, x3, x0, x1, x2, key);
+/*
+ * yn are inputs xn are outputs
+ */
+#define lastround(y0, y1, y2, y3, x0, x1, x2, x3, key) \
+   y0 = lastround_column(x0, x1, x2, x3) ^ *key++; \
+   y1 = lastround_column(x1, x2, x3, x0) ^ *key++; \
+   y2 = lastround_column(x2, x3, x0, x1) ^ *key++; \
+   y3 = lastround_column(x3, x0, x1, x2) ^ *key++;
 
 static uint32_t pack(const uint8_t *b)
 { 
@@ -168,7 +138,7 @@ static uint32_t pack(const uint8_t *b)
    return uw;
 }
 
-static void unpack(uint32_t a,uint8_t *b)
+static void unpack(uint32_t a, uint8_t *b)
 { 
    *b++ = (uint8_t)(a);
    *b++ = (uint8_t)(a >>  8);
@@ -176,31 +146,25 @@ static void unpack(uint32_t a,uint8_t *b)
    *b++ = (uint8_t)(a >> 24);
 }
 
-static uint32_t Subuint8_t(uint32_t a)
+static uint32_t SubBytes(uint32_t a)
 {
-    uint8_t b[4];
-    unpack(a, b);
-    b[0] = sbox[b[0]];
-    b[1] = sbox[b[1]];
-    b[2] = sbox[b[2]];
-    b[3] = sbox[b[3]];
-    return pack(b);    
+    return (uint32_t)sbox[(uint8_t)(a)] | (sbox[(uint8_t)(a >> 8)] << 8) | (sbox[(uint8_t)(a >> 16)] << 16) | (sbox[(uint8_t)(a >> 24)] << 24);
 }
 
-#define NROUNDS 10
-#define NBLOCK   4
-#define NKEY     4
+#define ROUNDS 10
 
 
-static void enc_rounds(uint32_t *y, uint32_t *x, uint32_t *key)
+static void Encrypt(uint32_t *y, uint32_t *x, uint32_t *key)
 {
     int i;
     uint32_t x0 = x[0];
     uint32_t x1 = x[1];
     uint32_t x2 = x[2];
     uint32_t x3 = x[3];
-
-    uint32_t y0, y1, y2, y3;
+    uint32_t y0;
+    uint32_t y1;
+    uint32_t y2;
+    uint32_t y3;
 
     for(i = 0; i < 4; i++) {
         round(y0, y1, y2, y3, x0, x1, x2, x3, key);
@@ -219,40 +183,36 @@ static void enc_rounds(uint32_t *y, uint32_t *x, uint32_t *key)
 static void AES_EBC_128(AES_CTX *ctx, const uint8_t *in, uint8_t *out)
 {
     int i, j;
-    uint32_t a[4], b[4];
+    uint32_t a[4];
+    uint32_t b[4];
 
-    //first round
-    for (i = j = 0; i < NBLOCK; i++, j += 4) {
-        a[i]= pack((uint8_t*)&in[j]);
+    /* Load input buffer and initialize first round */
+    for (i = j = 0; i < 4; i++, j += 4) {
+        a[i] = pack((uint8_t*)&in[j]);
         a[i] ^= ctx->fkey[i];
     }
 
-    enc_rounds(b, a, &ctx->fkey[NBLOCK]);
+    Encrypt(b, a, &ctx->fkey[4]);
 
-    //Put back in the response buffer
-    for (i = j = 0; i < NBLOCK; i++, j += 4) {
+    /* Write into output buffer */
+    for (i = j = 0; i < 4; i++, j += 4) {
         unpack(b[i], (uint8_t *)&out[j]);
-        a[i] = b[i] = 0;   /* clean up stack */
     }
 }
 
 void AJ_AES_Enable(const uint8_t* key)
 {
-    int i, j;
+    int i;
     uint32_t *fkey = aes_context.fkey;
-    int N = NBLOCK * (NROUNDS + 1);
 
-    for (i = 0; i < NKEY; i++, key += 4) {
-        fkey[i] = pack(key); 
+    for (i = 0; i < 4; i++, key += 4, fkey++) {
+        *fkey = pack(key); 
     }
-
-    for (j = 0; j <= NROUNDS; j++) {
-        fkey += NKEY;
-        fkey[0] = fkey[-NKEY] ^ Subuint8_t(ROTL24(fkey[-1])) ^ Rconst[j];
-
-        for (i = 1; i < NKEY; i++) {
-            fkey[i] = fkey[i - NKEY] ^ fkey[i - 1];
-        }
+    for (i = 0; i <= ROUNDS; i++, fkey += 4) {
+        fkey[0] = fkey[0 - 4] ^ SubBytes(ROTL24(fkey[0 - 1])) ^ Rconst[i];
+        fkey[1] = fkey[1 - 4] ^ fkey[1 - 1];
+        fkey[2] = fkey[2 - 4] ^ fkey[2 - 1];
+        fkey[3] = fkey[3 - 4] ^ fkey[3 - 1];
     }
 }
 
