@@ -59,7 +59,15 @@ AJ_Status AJ_StoreCredential(AJ_PeerCred* peerCred)
          */
         cred = AJ_GetRemoteCredential(&InvalidGUID);
         if (!cred) {
-            return AJ_ERR_RESOURCES;
+            int i;
+            cred = credentials.peers + 1;
+            /*
+             * Free up a slot by deleting the oldest credential
+             */
+            for (i = 1; i < AJ_MAX_PEER_GUIDS; ++i, ++cred) {
+                memcpy((void*)(cred - 1), (void*)cred, sizeof(AJ_PeerCred));
+            }
+            printf("Deleting oldest credential to free up space\n");
         }
     }
     memcpy((void*)cred, peerCred, sizeof(AJ_PeerCred));
