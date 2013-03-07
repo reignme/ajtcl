@@ -132,18 +132,32 @@ static const uint32_t Rconst[12] =
    y2 = lastround_column(x2, x3, x0, x1) ^ *key++; \
    y3 = lastround_column(x3, x0, x1, x2) ^ *key++;
 
-static uint32_t pack(const uint8_t *b)
-{ 
-   uint32_t uw = (uint32_t) b[0] | (b[1] << 8) | (b[2] << 16)| (b[3] << 24);
-   return uw;
+
+static void Pack32(uint32_t* u32, const uint8_t* u8)
+{
+#if HOST_IS_LITTLE_ENDIAN
+    memcpy(u32, u8, 16);
+#else
+    int i;
+    for (i = 0; i < 4; ++i, ++u32, u8 += 4) {
+        *u32 = (uint32_t)u8[0] | (u8[1] << 8) | (u8[2] << 16) | (u8[3] << 24);
+    }
+#endif
 }
 
-static void unpack(uint32_t a, uint8_t *b)
-{ 
-   *b++ = (uint8_t)(a);
-   *b++ = (uint8_t)(a >>  8);
-   *b++ = (uint8_t)(a >> 16);
-   *b++ = (uint8_t)(a >> 24);
+static void Unpack32(uint8_t* u8, const uint32_t* u32)
+{
+#if HOST_IS_LITTLE_ENDIAN
+    memcpy(u8, u32, 16);
+#else
+    int i;
+    for (i = 0; i < 4; ++i, ++u32) {
+       *u8++ = (uint8_t)(*u32);
+       *u8++ = (uint8_t)(*u32 >>  8);
+       *u8++ = (uint8_t)(*u32 >> 16);
+       *u8++ = (uint8_t)(*u32 >> 24);
+    }
+#endif
 }
 
 static uint32_t SubBytes(uint32_t a)
@@ -154,7 +168,7 @@ static uint32_t SubBytes(uint32_t a)
 #define ROUNDS 10
 
 
-static void Encrypt(uint32_t *y, uint32_t *x, uint32_t *key)
+static void EncryptRounds(uint32_t *y, uint32_t *x, uint32_t *key)
 {
     int i;
     uint32_t x0 = x[0];
@@ -182,22 +196,26 @@ static void Encrypt(uint32_t *y, uint32_t *x, uint32_t *key)
 
 static void AES_EBC_128(AES_CTX *ctx, const uint8_t *in, uint8_t *out)
 {
-    int i, j;
+    int i;
     uint32_t a[4];
     uint32_t b[4];
 
-    /* Load input buffer and initialize first round */
-    for (i = j = 0; i < 4; i++, j += 4) {
-        a[i] = pack((uint8_t*)&in[j]);
+    Pack32(a, in);
+    /* Initialize first round */
+    for (i = 0; i < 4; ++i) {
         a[i] ^= ctx->fkey[i];
     }
-
-    Encrypt(b, a, &ctx->fkey[4]);
-
-    /* Write into output buffer */
-    for (i = j = 0; i < 4; i++, j += 4) {
-        unpack(b[i], (uint8_t *)&out[j]);
+#if HOST_IS_LITTLE_ENDIAN
+    if ((ptrdiff_t)out & 4) {
+        EncryptRounds(b, a, &ctx->fkey[4]);
+        Unpack32(out, b);
+    } else {
+        EncryptRounds((uint32_t*)out, a, &ctx->fkey[4]);
     }
+#else
+    EncryptRounds(b, a, &ctx->fkey[4]);
+    Unpack32(out, b);
+#endif
 }
 
 void AJ_AES_Enable(const uint8_t* key)
@@ -205,14 +223,12 @@ void AJ_AES_Enable(const uint8_t* key)
     int i;
     uint32_t *fkey = aes_context.fkey;
 
-    for (i = 0; i < 4; i++, key += 4, fkey++) {
-        *fkey = pack(key); 
-    }
-    for (i = 0; i <= ROUNDS; i++, fkey += 4) {
-        fkey[0] = fkey[0 - 4] ^ SubBytes(ROTL24(fkey[0 - 1])) ^ Rconst[i];
-        fkey[1] = fkey[1 - 4] ^ fkey[1 - 1];
-        fkey[2] = fkey[2 - 4] ^ fkey[2 - 1];
-        fkey[3] = fkey[3 - 4] ^ fkey[3 - 1];
+    Pack32(fkey, key);
+    for (i = 0; i <= ROUNDS; ++i, fkey += 4) {
+        fkey[4] = fkey[0] ^ SubBytes(ROTL24(fkey[3])) ^ Rconst[i];
+        fkey[5] = fkey[1] ^ fkey[4];
+        fkey[6] = fkey[2] ^ fkey[5];
+        fkey[7] = fkey[3] ^ fkey[6];
     }
 }
 
@@ -241,18 +257,23 @@ void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_
 void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv)
 {
     uint8_t* ivp = iv;
-    uint8_t xor[16];
+    uint32_t xor[4];
+    uint32_t ivt[4];
 
     assert((len % 16) == 0);
+
+    Pack32(ivt, iv);
     while (len) {
         int i;
-        for (i = 0; i < 16; ++i) {
-            xor[i] = *ivp++ ^ *in++;
+        Pack32(xor, in);
+        for (i = 0; i < 4; ++i) {
+            xor[i] ^= ivt[i] ^ aes_context.fkey[i];
         }
-        AES_EBC_128(&aes_context, xor, out);
-        ivp = out;
+        EncryptRounds(ivt, xor, &aes_context.fkey[4]);
+        Unpack32(out, ivt);
         out += 16;
+        in += 16;
         len -= 16;
     }
-    memcpy(iv, ivp, 16);
+    Unpack32(iv, ivt);
 }
