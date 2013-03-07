@@ -194,30 +194,6 @@ static void EncryptRounds(uint32_t *y, uint32_t *x, uint32_t *key)
     y[3] = x3;
 }
 
-static void AES_EBC_128(AES_CTX *ctx, const uint8_t *in, uint8_t *out)
-{
-    int i;
-    uint32_t a[4];
-    uint32_t b[4];
-
-    Pack32(a, in);
-    /* Initialize first round */
-    for (i = 0; i < 4; ++i) {
-        a[i] ^= ctx->fkey[i];
-    }
-#if HOST_IS_LITTLE_ENDIAN
-    if ((ptrdiff_t)out & 4) {
-        EncryptRounds(b, a, &ctx->fkey[4]);
-        Unpack32(out, b);
-    } else {
-        EncryptRounds((uint32_t*)out, a, &ctx->fkey[4]);
-    }
-#else
-    EncryptRounds(b, a, &ctx->fkey[4]);
-    Unpack32(out, b);
-#endif
-}
-
 void AJ_AES_Enable(const uint8_t* key)
 {
     int i;
@@ -234,24 +210,47 @@ void AJ_AES_Enable(const uint8_t* key)
 
 void AJ_AES_Disable(void)
 {
+    memset(&aes_context, 0, sizeof(aes_context));
 }
 
 void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* ctr)
 {
+    uint32_t counter[4];
+
+    Pack32(counter, ctr);
+
     while (len) {
+        uint32_t tmp[4];
+        uint32_t i;
         uint32_t n = min(len, 16);
-        uint8_t enc[16];
-        uint8_t* p = enc;
-        uint16_t counter = (ctr[14] << 8) | ctr[15];
+        uint8_t* p = (uint8_t*)tmp;
+
+        for (i = 0; i < 4; ++i) {
+            tmp[i] = counter[i] ^ aes_context.fkey[i];
+        }
+        EncryptRounds(tmp, tmp, &aes_context.fkey[4]);
         len -= n;
-        AES_EBC_128(&aes_context, ctr, enc);
         while (n--) {
             *out++ = *p++ ^ *in++;
         }
-        ++counter;
-        ctr[15] = (uint8_t)counter;
-        ctr[14] = (uint8_t)(counter >> 8);
+        /*
+         * The counter field is big-endian (dumb idea given everything else is processed little endian)
+         */
+#if HOST_IS_LITTLE_ENDIAN
+        /*
+         * A big-endian increment of a 32 bit counter on a little-endian CPU.
+         * Only supports counter values up to 2^16 because that is all we need
+         */
+        if (counter[3] == 0xFF000000) {
+            counter[3] += 0x00010000;
+        }
+        counter[3] += 0x01000000;
+#else
+        counter[3] += 1;
+#endif
     }
+
+    Unpack32(ctr, counter);
 }
 
 void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv)
