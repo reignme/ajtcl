@@ -256,7 +256,7 @@ void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_
 void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv)
 {
     uint8_t* ivp = iv;
-    uint32_t xor[4];
+    uint32_t xorbuf[4];
     uint32_t ivt[4];
 
     assert((len % 16) == 0);
@@ -264,11 +264,11 @@ void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out,
     Pack32(ivt, iv);
     while (len) {
         int i;
-        Pack32(xor, in);
+        Pack32(xorbuf, in);
         for (i = 0; i < 4; ++i) {
-            xor[i] ^= ivt[i] ^ aes_context.fkey[i];
+            xorbuf[i] ^= ivt[i] ^ aes_context.fkey[i];
         }
-        EncryptRounds(ivt, xor, &aes_context.fkey[4]);
+        EncryptRounds(ivt, xorbuf, &aes_context.fkey[4]);
         Unpack32(out, ivt);
         out += 16;
         in += 16;
