@@ -93,7 +93,9 @@ static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
     return AJ_OK;
 }
 
+#ifndef NDEBUG
 extern AJ_MutterHook MutterHook;
+#endif
 
 
 static const char* Fruits[] = {
@@ -150,7 +152,12 @@ int main()
     /*
      * Set the hook
      */
+#ifndef NDEBUG
     MutterHook = MsgInit;
+#else
+    printf("mutter only works in DEBUG builds\n");
+    return -1;
+#endif
 
     for (i = 0; i < ArraySize(testSignature); ++i) {
 
