@@ -40,12 +40,9 @@ void AJ_IOBufRebase(AJ_IOBuffer* ioBuf)
      * Move any unconsumed data to the start of the I/O buffer
      */
     if (unconsumed) {
-        if (ioBuf->direction == AJ_IO_BUF_RX) {
-            memmove(ioBuf->bufStart, ioBuf->writePtr, unconsumed);
-        } else {
-            memmove(ioBuf->bufStart, ioBuf->readPtr, unconsumed);
-        }
+        memmove(ioBuf->bufStart, ioBuf->readPtr, unconsumed);
     }
+
     ioBuf->readPtr = ioBuf->bufStart;
     ioBuf->writePtr = ioBuf->bufStart + unconsumed;
 }
