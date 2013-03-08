@@ -130,7 +130,7 @@ int aj_main_loop()
                 if (authenticate) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
                 } else {
-                authStatus = AJ_OK;
+                    authStatus = AJ_OK;
                 }
             } else {
                 printf("StartClient returned %d\n", status);

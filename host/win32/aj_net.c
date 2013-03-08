@@ -290,15 +290,15 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 
     // find out how many Adapter addresses we have and get the list
     GetAdaptersAddresses(
-                         AF_INET,
-                         GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
-                         0, &info, &infoLen);
+        AF_INET,
+        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+        0, &info, &infoLen);
     parray = pinfo = (IP_ADAPTER_ADDRESSES*) malloc(infoLen);
 
     GetAdaptersAddresses(
-                         AF_INET,
-                         GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
-                         0, pinfo, &infoLen);
+        AF_INET,
+        GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_DNS_SERVER,
+        0, pinfo, &infoLen);
 
     // iterate through the adaptor addresses.
     for (; pinfo; pinfo = pinfo->Next) {
