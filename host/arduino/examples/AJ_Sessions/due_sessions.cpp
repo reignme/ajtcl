@@ -135,17 +135,17 @@ int aj_main_loop()
                 char* transports = strtok(NULL, " \r\n");
                 uint16_t transportflag = 0xFFFF;
                 if (transports != NULL) {
-                  transportflag = word(transportflag);
+                    transportflag = word(transportflag);
                 }
-                status = AJ_BusAdvertiseName(&bus, name, transportflag ,AJ_BUS_START_ADVERTISING);
+                status = AJ_BusAdvertiseName(&bus, name, transportflag, AJ_BUS_START_ADVERTISING);
             } else if (0 == strcmp("canceladvertise", command)) {
                 char* name = strtok(NULL, " \r\n");
                 char* transports = strtok(NULL, " \r\n");
                 uint16_t transportflag = 0xFFFF;
                 if (transports != NULL) {
-                  transportflag = word(transportflag);
+                    transportflag = word(transportflag);
                 }
-                status = AJ_BusAdvertiseName(&bus, name, transportflag,AJ_BUS_STOP_ADVERTISING);
+                status = AJ_BusAdvertiseName(&bus, name, transportflag, AJ_BUS_STOP_ADVERTISING);
             }
 
         }
