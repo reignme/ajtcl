@@ -358,7 +358,7 @@ AJ_Status AJ_DeliverMsgPartial(AJ_Message* msg, uint32_t bytesRemaining);
  * Marshals one or arguments of basic types such as integers, strings, etc. Container types
  * (structs and arrays) must use AJ_MarshalContainer()
  *
- * @param msg       A pointer to a message currentl being marshaled.
+ * @param msg       A pointer to a message currently being marshaled.
  * @param signature The signature of the argument list to marshal.
  * @param ...       Values of the correct size and type per the signature
  *

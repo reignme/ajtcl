@@ -44,6 +44,7 @@
 #define AJ_METHOD_REQUEST_NAME         AJ_BUS_MESSAGE_ID(0, 0, 5)
 #define AJ_METHOD_ADD_MATCH            AJ_BUS_MESSAGE_ID(0, 0, 6)
 #define AJ_METHOD_REMOVE_MATCH         AJ_BUS_MESSAGE_ID(0, 0, 7)
+#define AJ_METHOD_RELEASE_NAME         AJ_BUS_MESSAGE_ID(0, 0, 8)
 
 /*
  * Members of /org/alljoyn/Bus interface org.alljoyn.Bus

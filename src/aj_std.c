@@ -67,6 +67,7 @@ static const char* const DBusIface[] = {
     "?RequestName <s <u >u",
     "?AddMatch <s",
     "?RemoveMatch <s",
+    "?ReleaseName <s",
     NULL
 
 };

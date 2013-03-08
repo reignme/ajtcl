@@ -85,6 +85,18 @@ AJ_Status AJ_BusRequestName(AJ_BusAttachment* bus, const char* name, uint32_t fl
 #define AJ_TRANSPORT_ICE       0x0020    /**< Transport using ICE protocol */
 #define AJ_TRANSPORT_PROXIMITY 0x0040    /**< Transport compatible with WinRT Proximity Framework */
 
+/**
+ * Make a method call to release a previously requested well known name.
+ *
+ * @param bus         The bus attachment
+ * @param name        The name being released
+ *
+ * @return
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusReleaseName(AJ_BusAttachment* bus, const char* name);
+
 #define AJ_BUS_START_ADVERTISING 0
 #define AJ_BUS_STOP_ADVERTISING  1
 

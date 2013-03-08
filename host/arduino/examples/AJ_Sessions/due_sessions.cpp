@@ -36,6 +36,7 @@ uint32_t sessionId = 0ul;
 AJ_Status authStatus = AJ_ERR_NULL;
 
 
+
 static const char DaemonName[] = "org.alljoyn";
 static const char ServiceName[] = "org.alljoyn.bus.test.sessions";
 static const uint16_t ServicePort = 25;
@@ -108,6 +109,49 @@ int aj_main_loop()
     AJ_RegisterObjects(AppObjects, NULL);
 
     while (TRUE) {
+        // check for serial input and dispatch if needed.
+        if (Serial.available() > 0) {
+            int countBytesRead;
+            char buf[1024];
+            // read the incoming bytes until a newline character:
+            countBytesRead = Serial.readBytesUntil('\n', buf, sizeof(buf));
+            buf[countBytesRead] = '\0';
+            printf("~~~>%s\n", buf);
+            char* command = strtok(buf, " \r\n");
+            if (0 == strcmp("find", command)) {
+                char* name = strtok(NULL, " \r\n");
+                status = AJ_BusFindAdvertisedName(&bus, name, AJ_BUS_START_FINDING);
+            } else if (0 == strcmp("cancelfind", command)) {
+                char* name = strtok(NULL, " \r\n");
+                status = AJ_BusFindAdvertisedName(&bus, name, AJ_BUS_STOP_FINDING);
+            } else if (0 == strcmp("requestname", command)) {
+                char* name = strtok(NULL, " \r\n");
+                status = AJ_BusRequestName(&bus, name, AJ_NAME_REQ_DO_NOT_QUEUE);
+            } else if (0 == strcmp("releasename", command)) {
+                char* name = strtok(NULL, " \r\n");
+                status = AJ_BusReleaseName(&bus, name);
+            } else if (0 == strcmp("advertise", command)) {
+                char* name = strtok(NULL, " \r\n");
+                char* transports = strtok(NULL, " \r\n");
+                uint16_t transportflag = 0xFFFF;
+                if (transports != NULL) {
+                  transportflag = word(transportflag);
+                }
+                status = AJ_BusAdvertiseName(&bus, name, transportflag ,AJ_BUS_START_ADVERTISING);
+            } else if (0 == strcmp("canceladvertise", command)) {
+                char* name = strtok(NULL, " \r\n");
+                char* transports = strtok(NULL, " \r\n");
+                uint16_t transportflag = 0xFFFF;
+                if (transports != NULL) {
+                  transportflag = word(transportflag);
+                }
+                status = AJ_BusAdvertiseName(&bus, name, transportflag,AJ_BUS_STOP_ADVERTISING);
+            }
+
+        }
+
+
+
         AJ_Message msg;
 
         if (!connected) {

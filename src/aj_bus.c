@@ -53,6 +53,21 @@ AJ_Status AJ_BusRequestName(AJ_BusAttachment* bus, const char* name, uint32_t fl
     return status;
 }
 
+AJ_Status AJ_BusReleaseName(AJ_BusAttachment* bus, const char* name)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_RELEASE_NAME, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        status = AJ_MarshalArgs(&msg, "s", name);
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
 AJ_Status AJ_BusAdvertiseName(AJ_BusAttachment* bus, const char* name, uint16_t transportMask, uint8_t op)
 {
     AJ_Status status;
