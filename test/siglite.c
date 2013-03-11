@@ -107,7 +107,9 @@ static AJ_Status SendSignal(AJ_BusAttachment* bus, uint32_t sessionId)
 
     status = AJ_MarshalSignal(bus, &msg, PRX_MY_SIGNAL, ServiceName, sessionId, authFlag, 0);
     if (status == AJ_OK) {
-        status = AJ_MarshalArgs(&msg, "a{ys}", 0, NULL);
+        AJ_Arg arg;
+        status = AJ_MarshalContainer(&msg, &arg, AJ_ARG_ARRAY);
+        status = AJ_MarshalCloseContainer(&msg, &arg);
     }
     if (status == AJ_OK) {
         status = AJ_DeliverMsg(&msg);
