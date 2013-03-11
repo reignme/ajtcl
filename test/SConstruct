@@ -32,6 +32,7 @@ tests = [ ]
 tests.append('svclite')
 tests.append('clientlite')
 tests.append('siglite')
+tests.append('bastress2')
 
 if env['HOST'] == 'win32':
     if not env.has_key('OPENSSL_DIR'):
