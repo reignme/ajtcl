@@ -111,7 +111,7 @@ AJ_Status AppHandleCat(AJ_Message* msg)
     return status;
 }
 
-int aj_main_loop()
+int AJ_Main()
 {
     // you're connected now, so print out the data:
     printf("You're connected to the network\n");
