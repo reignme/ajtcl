@@ -19,13 +19,17 @@
 
 #include <stdio.h>
 
-#include "alljoyn.h"
-#include "aj_debug.h"
-#include "aj_crypto.h"
-#include "aj_helper.h"
+#include <alljoyn.h>
+
+
+/*
+ * Modify these variables to change the service's behavior
+ */
 
 static const char ServiceName[] = "org.alljoyn.svclite";
 static const uint16_t ServicePort = 24;
+static const uint8_t CancelAdvertiseName = FALSE;
+static const uint8_t ReflectSignal = FALSE;
 
 /*
  * An application property to SET or GET
@@ -35,6 +39,9 @@ static int32_t propVal = 123456;
 static const char* testInterface[] = {
     "org.alljoyn.alljoyn_test",
     "?my_ping inStr<s outStr>s",
+    "?delayed_ping inStr<s delay<u outStr>s",
+    "?time_ping <u <q >u >q",
+    "!my_signal >a{ys}",
     NULL
 };
 
@@ -42,6 +49,8 @@ static const char* testInterface[] = {
 static const char* testValuesInterface[] = {
     "org.alljoyn.alljoyn_test.values",
     "@int_val=i",
+    "@str_val=s",
+    "@ro_val>s",
     NULL
 };
 
@@ -52,20 +61,22 @@ static const AJ_InterfaceDescription testInterfaces[] = {
     NULL
 };
 
-/**
- * Objects implemented by the application
- */
 static const AJ_Object AppObjects[] = {
     { "/org/alljoyn/alljoyn_test", testInterfaces },
     { NULL }
 };
+
+
 
 /*
  * Message identifiers for the method calls this application implements
  */
 #define APP_GET_PROP  AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_GET)
 #define APP_SET_PROP  AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_SET)
-#define APP_MY_PING   AJ_APP_MESSAGE_ID(0, 1, 0)
+#define APP_MY_PING         AJ_APP_MESSAGE_ID(0, 1, 0)
+#define APP_DELAYED_PING    AJ_APP_MESSAGE_ID(0, 1, 1)
+#define APP_TIME_PING       AJ_APP_MESSAGE_ID(0, 1, 2)
+#define APP_MY_SIGNAL       AJ_APP_MESSAGE_ID(0, 1, 3)
 
 /*
  * Property identifiers for the properies this application implements
@@ -157,6 +168,7 @@ int AJ_Main(void)
                 continue;
             }
             printf("StartService returned AJ_OK\n");
+
             connected = TRUE;
             AJ_BusSetPasswordCallback(&bus, PasswordCallback);
         }
@@ -171,13 +183,28 @@ int AJ_Main(void)
         if (status == AJ_OK) {
             switch (msg.msgId) {
 
+            case AJ_REPLY_ID(AJ_METHOD_ADD_MATCH):
+                if (msg.hdr->msgType == AJ_MSG_ERROR) {
+                    printf("Failed to add match\n");
+                    status = AJ_ERR_FAILURE;
+                } else {
+                    status = AJ_OK;
+                }
+                break;
+
             case AJ_METHOD_ACCEPT_SESSION:
                 {
                     uint16_t port;
                     char* joiner;
                     AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
-                    status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                    printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+
+                    if (port == ServicePort) {
+                        status = AJ_BusReplyAcceptSession(&msg, TRUE);
+                        printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+                    } else {
+                        status = AJ_BusReplyAcceptSession(&msg, FALSE);
+                        printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
+                    }
                 }
                 break;
 
@@ -199,10 +226,36 @@ int AJ_Main(void)
                 break;
 
             case AJ_SIGNAL_SESSION_LOST:
-                /*
-                 * Force a disconnect
-                 */
-                status = AJ_ERR_READ;
+                if (CancelAdvertiseName) {
+                    status = AJ_BusAdvertiseName(&bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
+                }
+                break;
+
+            case AJ_SIGNAL_SESSION_JOINED:
+                if (CancelAdvertiseName) {
+                    status = AJ_BusAdvertiseName(&bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_STOP_ADVERTISING);
+                }
+                break;
+
+
+            case AJ_REPLY_ID(AJ_METHOD_CANCEL_ADVERTISE):
+            case AJ_REPLY_ID(AJ_METHOD_ADVERTISE_NAME):
+                if (msg.hdr->msgType == AJ_MSG_ERROR) {
+                    status = AJ_ERR_FAILURE;
+                }
+                break;
+
+            case APP_MY_SIGNAL:
+                printf("Received my_signal\n");
+                status = AJ_OK;
+
+                if (ReflectSignal) {
+                    AJ_Message out;
+                    AJ_MarshalSignal(&bus, &out, APP_MY_SIGNAL, msg.destination, msg.sessionId, 0, 0);
+                    AJ_MarshalArgs(&out, "a{ys}", 0, NULL);
+                    AJ_DeliverMsg(&out);
+                    AJ_CloseMsg(&out);
+                }
                 break;
 
             default:

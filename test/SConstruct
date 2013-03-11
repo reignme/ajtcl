@@ -91,5 +91,6 @@ env.Program('aestest', ['aestest.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 env.Program('aesbench', ['aesbench.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 env.Program('svclite', ['svclite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 env.Program('clientlite', ['clientlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+env.Program('siglite', ['siglite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 #env.Program('adcdemo', ['adc_demo.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 
