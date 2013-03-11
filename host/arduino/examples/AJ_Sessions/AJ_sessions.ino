@@ -41,6 +41,8 @@ static char pass[] = "71DF437B55"; // passphrase for the SSID
 int wifiStatus = WL_IDLE_STATUS;
 #endif
 
+int AJ_Main();
+
 
 void setup() {
 
@@ -92,6 +94,6 @@ void setup() {
 
 
 void loop() {
-    aj_main_loop();
+    AJ_Main();
 }
 
