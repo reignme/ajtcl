@@ -41,7 +41,6 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE
-#define WIFI_UDP_WORKING 1
 
 #ifdef WIFI_UDP_WORKING
     #include <WiFi.h>
