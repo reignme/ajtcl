@@ -13,18 +13,25 @@
 #    limitations under the License.
 
 import os
+import shutil
 
 vars = Variables()
 
 # Common build variables
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
-vars.Add(EnumVariable('HOST', 'Host platform variant', 'win32', allowed_values=('win32', 'linux')))
+vars.Add(EnumVariable('HOST', 'Host platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
 vars.Add(PathVariable('OPENSSL_DIR', 'OpenSSL Base', os.environ.get('OPENSSL_BASE'), PathVariable.PathIsDir))
 vars.Add(EnumVariable('MSVC_VERSION', 'MSVC compiler version - Windows', '10.0', allowed_values=('8.0', '9.0', '10.0', '11.0', '11.0Exp')))
 
 env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
 
 env.Append(CPPDEFINES = ['AJ_MAIN'])
+
+
+tests = [ ]
+tests.append('svclite')
+tests.append('clientlite')
+tests.append('siglite')
 
 if env['HOST'] == 'win32':
     if not env.has_key('OPENSSL_DIR'):
@@ -60,6 +67,11 @@ elif env['HOST'] == 'linux':
         env.Append(CPPDEFINES=['NDEBUG'])
         env.Append(CFLAGS='-Os')
         env.Append(LINKFLAGS='-s')
+elif env['HOST'] == 'arduino':    
+    for test in tests:
+        out_path = "../host/arduino/examples/AJ_" + test + "/" + test + ".cpp"
+        #env.InstallAs(out_path, test + '.c')
+        shutil.copyfile(test + '.c', out_path)
 else:
     libs = ['rt']
     env.Append(CFLAGS=['-m32'])
@@ -76,21 +88,23 @@ else:
         env.Append(CFLAGS='-Os')
         env.Append(LINKFLAGS='-s')
 
-aj_srcs = [Glob('../src/*.c')]
-aj_host_srcs = [Glob('../host/' + env['HOST'] + '/*.c')]
 
-includes = ['../inc', '../host/${HOST}']
 
-env.VariantDir('build/${HOST}/${VARIANT}', '.', 0)
+if env['HOST'] != 'arduino':
+    aj_srcs = [Glob('../src/*.c')]
+    aj_host_srcs = [Glob('../host/' + env['HOST'] + '/*.c')]
+    
+    includes = ['../inc', '../host/${HOST}']
+    
+    env.VariantDir('build/${HOST}/${VARIANT}', '.', 0)
+    aj_obj = env.Object(aj_srcs + aj_host_srcs, CPPPATH=includes)
 
-aj_obj = env.Object(aj_srcs + aj_host_srcs, CPPPATH=includes)
-
-env.Program('mutter', ['mutter.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('ajlite', ['ajlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('aestest', ['aestest.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('aesbench', ['aesbench.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('svclite', ['svclite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('clientlite', ['clientlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-env.Program('siglite', ['siglite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
-#env.Program('adcdemo', ['adc_demo.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('mutter', ['mutter.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('ajlite', ['ajlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('aestest', ['aestest.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('aesbench', ['aesbench.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('svclite', ['svclite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('clientlite', ['clientlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    env.Program('siglite', ['siglite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
+    #env.Program('adcdemo', ['adc_demo.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 

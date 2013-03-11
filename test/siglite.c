@@ -64,7 +64,7 @@ static const AJ_Object ProxyObjects[] = {
 #define PRX_TIME_PING       AJ_PRX_MESSAGE_ID(0, 0, 2)
 #define PRX_MY_SIGNAL       AJ_PRX_MESSAGE_ID(0, 0, 3)
 
-AJ_Status SendSignal(AJ_BusAttachment* bus, uint32_t sessionId);
+static AJ_Status SendSignal(AJ_BusAttachment* bus, uint32_t sessionId);
 
 /*
  * Let the application do some work

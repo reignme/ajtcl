@@ -72,8 +72,16 @@ static const AJ_Object ProxyObjects[] = {
 /*
  * Let the application do some work
  */
-static void AppDoWork()
+static AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned int num);
+static int32_t g_iterCount = 0;
+static void AppDoWork(AJ_BusAttachment* bus, uint32_t sessionId)
 {
+    printf("AppDoWork");
+    /*
+     * This function is called if there are no messages to unmarshal
+     */
+    g_iterCount = g_iterCount + 1;
+    SendPing(bus, sessionId, g_iterCount);
 }
 
 static const char PWD[] = "ABCDEFGH";
@@ -201,7 +209,7 @@ int AJ_Main(void)
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
         if (status != AJ_OK) {
             if (status == AJ_ERR_TIMEOUT) {
-                AppDoWork();
+                AppDoWork(&bus, sessionId);
             }
             continue;
         }
@@ -221,12 +229,12 @@ int AJ_Main(void)
                 const char* sig;
                 status = AJ_UnmarshalVariant(&msg, &sig);
                 if (status == AJ_OK) {
-                    int32_t val;
-                    status = AJ_UnmarshalArgs(&msg, sig, &val);
-                    printf("Get prop reply %d\n", val);
+                    status = AJ_UnmarshalArgs(&msg, sig, &g_iterCount);
+                    printf("Get prop reply %d\n", g_iterCount);
 
                     if (status == AJ_OK) {
-                        status = SendSetProp(&bus, sessionId, -val);
+                        g_iterCount = g_iterCount + 1;
+                        status = SendSetProp(&bus, sessionId, g_iterCount);
                     }
                 }
             }
