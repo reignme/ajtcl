@@ -38,9 +38,9 @@ void setup() {
     while (!Serial) {
         ; // wait for serial port to connect. Needed for Leonardo only
     }
-    
+
     printf("setup");
-    
+
 #ifdef WIFI_UDP_WORKING
     char ssid[] = "eric-wifi";
     int status = WL_IDLE_STATUS;     // the Wifi radio's status
