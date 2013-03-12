@@ -25,7 +25,6 @@
 int analogPin = 3;
 static uint8_t seed[16];
 static uint8_t key[16];
-
 /*
  * The host has various ADC's. We are going to accumulate entropy by repeatedly
  * reading the ADC and accumulating the least significant bit or each reading.
@@ -65,25 +64,4 @@ void AJ_RandBytes(uint8_t* rand, uint32_t len)
         rand += 1;
     }
     AJ_AES_Disable();
-}
-
-void AJ_AES_Enable(const uint8_t* key)
-{
-    // BUGBUG do nothing
-}
-
-
-void AJ_AES_Disable(void)
-{
-    // BUGBUG do nothing
-}
-
-void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* ctr)
-{
-    // BUGBUG do nothing
-}
-
-void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv)
-{
-    // BUGBUG do nothing
 }
