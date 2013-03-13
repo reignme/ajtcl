@@ -20,8 +20,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "due_bastress2.h"
-
 #include <alljoyn.h>
 
 #define CONNECT_TIMEOUT    (1000ul * 200)

@@ -34,8 +34,6 @@
 
 #include <alljoyn.h>
 
-#include "due_bastress2.h"
-
 #ifdef WIFI_UDP_WORKING
 static char ssid[] = "yourNetwork";
 static char pass[] = "71DF437B55"; // passphrase for the SSID
