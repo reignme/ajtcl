@@ -2,7 +2,7 @@
  * @file  Marhal/Unmarshal Tester
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ static const uint16_t Data16[] = { 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF0
 
 #define CHECK(x) if ((status = (x)) != AJ_OK) { break; }
 
-int main()
+int AJ_Main()
 {
     AJ_Status status;
     AJ_BusAttachment bus;
@@ -391,7 +391,7 @@ int main()
         case 4:
             CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
             printf("Unmarshal %d\n", j);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
             while (status == AJ_OK) {
@@ -412,12 +412,12 @@ int main()
             break;
 
         case 5:
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
             CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
             printf("Unmarshal %d\n", j);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
             printf("Unmarshal %s\n", str);
@@ -427,15 +427,15 @@ int main()
             break;
 
         case 6:
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
             printf("Unmarshal %s\n", str);
@@ -443,17 +443,17 @@ int main()
 
         case 7:
             CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
             printf("Unmarshal %d\n", j);
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
-            CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
             CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
             CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
@@ -463,12 +463,12 @@ int main()
             CHECK(AJ_UnmarshalArgs(&rxMsg, "uq", &j, &q));
             printf("Unmarshal %d\n", j);
             printf("Unmarshal %d\n", q);
-            CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, sizeof(len), &sz));
+            CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, sizeof(len), &sz));
             len = *((uint32_t*)raw);
             printf("UnmarshalRaw %d\n", len);
             for (j = 0; j < len; ++j) {
                 uint8_t v;
-                CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 1, &sz));
+                CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 1, &sz));
                 v = *((uint8_t*)raw);
                 if (v != (uint8_t)j) {
                     status = AJ_ERR_FAILURE;
@@ -478,15 +478,15 @@ int main()
             break;
 
         case 9:
-            CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 4, &sz));
+            CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 4, &sz));
             len = *((uint32_t*)raw) / sizeof(TestStruct);
             /*
              * Structs are always 8 byte aligned
              */
-            CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 4, &sz));
+            CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 4, &sz));
             for (j = 0; j < len; ++j) {
                 TestStruct* ts;
-                CHECK(AJ_UnmarshalRaw(&rxMsg, &ts, sizeof(TestStruct), &sz));
+                CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&ts, sizeof(TestStruct), &sz));
                 if ((ts->a != j) || (ts->b != (j + 1)) || (ts->c != (j + 2)) || (ts->d != (j + 3))) {
                     status = AJ_ERR_FAILURE;
                     break;
@@ -508,3 +508,9 @@ int main()
 
     return 0;
 }
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

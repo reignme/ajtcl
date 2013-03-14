@@ -21,26 +21,14 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#undef WIFI_UDP_WORKING
-
-#ifdef WIFI_UDP_WORKING
 #include <SPI.h>
+#ifdef WIFI_UDP_WORKING
 #include <WiFi.h>
 #else
-#include <SPI.h>
 #include <Ethernet.h>
 #endif
 
 #include <alljoyn.h>
-
-#ifdef WIFI_UDP_WORKING
-static char ssid[] = "yourNetwork";
-static char pass[] = "71DF437B55"; // passphrase for the SSID
-int wifiStatus = WL_IDLE_STATUS;
-#endif
-
-int AJ_Main();
-
 
 void setup() {
 
@@ -52,44 +40,9 @@ void setup() {
 
     printf("hello, world.\n");
 
-#ifdef WIFI_UDP_WORKING
-    // check for the presence of the shield:
-    if (WiFi.status() == WL_NO_SHIELD) {
-        printf("WiFi shield not present\n");
-        // don't continue:
-        while (true) ;
-    }
-
-    // attempt to connect to Wifi network:
-    while (wifiStatus != WL_CONNECTED) {
-        printf("Attempting to connect to WPA SSID: %s\n", ssid);
-
-        // Connect to WEP private network
-        wifiStatus = WiFi.begin(ssid, 0, pass);
-
-        // wait 3 seconds for connection:
-        delay(3000);
-
-        // print your WiFi shield's IP address:
-        IPAddress ip = WiFi.localIP();
-        Serial.print("IP Address ");
-        Serial.println(ip);
-    }
-#else
-    byte mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
-    // start the Ethernet connection:
-    if (Ethernet.begin(mac) == 0) {
-        printf("Failed to configure Ethernet using DHCP\n");
-        // no point in carrying on, so do nothing forevermore:
-        for (;;)
-            ;
-    }
-#endif
-
-
 }
 
-
+int AJ_Main(void);
 
 void loop() {
     AJ_Main();

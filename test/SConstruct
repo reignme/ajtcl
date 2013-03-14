@@ -21,6 +21,7 @@ vars = Variables()
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(EnumVariable('HOST', 'Host platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
 vars.Add(PathVariable('OPENSSL_DIR', 'OpenSSL Base', os.environ.get('OPENSSL_BASE'), PathVariable.PathIsDir))
+vars.Add(PathVariable('ALLJOYN_DIR', 'AllJoyn Base', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(EnumVariable('MSVC_VERSION', 'MSVC compiler version - Windows', '10.0', allowed_values=('8.0', '9.0', '10.0', '11.0', '11.0Exp')))
 
 env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
@@ -33,6 +34,11 @@ tests.append('svclite')
 tests.append('clientlite')
 tests.append('siglite')
 tests.append('bastress2')
+tests.append('mutter')
+testInputs = [ ]
+testOutputs = [ ]
+
+examples = ['AJ_LedService']
 
 if env['HOST'] == 'win32':
     if not env.has_key('OPENSSL_DIR'):
@@ -68,11 +74,6 @@ elif env['HOST'] == 'linux':
         env.Append(CPPDEFINES=['NDEBUG'])
         env.Append(CFLAGS='-Os')
         env.Append(LINKFLAGS='-s')
-elif env['HOST'] == 'arduino':    
-    for test in tests:
-        out_path = "../host/arduino/examples/AJ_" + test + "/" + test + ".cpp"
-        #env.InstallAs(out_path, test + '.c')
-        shutil.copyfile(test + '.c', out_path)
 else:
     libs = ['rt']
     env.Append(CFLAGS=['-m32'])
@@ -90,15 +91,17 @@ else:
         env.Append(LINKFLAGS='-s')
 
 
+aj_crypto_srcs = [Glob('../crypto/' + '*.c')]
+aj_headers = [Glob('../inc/*.h')]
+aj_host_files = [Glob('../host/' + env['HOST'] + '/*.h')]
+aj_host_srcs = [Glob('../host/' + env['HOST'] + '/*.c')]
+aj_srcs = [Glob('../src/*.c')]
+includes = ['../inc', '../host/${HOST}']
+
+env.VariantDir('build/${HOST}/${VARIANT}', '.', 0)
 
 if env['HOST'] != 'arduino':
-    aj_srcs = [Glob('../src/*.c')]
-    aj_host_srcs = [Glob('../host/' + env['HOST'] + '/*.c')]
-    
-    includes = ['../inc', '../host/${HOST}']
-    
-    env.VariantDir('build/${HOST}/${VARIANT}', '.', 0)
-    aj_obj = env.Object(aj_srcs + aj_host_srcs, CPPPATH=includes)
+    aj_obj = env.Object(aj_srcs + aj_host_srcs + aj_crypto_srcs, CPPPATH=includes)
 
     env.Program('mutter', ['mutter.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
     env.Program('ajlite', ['ajlite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
@@ -109,3 +112,44 @@ if env['HOST'] != 'arduino':
     env.Program('siglite', ['siglite.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
     #env.Program('adcdemo', ['adc_demo.c'] + aj_obj, CPPPATH=includes, LIBS=libs)
 
+elif env['HOST'] == 'arduino':
+# The goal is to create an installable AllJoyn library for the Arduino envrionment.
+#  There are some hoops to jump through, such as changing file extensions from '.c' to '.cpp'
+#  so the files will compile in the Arduino IDE.
+
+    arduinoEnv = env.Clone();
+
+    # Place the output in ajtcl/build/arduino/AllJoyn
+    arduinoLibDir = '../build/arduino_due/libraries/AllJoyn/'
+
+
+    # Install the generic .c files from the test directory into their destination while changing the extension
+    # Also install the .ino file for the test sketch
+    for test in Flatten(tests):
+#        in_path = File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/test/' + test + '.c')
+#        out_path = File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/host/arduino/tests/AJ_' + test + '/' + test + '.cpp')
+        in_path = File('../test/' + test + '.c')
+        out_path = File('../host/arduino/tests/AJ_' + test + '/' + test + '.cpp')
+
+        testInputs.append(in_path.abspath)
+        testOutputs.append(out_path.abspath)
+#        arduinoEnv.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/host/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
+        arduinoEnv.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File('../host/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
+        arduinoEnv.InstallAs(File(arduinoLibDir + 'tests/AJ_' + test + '/' + test + '.cpp').abspath, in_path.abspath)
+
+    arduinoEnv.InstallAs(testOutputs, testInputs)
+
+
+    replaced_names = []
+    for x in Flatten([aj_srcs, aj_crypto_srcs, aj_host_srcs]):
+        replaced_names.append( File(arduinoLibDir + x.name.replace('.c', '.cpp') ) )
+
+
+    # change the extension
+    install_renamed_files = arduinoEnv.InstallAs(Flatten(replaced_names), Flatten([aj_srcs, aj_crypto_srcs, aj_host_srcs]))
+    install_hosts = arduinoEnv.Install(arduinoLibDir, aj_host_files)
+    install_headers = arduinoEnv.Install(arduinoLibDir, aj_headers)
+
+
+    # install the examples into their source
+    arduinoEnv.Install(Dir(arduinoLibDir).abspath, '../host/arduino/examples/')
