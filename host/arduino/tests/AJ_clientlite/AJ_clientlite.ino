@@ -19,13 +19,12 @@
 #include <stdio.h>
 
 
-#define WIFI_UDP_WORKING 1
+#undef WIFI_UDP_WORKING
 
-#ifdef WIFI_UDP_WORKING
 #include <SPI.h>
+#ifdef WIFI_UDP_WORKING
 #include <WiFi.h>
 #else
-#include <SPI.h>
 #include <Ethernet.h>
 #endif
 

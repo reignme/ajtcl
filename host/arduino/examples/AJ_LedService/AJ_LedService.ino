@@ -17,8 +17,14 @@
  *    limitations under the License.
  ******************************************************************************/
 
+#undef WIFI_UDP_WORKING
+
 #include <SPI.h>
+#ifdef WIFI_UDP_WORKING
 #include <WiFi.h>
+#else
+#include <Ethernet.h>
+#endif
 
 #include <alljoyn.h>
 
@@ -27,8 +33,10 @@
 
 int led = 13;
 
+#ifdef WIFI_UDP_WORKING
 char ssid[] = "yourNetwork";     // the name of your network
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
+#endif
 
 
 void DUE_led_timed(uint32_t msec)
@@ -57,25 +65,38 @@ void setup() {
 
     digitalWrite(led, LOW);
 
+
+#ifdef WIFI_UDP_WORKING
+    // check for the presence of the shield:
     if (WiFi.status() == WL_NO_SHIELD) {
-        Serial.println("WiFi shield not present");
+        printf("WiFi shield not present\n");
         // don't continue:
         while (true) ;
     }
 
-    while (status != WL_CONNECTED) {
+    // attempt to connect to Wifi network:
+    while (wifiStatus != WL_CONNECTED) {
         Serial.print("Attempting to connect to open SSID: ");
         Serial.println(ssid);
         status = WiFi.begin(ssid);
 
         // wait 10 seconds for connection:
         delay(10000);
+
+        IPAddress ip = WiFi.localIP();
+        Serial.print("Connected: ");
+        Serial.println(ip);
     }
-
-    IPAddress ip = WiFi.localIP();
-
-    Serial.print("Connected: ");
-    Serial.println(ip);
+#else
+    byte mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
+    // start the Ethernet connection:
+    if (Ethernet.begin(mac) == 0) {
+        printf("Failed to configure Ethernet using DHCP\n");
+        // no point in carrying on, so do nothing forevermore:
+        for (;;)
+            ;
+    }
+#endif
 }
 
 // the loop routine runs over and over again forever:

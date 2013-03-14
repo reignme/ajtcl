@@ -22,13 +22,11 @@
 #include <stdio.h>
 
 #undef WIFI_UDP_WORKING
-#undef WIFI_OPENACCESS
 
-#ifdef WIFI_UDP_WORKING
 #include <SPI.h>
+#ifdef WIFI_UDP_WORKING
 #include <WiFi.h>
 #else
-#include <SPI.h>
 #include <Ethernet.h>
 #endif
 
