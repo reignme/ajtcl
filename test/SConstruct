@@ -126,14 +126,11 @@ elif env['HOST'] == 'arduino':
     # Install the generic .c files from the test directory into their destination while changing the extension
     # Also install the .ino file for the test sketch
     for test in Flatten(tests):
-#        in_path = File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/test/' + test + '.c')
-#        out_path = File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/host/arduino/tests/AJ_' + test + '/' + test + '.cpp')
         in_path = File('../test/' + test + '.c')
         out_path = File('../host/arduino/tests/AJ_' + test + '/' + test + '.cpp')
 
         testInputs.append(in_path.abspath)
         testOutputs.append(out_path.abspath)
-#        arduinoEnv.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File(arduinoEnv['ALLJOYN_DIR'] + '/ajtcl/host/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
         arduinoEnv.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File('../host/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
         arduinoEnv.InstallAs(File(arduinoLibDir + 'tests/AJ_' + test + '/' + test + '.cpp').abspath, in_path.abspath)
 
@@ -153,3 +150,6 @@ elif env['HOST'] == 'arduino':
 
     # install the examples into their source
     arduinoEnv.Install(Dir(arduinoLibDir).abspath, '../host/arduino/examples/')
+
+    # install a test into the right output directory
+    arduinoEnv.Install(Dir(arduinoLibDir).abspath + '/tests', '../host/arduino/tests/AJ_sessions')
