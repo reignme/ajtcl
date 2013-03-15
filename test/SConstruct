@@ -153,3 +153,4 @@ elif env['HOST'] == 'arduino':
 
     # install a test into the right output directory
     arduinoEnv.Install(Dir(arduinoLibDir).abspath + '/tests', '../host/arduino/tests/AJ_sessions')
+    arduinoEnv.Install(Dir(arduinoLibDir + 'tests/AJ_sessions').abspath, env.Glob('../host/arduino/tests/AJ_sessions/*'))
