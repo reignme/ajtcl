@@ -108,6 +108,7 @@ typedef struct _AJ_SASL_Context {
     AJ_AuthPwdFunc pwdFunc;                  /**< Password function if applicable */
     const AJ_AuthMechanism* const* mechList; /**< NULL terminated array of authentication mechanismse */
     const AJ_AuthMechanism* mechanism;       /**< The authentication mechansim current in use */
+    uint8_t nextMech;                        /**< Index of the next authentication mechanism to be used */
 
 } AJ_SASL_Context;
 

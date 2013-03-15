@@ -60,6 +60,7 @@ AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* 
     context->pwdFunc = pwdFunc;
     context->mechList = mechList;
     context->mechanism = NULL;
+    context->nextMech = 0;
     return AJ_OK;
 }
 
@@ -336,7 +337,7 @@ static const AJ_AuthMechanism* SelectAuth(AJ_SASL_Context* context, char* inStr)
     const AJ_AuthMechanism* mech = NULL;
 
     if (!*inStr) {
-        return context->mechList[0];
+        return context->mechList[context->nextMech];
     }
     while (!mech && *inStr) {
         int32_t pos = AJ_StringFindFirstOf(inStr, " ");
@@ -368,7 +369,7 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
      * The REJECTED command is handled the same in all states
      */
     if (cmd == CMD_REJECTED) {
-        context->mechanism = SelectAuth(context, inStr);
+        context->mechanism = SelectAuth(context, "");
         if (!context->mechanism) {
             /*
              * No mechanism in common so authentication fails.
@@ -418,7 +419,13 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
                     context->state = AJ_SASL_WAIT_FOR_REJECT;
                     rsp = CMD_CANCEL;
                 } else if (result != AJ_AUTH_STATUS_CONTINUE) {
-                    status = AJ_ERR_SECURITY;
+                    if (result == AJ_AUTH_STATUS_RETRY &&
+                        context->mechList[++context->nextMech] != NULL) {
+                        // Notify the challenger to give up on the current authentication mechanism and to be in WAIT_FOR_AUTH state
+                        rsp = CMD_ERROR;
+                    } else {
+                        status = AJ_ERR_SECURITY;
+                    }
                 }
             }
             break;
