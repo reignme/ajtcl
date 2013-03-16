@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -34,6 +34,10 @@
  * @param tagLen  The length of the authentication tag to be appended to the message
  * @param nonce   The nonce
  * @param nLen    The length of the nonce
+ *
+ * @return
+ *         - AJ_OK if the CCM context is initialized
+ *         - AJ_ERR_RESOURCES if the resources required are not available.
  */
 AJ_Status AJ_Encrypt_CCM(const uint8_t* key,
                          uint8_t* msg,
@@ -54,6 +58,10 @@ AJ_Status AJ_Encrypt_CCM(const uint8_t* key,
  * @param tagLen  The length of the authentication tag to be appended to the message
  * @param nonce   The nonce
  * @param nLen    The length of the nonce
+ *
+ * @return
+ *         - AJ_OK if the CCM context is initialized
+ *         - AJ_ERR_RESOURCES if the resources required are not available.
  */
 AJ_Status AJ_Decrypt_CCM(const uint8_t* key,
                          uint8_t* msg,
@@ -73,7 +81,8 @@ AJ_Status AJ_Decrypt_CCM(const uint8_t* key,
  * @param out     The buffer to receive the keying material
  * @param outLen  The amount of keying materail to be generated.
  *
- * @return - AJ_OK if the PRF ran succesfully
+ * @return
+ *         - AJ_OK if the PRF ran succesfully
  *         - AJ_ERR_RESOURCES if the resources required are not available.
  */
 AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
@@ -97,8 +106,12 @@ void AJ_RandBytes(uint8_t* rand, uint32_t len);
  * @param bufLen The length of the buffer. The buffer must be at
  *               least (len * 2) + 1 bytes.
  * @param len    The length of the hexadecimal string
+ *
+ * @return        Return AJ_Status
+ *               - AJ_OK if the string was converted
+ *               - AJ_ERR_RESOURCES if the hexLen is too small to fit the converted string.
  */
-AJ_Status AJ_RandHex(char* rand, uint32_t bufeLen, uint32_t len);
+AJ_Status AJ_RandHex(char* rand, uint32_t bufLen, uint32_t len);
 
 /**
  * Enable AES allocating any resources required

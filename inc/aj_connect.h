@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@
  * @param  serviceName  Name of a specific service to connect to, NULL for the default name.
  * @param  timeout      How long to spend attempting to connect
  *
- * @return - AJ_OK if the connection was succesfully established
+ * @return
+ *         - AJ_OK if the connection was succesfully established
  *         - AJ_ERR_TIMEOUT if the connection attempt timed out
  */
 AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t timeout);

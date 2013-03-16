@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -92,11 +92,12 @@ typedef const char* const* AJ_InterfaceDescription;
  * Type for an AllJoyn object description
  */
 typedef struct _AJ_Object {
-    const char* path;
-    const AJ_InterfaceDescription* interfaces;
+    const char* path;                               /**< object path */
+    const AJ_InterfaceDescription* interfaces;      /**< interface descriptor */
 } AJ_Object;
 
-/**
+
+/*
  * Indicates that an identified member belongs to an application object
  */
 #define AJ_BUS_ID_FLAG   0x00  /**< Built in bus object messages */
@@ -104,19 +105,19 @@ typedef struct _AJ_Object {
 #define AJ_PRX_ID_FLAG   0x02  /**< Proxy object messages */
 #define AJ_REP_ID_FLAG   0x80  /**< Indicates a message is a reply message */
 
-/**
+/*
  * Macros to encode a message id from the object path, interface, and member indices.
  */
-#define AJ_BUS_MESSAGE_ID(p, i, m)  ((AJ_BUS_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))
-#define AJ_APP_MESSAGE_ID(p, i, m)  ((AJ_APP_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))
-#define AJ_PRX_MESSAGE_ID(p, i, m)  ((AJ_PRX_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))
+#define AJ_BUS_MESSAGE_ID(p, i, m)  ((AJ_BUS_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from bus object */
+#define AJ_APP_MESSAGE_ID(p, i, m)  ((AJ_APP_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from application object */
+#define AJ_PRX_MESSAGE_ID(p, i, m)  ((AJ_PRX_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from proxy object */
 
-/**
+/*
  * Macros to encode a property id from the object path, interface, and member indices.
  */
-#define AJ_BUS_PROPERTY_ID(p, i, m) AJ_BUS_MESSAGE_ID(p, i, m)
-#define AJ_APP_PROPERTY_ID(p, i, m) AJ_APP_MESSAGE_ID(p, i, m)
-#define AJ_PRX_PROPERTY_ID(p, i, m) AJ_PRX_MESSAGE_ID(p, i, m)
+#define AJ_BUS_PROPERTY_ID(p, i, m) AJ_BUS_MESSAGE_ID(p, i, m)      /**< Encode a property id from bus object */
+#define AJ_APP_PROPERTY_ID(p, i, m) AJ_APP_MESSAGE_ID(p, i, m)      /**< Encode a property id from application object */
+#define AJ_PRX_PROPERTY_ID(p, i, m) AJ_PRX_MESSAGE_ID(p, i, m)      /**< Encode a property id from proxy object */
 
 /**
  * Macro to generate the reply message identifier from method call message. This is the message
@@ -131,8 +132,8 @@ typedef struct _AJ_Object {
  * objects that have methods that this object can call and signals
  * that remote objects emit that this application can receive.
  *
- * @Param localObjects  A NULL terminated array of object info structs.
- * @Param proxyObjects  A NULL terminated array of object info structs.
+ * @param localObjects  A NULL terminated array of object info structs.
+ * @param proxyObjects  A NULL terminated array of object info structs.
  */
 void AJ_RegisterObjects(const AJ_Object* localObjects, const AJ_Object* proxyObjects);
 
@@ -153,8 +154,8 @@ void AJ_RegisterObjects(const AJ_Object* localObjects, const AJ_Object* proxyObj
  * If everything is correct the the message identifier is set in the message struct
  *
  * @param msg           The message to identify
- * @param replyContexts If method call replies are expected, the array of reply contexts or NULL
- * @param numReplies    How many reply contexts
+ *
+ * @return              Return AJ_Status
  */
 AJ_Status AJ_IdentifyMessage(AJ_Message* msg);
 
@@ -167,7 +168,8 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg);
  * @param sig     Buffer to fill in with the signature of the identified property
  * @param len     Length of the signature buffer
  *
- * @return - ER_OK if the property was identified
+ * @return   Return AJ_Status
+ *         - ER_OK if the property was identified
  *         - AJ_ERR_NO_MATCH if there is no matching property
  *         - AJ_ERR_DISALLOWED if the property exists but has access rights do not permit the requested GET or SET operation.
  */
@@ -178,6 +180,8 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
  *
  * @param msg     The property GET or SET message to be initialized
  * @param propId  The the id for the specified property
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_MarshalPropertyArgs(AJ_Message* msg, uint32_t propId);
 
@@ -186,17 +190,21 @@ AJ_Status AJ_MarshalPropertyArgs(AJ_Message* msg, uint32_t propId);
  *
  * @param msg        The introspection request method call
  * @param reply      The reply to the introspection request
+ *
+ * @return           Return AJ_Status
  */
 AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply);
 
 /**
  * Internal function for initializing a message from information obtained via the message id.
  *
- * @Param msg       The message to initialize
+ * @param msg       The message to initialize
  * @param msgId     The message id
  * @param msgType   The type of the message
+ *
+ * @return          Return AJ_Status
  */
-AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t id, uint8_t msgType);
+AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType);
 
 /**
  * Internal function to allocate a reply context for a method call message. Reply contexts are used
@@ -206,7 +214,8 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t id, uint8_t msgType)
  * @param msg      A method call message that needs a reply context
  * @param timeout  The time to wait for a reply  (0 to use the internal default)
  *
- * @return - AJ_OK if the reply context was allocated
+ * @return   Return AJ_Status
+ *         - AJ_OK if the reply context was allocated
  *         - AJ_ERR_RESOURCES if the reply context could not be allocated
  */
 AJ_Status AJ_AllocReplyContext(AJ_Message* msg, uint32_t timeout);

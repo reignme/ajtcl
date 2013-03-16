@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
  * Structure for holding a time
  */
 typedef struct _AJ_Time {
-    uint16_t milliseconds;
-    uint32_t seconds;
+    uint16_t milliseconds;      /**< The number of milliseconds in the time */
+    uint32_t seconds;           /**< The number of seconds in the time */
 } AJ_Time;
 
 /**
@@ -53,6 +53,8 @@ uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative);
  * Suspend to low-power mode on embedded devices
  *
  * @param msec milliseconds to wait before waking up
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_SuspendWifi(uint32_t msec);
 
@@ -100,7 +102,8 @@ int32_t AJ_StringFindFirstOf(const char* str, char* chars);
  * @param hex     The buffer to receive the converted hex data
  * @param hexLen  The length of the hex buffer
  *
- * @return  - AJ_OK if the string was converted
+ * @return
+ *          - AJ_OK if the string was converted
  *          - AJ_ERR_RESOURCES if the hexLen is too small to fit the converted string.
  */
 AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen);
@@ -114,7 +117,8 @@ AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLe
  * @param raw     The bytes to convert
  * @param rawLen  The number of bytes to convert
  *
- * @return  - AJ_OK if the string was converted.
+ * @return
+ *          - AJ_OK if the string was converted.
  *          - AJ_ERR_RESOURCES if the rawLen is too small to fit the converted string.
  *          - AJ_ERR_UNEXPECTED if the string is not a hexidecimal string.
  */

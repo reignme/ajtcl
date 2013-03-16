@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -28,23 +28,26 @@
  */
 #define AJ_MAX_PEER_GUIDS  12
 
+/**
+ * Base address of credential
+ */
 extern const uint32_t CREDS_BASE_ADDRESS;
 
 /**
  * Credentials for a remote peer
  */
 typedef struct _AJ_PeerCred {
-    AJ_GUID guid;        /* GUID for the peer */
-    uint8_t secret[24];  /* secret keying data */
+    AJ_GUID guid;        /**< GUID for the peer */
+    uint8_t secret[24];  /**< secret keying data */
 } AJ_PeerCred;
 
 /**
  * This needs to fit in 512 bytes
  */
 typedef struct _AJ_Credentials {
-    uint32_t sentinel;                     /* Identifies a valid, initialized credentials block */
-    AJ_GUID guid;                          /* GUID of the local peer */
-    AJ_PeerCred peers[AJ_MAX_PEER_GUIDS];  /* Credentials of remote peers */
+    uint32_t sentinel;                     /**< Identifies a valid, initialized credentials block */
+    AJ_GUID guid;                          /**< GUID of the local peer */
+    AJ_PeerCred peers[AJ_MAX_PEER_GUIDS];  /**< Credentials of remote peers */
 } AJ_Credentials;
 
 /**
@@ -52,7 +55,8 @@ typedef struct _AJ_Credentials {
  *
  * @param peerCred  The credentials to write.
  *
- * @return  - AJ_OK if the credentials were written.
+ * @return
+ *          - AJ_OK if the credentials were written.
  *          - AJ_ERR_RESOURCES if there is no space to write the credentials
  */
 AJ_Status AJ_StoreCredential(AJ_PeerCred* peerCred);
@@ -62,7 +66,8 @@ AJ_Status AJ_StoreCredential(AJ_PeerCred* peerCred);
  *
  * @param peerGuid  The guid for the peer that has credentials to delete.
  *
- * @return  - AJ_OK if the credentials were deleted.
+ * @return
+ *          - AJ_OK if the credentials were deleted.
  */
 AJ_Status AJ_DeleteCredential(const AJ_GUID* peerGuid);
 

@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -24,11 +24,29 @@
 
 #ifndef NDEBUG
 
+/**
+ * Dump message name and content. if body is true, dump raw data
+ *
+ * @param tag       tag name of message
+ * @param msg       message header
+ * @param body      if true, dump raw data
+ */
 void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body);
 
+/**
+ * Dump raw data
+ *
+ * @param tag       tag name of message
+ * @param data      start addres to dump
+ * @param len       length to dump
+ */
 void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len);
 
-/* Debug utility function that converts numerical status to a readable string */
+/**
+ * Debug utility function that converts numerical status to a readable string
+ *
+ * @param status  A status code
+ */
 const char* AJ_StatusText(AJ_Status status);
 
 #else

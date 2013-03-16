@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ typedef enum {
  * @param outStr  A buffer to receive the challenger or response to send out
  * @param outLen  The length of the outStr buffer
  *
- * @return - AJ_AUTH_STATUS_SUCCESS if the authentication has completed succesfully
+ * @return
+ *         - AJ_AUTH_STATUS_SUCCESS if the authentication has completed succesfully
  *         - AJ_AUTH_STATUS_CONTINUE if the authentication is continuing
  *         - AJ_AUTH_STATUS_RETRY if the authentication failed (e.g. due to an incorrect password) but should be retried
  *         - AJ_AUTH_STATUS_FAILED if the authentication failed and should not be retried
@@ -67,7 +68,8 @@ typedef AJ_Status (*AJ_AuthInitFunc)(uint8_t role, AJ_AuthPwdFunc pwdFunc);
  * @param peerGuid The guid to associate the credentials with or NULL if the
  *                 authentication was unsuccessful.
  *
- * @return - AJ_OK if the finalization completed sucesfully.
+ * @return
+ *         - AJ_OK if the finalization completed sucesfully.
  *         - Other error status codes
  */
 typedef AJ_Status (*AJ_AuthFinalFunc)(const AJ_GUID* peerGuid);
@@ -76,23 +78,26 @@ typedef AJ_Status (*AJ_AuthFinalFunc)(const AJ_GUID* peerGuid);
  * Struct defining the interface to an authentication mechanism
  */
 typedef struct _AJ_AuthMechanism {
-    AJ_AuthInitFunc Init;
-    AJ_AuthAdvanceFunc Challenge;
-    AJ_AuthAdvanceFunc Response;
-    AJ_AuthFinalFunc Final;
-    const char* name;
+    AJ_AuthInitFunc Init;               /**< Initialize an authentication mechnism */
+    AJ_AuthAdvanceFunc Challenge;       /**< Challenge of response function for an auth mechanism */
+    AJ_AuthAdvanceFunc Response;        /**< Challenge of response function for an auth mechanism */
+    AJ_AuthFinalFunc Final;             /**< Finalizes the auth mechanism storing credentials */
+    const char* name;                   /**< Name of authentication mechanism */
 } AJ_AuthMechanism;
 
 
+/**
+ * Enumeration for SASL status
+ */
 typedef enum {
     AJ_SASL_IDLE,              /**< Idle state */
     AJ_SASL_SEND_AUTH_REQ,     /**< Initial responder state */
     AJ_SASL_WAIT_FOR_AUTH,     /**< Initial challenger stat */
-    AJ_SASL_WAIT_FOR_BEGIN,
-    AJ_SASL_WAIT_FOR_DATA,
-    AJ_SASL_WAIT_FOR_OK,
-    AJ_SASL_WAIT_FOR_REJECT,
-    AJ_SASL_WAIT_EXT_RESPONSE, /**< Wait for a response to an extension command */
+    AJ_SASL_WAIT_FOR_BEGIN,    /**< Wait for a begin */
+    AJ_SASL_WAIT_FOR_DATA,     /**< Wait for a data */
+    AJ_SASL_WAIT_FOR_OK,       /**< Wait for a OK */
+    AJ_SASL_WAIT_FOR_REJECT,   /**< Wait for a reject */
+    AJ_SASL_WAIT_EXT_RESPONSE, /**< Wait for a response */
     AJ_SASL_AUTHENTICATED,     /**< Authentication was successful - conversation it over */
     AJ_SASL_FAILED             /**< Authentication failed - conversation it over */
 } AJ_SASL_State;
@@ -100,6 +105,9 @@ typedef enum {
 #define AJ_AUTH_CHALLENGER  0  /**< Challenger role */
 #define AJ_AUTH_RESPONDER   1  /**< Responder initiates the SASL conversation */
 
+/**
+ * The context structure for the SASL conversion
+ */
 typedef struct _AJ_SASL_Context {
 
     uint8_t role;                            /**< Indicates if the role is Challenger or Responder */
@@ -120,6 +128,8 @@ typedef struct _AJ_SASL_Context {
  * @param role       Defines if the context is being initialized for the responder or challenger
  *                   side of an authentication conversation.
  * @param pwdFunc    Callback function for requesting a password, or NULL if not applicable.
+ *
+ * @return           Return AJ_Status
  */
 AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* const* mechList, uint8_t role, AJ_AuthPwdFunc pwdFunc);
 
@@ -130,6 +140,8 @@ AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* 
  * @param inStr   Input authentication string
  * @param outStr  Buffer for output authentication string
  * @param outLen  The length of the output buffer
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_SASL_Advance(AJ_SASL_Context* context, char* inStr, char* outStr, uint32_t outLen);
 

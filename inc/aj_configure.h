@@ -1,5 +1,8 @@
+/**
+ * @file
+ */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,21 +23,25 @@
 
 #include <aj_introspect.h>
 
+/** Identify Function */
 typedef void (*IdentifyFunction)(char*, size_t);
 
 struct AJ_Message;
 
 
-// Note to OEM: Make this the *FIRST* object in your list of AllJoyn objects
+/** Note to OEM: Make this the *FIRST* object in your list of AllJoyn objects */
 extern const AJ_InterfaceDescription AJ_ConfigInterfaces[];
 
 /**
  *  Attempt to process an internal configuration message
- *  @param msg the incoming message
  *
- *  @return AJ_OK if we have processed the message
- *          AJ_ERR_RESTART means that the OEM program should restart its event loop
- *          AJ_ERR_UNEXPECTED if we dont' know the message; the app should process it!
+ *  @param msg                  the incoming message
+ *  @param identifyFunction     IdentifyFunction
+ *
+ *  @return
+ *          - AJ_OK if we have processed the message
+ *          - AJ_ERR_RESTART means that the OEM program should restart its event loop
+ *          - AJ_ERR_UNEXPECTED if we dont' know the message; the app should process it!
  **/
 AJ_Status AJ_ProcessInternal(AJ_Message* msg, IdentifyFunction identifyFunction);
 

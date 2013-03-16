@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -97,8 +97,8 @@ AJ_Status AJ_BusRequestName(AJ_BusAttachment* bus, const char* name, uint32_t fl
  */
 AJ_Status AJ_BusReleaseName(AJ_BusAttachment* bus, const char* name);
 
-#define AJ_BUS_START_ADVERTISING 0
-#define AJ_BUS_STOP_ADVERTISING  1
+#define AJ_BUS_START_ADVERTISING 0      /**< start advertising */
+#define AJ_BUS_STOP_ADVERTISING  1      /**< stop advertising */
 
 /**
  * Make a method call to start or stop advertising a name
@@ -108,14 +108,14 @@ AJ_Status AJ_BusReleaseName(AJ_BusAttachment* bus, const char* name);
  * @param transportMask Restricts the transports the advertisement will be stopped/started on.
  * @param op            Either AJ_BUS_START_ADVERTISING or AJ_BUS_STOP_ADVERTISING
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
 AJ_Status AJ_BusAdvertiseName(AJ_BusAttachment* bus, const char* name, uint16_t transportMask, uint8_t op);
 
-#define AJ_BUS_START_FINDING 0
-#define AJ_BUS_STOP_FINDING  1
+#define AJ_BUS_START_FINDING 0       /**< Start finding advertised name */
+#define AJ_BUS_STOP_FINDING  1       /**< Stop finding advertised name */
 
 #define AJ_FIND_NAME_STARTED    0x1   /**< Started to find the name as requested */
 #define AJ_FIND_NAME_ALREADY    0x2   /**< Was already finding the requested name */
@@ -124,11 +124,12 @@ AJ_Status AJ_BusAdvertiseName(AJ_BusAttachment* bus, const char* name, uint16_t 
 /**
  * Register interest in a well-known name prefix for the purpose of discovery.
  *
+ * @param  bus          The bus attachment
  * @param  namePrefix   Well-known name prefix that application is interested in receiving
  *                      FoundAdvertisedName notifications about.
  * @param op            Either AJ_BUS_START_FINDING or AJ_BUS_STOP_FINDING
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
@@ -148,10 +149,10 @@ AJ_Status AJ_BusFindAdvertisedName(AJ_BusAttachment* bus, const char* namePrefix
  * Type for describing session options
  */
 typedef struct _AJ_SessionOpts {
-    uint8_t traffic;
-    uint8_t proximity;
-    uint16_t transports;
-    uint32_t isMultipoint;
+    uint8_t traffic;            /**< traffic type */
+    uint8_t proximity;          /**< proximity */
+    uint16_t transports;        /**< allowed transports */
+    uint32_t isMultipoint;      /**< multi-point session capable */
 } AJ_SessionOpts;
 
 /**
@@ -162,7 +163,7 @@ typedef struct _AJ_SessionOpts {
  *                     will assign an ephemeral session port
  * @param opts         Options for establishing a session, if NULL defaults are used.
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
@@ -180,21 +181,23 @@ AJ_Status AJ_BusBindSessionPort(AJ_BusAttachment* bus, uint16_t port, const AJ_S
  */
 AJ_Status AJ_BusCancelSessionless(AJ_BusAttachment* bus, uint32_t serialNum);
 
-/*
+/**
  * Possible response codes for AJ_BusCancelSessionless
  */
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_SUCCESS     1
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_NO_SUCH_MSG 2
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_NOT_ALLOWED 3
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_FAILED      4
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_SUCCESS     1       /**< Cancel Sessionless: reply success */
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_NO_SUCH_MSG 2       /**< Cancel Sessionless: no such msg */
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_NOT_ALLOWED 3       /**< Cancel Sessionless: not allowed */
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_FAILED      4       /**< Cancel Sessionless: reply failed */
 
 /**
  * Send a reply to an accept session method call
  *
- * @param bus         The bus attachment
  * @param msg         The AcceptSession method call
- * @parm accept       TRUE to accept the session, FALSE to reject it.
+ * @param accept      TRUE to accept the session, FALSE to reject it.
  *
+ * @return  Return AJ_Status
+ *          - AJ_OK if the message was succesfully delivered
+ *          - AJ_ERR_MARSHAL if the message arguments were incompletely marshaled
  */
 AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept);
 
@@ -206,14 +209,14 @@ AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept);
  * @param port         The session port to join
  * @param opts         Options for establishing a session, if NULL defaults are used.
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
 AJ_Status AJ_BusJoinSession(AJ_BusAttachment* bus, const char* sessionHost, uint16_t port, const AJ_SessionOpts* opts);
 
-#define AJ_BUS_SIGNAL_ALLOW  0
-#define AJ_BUS_SIGNAL_DENY   1
+#define AJ_BUS_SIGNAL_ALLOW  0     /**< Allow signals */
+#define AJ_BUS_SIGNAL_DENY   1     /**< Deny signals */
 
 /**
  * Add a SIGNAL match rule. A rule must be added for every non-session signal that the application
@@ -221,10 +224,10 @@ AJ_Status AJ_BusJoinSession(AJ_BusAttachment* bus, const char* sessionHost, uint
  *
  * @param bus           The bus attachment
  * @param signalName    The name of the signal.
- * @param ifaceName     The name of the interface.
+ * @param interfaceName The name of the interface.
  * @param rule          Either AJ_BUS_SIGNAL_ALLOW or AJ_BUS_SIGNAL_DENY
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
@@ -247,7 +250,7 @@ AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* signalName, con
  *
  * @param msg     The message to handle
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the message was handled or ingored
  */
 AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg);
@@ -257,7 +260,7 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg);
  * until a password callback function has been set.
  *
  * @param bus          The bus attachment struct
- * @parma pwdCallback  The password callback function.
+ * @param pwdCallback  The password callback function.
  */
 void AJ_BusSetPasswordCallback(AJ_BusAttachment* bus, AJ_AuthPwdFunc pwdCallback);
 
@@ -275,12 +278,12 @@ typedef void (*AJ_BusAuthPeerCallback)(const void* context, AJ_Status status);
 /**
  * Initiate a secure connection to a remote peer authenticating if necessary.
  *
- * @param bus        The bus attachment
- * @param busName    The bus name of the remove peer to secure.
- * @param callback   A function to be called when the authentication completes
- * @Param cbContext  A caller provided context to pass to the callback function
+ * @param bus            The bus attachment
+ * @param peerBusName    The bus name of the remove peer to secure.
+ * @param callback       A function to be called when the authentication completes
+ * @param cbContext      A caller provided context to pass to the callback function
  *
- * @return
+ * @return  Return AJ_Status
  *         - AJ_OK if the request was sent
  *         - An error status otherwise
  */
@@ -292,9 +295,10 @@ AJ_Status AJ_BusAuthenticatePeer(AJ_BusAttachment* bus, const char* peerBusName,
  *
  * @param replyMsg  The GET_PROPERTY reply message
  * @param propId    The property identifier
- * @apram context   The caller provided context that was passed into AJ_BusPropGet()
+ * @param context   The caller provided context that was passed into AJ_BusPropGet()
  *
- * @return  - AJ_OK if the property was read and marshaled
+ * @return  Return AJ_Status
+ *          - AJ_OK if the property was read and marshaled
  *          - An error status if the property could not be returned for any reason.
  */
 typedef AJ_Status (*AJ_BusPropGetCallback)(AJ_Message* replyMsg, uint32_t propId, void* context);
@@ -305,7 +309,9 @@ typedef AJ_Status (*AJ_BusPropGetCallback)(AJ_Message* replyMsg, uint32_t propId
  *
  * @param msg       An unmarshalled GET_PROPERTY message
  * @param callback  The function called to request the application to marshal the property value.
- * @apram context   A caller provided context that is passed into the callback function
+ * @param context   A caller provided context that is passed into the callback function
+ *
+ * @return  Return AJ_Status
  */
 AJ_Status AJ_BusPropGet(AJ_Message* msg, AJ_BusPropGetCallback callback, void* context);
 
@@ -315,9 +321,10 @@ AJ_Status AJ_BusPropGet(AJ_Message* msg, AJ_BusPropGetCallback callback, void* c
  *
  * @param replyMsg  The SET_PROPERTY reply message
  * @param propId    The property identifier
- * @apram context   The caller provided context that was passed into AJ_BusPropSet()
-
- * @return  - AJ_OK if the property was unmarshaled
+ * @param context   The caller provided context that was passed into AJ_BusPropSet()
+ *
+ * @return  Return AJ_Status
+ *          - AJ_OK if the property was unmarshaled
  *          - An error status if the property could not be set for any reason.
  */
 typedef AJ_Status (*AJ_BusPropSetCallback)(AJ_Message* replyMsg, uint32_t propId, void* context);
@@ -328,7 +335,9 @@ typedef AJ_Status (*AJ_BusPropSetCallback)(AJ_Message* replyMsg, uint32_t propId
  *
  * @param msg       An unmarshalled SET_PROPERTY message
  * @param callback  The function called to request the application to marshal the property value.
- * @apram context   A caller provided context that is passed into the callback function
+ * @param context   A caller provided context that is passed into the callback function
+ *
+ * @return  Return AJ_Status
  */
 AJ_Status AJ_BusPropSet(AJ_Message* msg, AJ_BusPropSetCallback callback, void* context);
 

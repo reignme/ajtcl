@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -23,26 +23,35 @@
 #include "aj_status.h"
 #include "aj_bufio.h"
 
-#define AJ_ADDR_IPV4  0x04
-#define AJ_ADDR_IPV6  0x60
+#define AJ_ADDR_IPV4  0x04      /**< ip4 address */
+#define AJ_ADDR_IPV6  0x60      /**< ip6 address */
 
+/**
+ * Abstracts a network socket
+ */
 typedef struct _AJ_NetSocket {
-    AJ_IOBuffer tx;
-    AJ_IOBuffer rx;
+    AJ_IOBuffer tx;             /**< transmit network socket */
+    AJ_IOBuffer rx;             /**< receive network socket */
 } AJ_NetSocket;
 
 /**
  * Must be called before networking can be used
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Net_Up();
 
 /**
  * Call when the network is not longer needed
+ *
+ * @return        Return AJ_Status
  */
 void AJ_Net_Down();
 
 /**
  * Connect to bus at an IPV4 or IPV6 address
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType, const uint32_t* addr);
 
@@ -53,6 +62,8 @@ void AJ_Net_Disconnect(AJ_NetSocket* netSock);
 
 /**
  * Enable multicast data (for discover and advertising)
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock);
 
@@ -63,11 +74,15 @@ void AJ_Net_MCastDown(AJ_NetSocket* netSock);
 
 /**
  * Send from an I/O buffer
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Net_Send(AJ_IOBuffer* txBuf);
 
 /**
  * Send into an I/O buffer
+ *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Net_Recv(AJ_IOBuffer* rxBuf, uint32_t len, uint32_t timeout);
 

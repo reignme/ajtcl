@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -26,18 +26,19 @@
  * Type for a GUID
  */
 typedef struct _AJ_GUID {
-    uint8_t val[16];
+    uint8_t val[16];       /**< string for a GUID */
 } AJ_GUID;
 
 /**
- * Returns a pointer to an ASCII string representation of a GUID
+ * Return a pointer to an ASCII string representation of a GUID
  *
  * @param guid   The guid to convert
  * @param buffer The buffer to store the string
  * @param bufLen The size of the buffer.
  *
  *
- * @return  - AJ_OK if the GUID was converted
+ * @return  Return AJ_Status
+ *          - AJ_OK if the GUID was converted
  *          - AJ_ERR_RESOURCES if the buffer was not big enough
  */
 AJ_Status AJ_GUID_ToString(const AJ_GUID* guid, char* buffer, uint32_t bufLen);
@@ -45,10 +46,11 @@ AJ_Status AJ_GUID_ToString(const AJ_GUID* guid, char* buffer, uint32_t bufLen);
 /**
  * Unpacks a string into a GUID
  *
- * @param guid  Pointer to a GUIF structure
+ * @param guid  Pointer to a GUID structure
  * @param str   A hex string representation of the GUID
  *
- * @return - AJ_OK if the conversion was succsesfull
+ * @return  Return AJ_Status
+ *         - AJ_OK if the conversion was succsessful
  *         - An error status otherwise
  */
 AJ_Status AJ_GUID_FromString(AJ_GUID* guid, const char* str);
@@ -65,7 +67,8 @@ void AJ_GUID_ClearNameMap(void);
  * @param uniqueName  A unique name that maps to the GUID
  * @param serviceName A service name that maps to the GUID
  *
- * @return  - AJ_OK if the mapping was added
+ * @return  Return AJ_Status
+ *          - AJ_OK if the mapping was added
  *          - AJ_ERR_RESOURCES if there is no room to the mapping
  */
 AJ_Status AJ_GUID_AddNameMapping(const AJ_GUID* guid, const char* uniqueName, const char* serviceName);
@@ -86,18 +89,19 @@ void AJ_GUID_DeleteNameMapping(const char* uniqueName);
  *
  * @param name  The unique or well-known name to lookup
  *
- * @return  Returns a pointer to a GUID or NULL if there is no mapping.
+ * @return  Return A pointer to a GUID or NULL, if there is no mapping.
  */
 const AJ_GUID* AJ_GUID_Find(const char* name);
 
 /**
  * Sets a session key for an entry in the GUID map
  *
- * @param uniqueNam  The unique name for a remote peer
+ * @param uniqueName The unique name for a remote peer
  * @param key        The 16 byte session key to add
  * @param role       Indicates which peer initiated the session key
  *
- * @return  - AJ_OK if the key was added
+ * @return  Return AJ_Status
+ *          - AJ_OK if the key was added
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
 AJ_Status AJ_SetSessionKey(const char* uniqueName, const uint8_t* key, uint8_t role);
@@ -105,10 +109,11 @@ AJ_Status AJ_SetSessionKey(const char* uniqueName, const uint8_t* key, uint8_t r
 /**
  * Sets a group key for an entry in the GUID map
  *
- * @param uniqueNam  The unique name for a remote peer
+ * @param uniqueName The unique name for a remote peer
  * @param key        The 16 byte session key to add
  *
- * @return  - AJ_OK if the key was added
+ * @return  Return AJ_Status
+ *          - AJ_OK if the key was added
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
 AJ_Status AJ_SetGroupKey(const char* uniqueName, const uint8_t* key);
@@ -120,7 +125,8 @@ AJ_Status AJ_SetGroupKey(const char* uniqueName, const uint8_t* key);
  * @param key   Buffer to receive the 16 byte session key
  * @param role  Indicates which peer initiated the session key
  *
- * @return  - AJ_OK if the key was obtained
+ * @return  Return AJ_Status
+ *          - AJ_OK if the key was obtained
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
 AJ_Status AJ_GetSessionKey(const char* name, uint8_t* key, uint8_t* role);
@@ -128,10 +134,11 @@ AJ_Status AJ_GetSessionKey(const char* name, uint8_t* key, uint8_t* role);
 /**
  * Gets a group key for an entry from the GUID map
  *
- * @param uniqueNam  The unique or well-known name for a remote peer or NULL to get the local group key.
+ * @param name       The unique or well-known name for a remote peer or NULL to get the local group key.
  * @param key        Buffer to receive the 16 byte group key
  *
- * @return  - AJ_OK if the key was obtained
+ * @return  Return AJ_Status
+ *          - AJ_OK if the key was obtained
  *          - AJ_ERR_NO_MATCH if there is no entry to the peer
  */
 AJ_Status AJ_GetGroupKey(const char* name, uint8_t* key);

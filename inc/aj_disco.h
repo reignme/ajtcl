@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,13 +22,16 @@
 #include "aj_host.h"
 #include "aj_bufio.h"
 
+/**
+ * Information about the remote service
+ */
 typedef struct _AJ_Service {
-    uint8_t addrTypes;
-    uint16_t transportMask;
-    uint16_t ipv4port;
-    uint16_t ipv6port;
-    uint32_t ipv4;
-    uint32_t ipv6[4];
+    uint8_t addrTypes;         /**< address type */
+    uint16_t transportMask;    /**< restricts the transports the advertisement */
+    uint16_t ipv4port;         /**< port number of ipv4 */
+    uint16_t ipv6port;         /**< port number of ipv6 */
+    uint32_t ipv4;             /**< ipv4 address */
+    uint32_t ipv6[4];          /**< ipv6 address */
 } AJ_Service;
 
 /**
@@ -38,6 +41,7 @@ typedef struct _AJ_Service {
  * @param service   Information about the service that was found
  * @param timeout   How long to wait to discover the service
  *
+ * @return        Return AJ_Status
  */
 AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout);
 

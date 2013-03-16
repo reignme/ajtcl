@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@
  */
 struct _AJ_IOBuffer;
 
-/*
+/**
  * Function pointer type for an abstracted transmit function
  */
 typedef AJ_Status (*AJ_TxFunc)(struct _AJ_IOBuffer* buf);
 
-/*
+/**
  * Function pointer type for an abstracted receive function
  *
  * @param buf     The buffer to read into
@@ -41,7 +41,8 @@ typedef AJ_Status (*AJ_TxFunc)(struct _AJ_IOBuffer* buf);
  * @param timeout A timeout in milliseconds after which the read will return with an error status if
  *                there is not data to read.
  *
- * @return - AJ_OK if some data was read
+ * @return
+ *         - AJ_OK if some data was read
  *         - AJ_ERR_TIMEOUT if the read timedout
  *         - AJ_ERR_RESOURCES if there isn't enough room in the buffer to read len bytes. The buffer
  *           will contain the bytes actually read so this is not a fatal error.
@@ -72,12 +73,12 @@ typedef struct _AJ_IOBuffer {
 
 } AJ_IOBuffer;
 
-/*
+/**
  * How much data is available to read from the buffer
  */
 #define AJ_IO_BUF_AVAIL(iobuf)  (uint32_t)(((iobuf)->writePtr - (iobuf)->readPtr))
 
-/*
+/**
  * How much space is available to write to the buffer
  */
 #define AJ_IO_BUF_SPACE(iobuf)  ((uint32_t)((iobuf)->bufSize - ((iobuf)->writePtr - (iobuf)->bufStart)))
@@ -103,6 +104,7 @@ typedef struct _AJ_IOBuffer {
  * @param buffer    The data buffer to use
  * @param bufLen    The size of the data buffer
  * @param direction Indicates if the buffer is being used for sending or receiving data
+ * @param context   Abstracted context for managing I/O
  */
 void AJ_IOBufInit(AJ_IOBuffer* ioBuf, uint8_t* buffer, uint32_t bufLen, uint8_t direction, void* context);
 
