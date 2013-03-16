@@ -30,7 +30,7 @@ void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len);
 
 #else
 
-#define AJ_DumpMsg(tag, msg)
+#define AJ_DumpMsg(tag, msg, body)
 #define AJ_DumpBytes(tag, data, len)
 
 #endif
