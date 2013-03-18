@@ -1548,13 +1548,8 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
         /*
          * If the array element is 8 byte aligned check if there was padding after the length
          */
-        if (ALIGNMENT(*arg->sigPtr) == 8) {
-            uint32_t align = (uint32_t)((uint8_t*)arg->val.v_uint32 - ioBuf->bufStart) & 7;
-            if (align == 4) {
-                arg->len -= 4;
-            } else {
-                assert(align == 8);
-            }
+        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 7)) {
+            arg->len -= 4;
         }
         /*
          * Write array length into the buffer
