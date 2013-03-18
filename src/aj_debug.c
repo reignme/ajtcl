@@ -90,10 +90,11 @@ void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 #endif
 }
 
-#define AJ_CASE(_status) case _status: return #_status
+#define CASE(_status) case _status: return # _status
+
 const char* AJ_StatusText(AJ_Status status)
 {
-    switch(status) {
+    switch (status) {
         AJ_CASE(AJ_OK);
         AJ_CASE(AJ_ERR_NULL);
         AJ_CASE(AJ_ERR_UNEXPECTED);
@@ -114,6 +115,7 @@ const char* AJ_StatusText(AJ_Status status)
         AJ_CASE(AJ_ERR_DISALLOWED);
         AJ_CASE(AJ_ERR_FAILURE);
         AJ_CASE(AJ_ERR_RESTART);
+
     default:
         return "<unknown>";
     }
