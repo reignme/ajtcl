@@ -90,7 +90,7 @@ void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 #endif
 }
 
-#define CASE(_status) case _status: return # _status
+#define AJ_CASE(_status) case _status: return # _status
 
 const char* AJ_StatusText(AJ_Status status)
 {
