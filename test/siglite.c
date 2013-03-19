@@ -215,7 +215,8 @@ int AJ_Main(void)
 #ifdef AJ_MAIN
 int main()
 {
-    authFlag = AJ_FLAG_ENCRYPTED;
+    // Use AJ_FLAG_ENCRYPTED for authFlag if application-to-application authentication is needed
+    authFlag = 0;
     return AJ_Main();
 }
 #endif
