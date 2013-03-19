@@ -169,6 +169,26 @@ typedef struct _AJ_SessionOpts {
 AJ_Status AJ_BusBindSessionPort(AJ_BusAttachment* bus, uint16_t port, const AJ_SessionOpts* opts);
 
 /**
+ * Make a method call to cancel a sessionless signal
+ *
+ * @param bus          The bus attachment
+ * @param serialNum    The serial number of the signal to cancel
+ *
+ * @return
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusCancelSessionless(AJ_BusAttachment* bus, uint32_t serialNum);
+
+/*
+ * Possible response codes for AJ_BusCancelSessionless
+ */
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_SUCCESS     1
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_NO_SUCH_MSG 2
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_NOT_ALLOWED 3
+#define ALLJOYN_CANCELSESSIONLESS_REPLY_FAILED      4
+
+/**
  * Send a reply to an accept session method call
  *
  * @param bus         The bus attachment

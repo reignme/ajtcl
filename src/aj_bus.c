@@ -156,6 +156,21 @@ AJ_Status AJ_BusBindSessionPort(AJ_BusAttachment* bus, uint16_t port, const AJ_S
     return status;
 }
 
+AJ_Status AJ_BusCancelSessionless(AJ_BusAttachment* bus, uint32_t serialNum)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_CANCEL_SESSIONLESS, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        AJ_MarshalArgs(&msg, "u", serialNum);
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
 AJ_Status AJ_BusJoinSession(AJ_BusAttachment* bus, const char* sessionHost, uint16_t port, const AJ_SessionOpts* opts)
 {
     AJ_Status status;
@@ -277,6 +292,11 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
 
     case AJ_REPLY_ID(AJ_METHOD_EXCHANGE_GROUP_KEYS):
         status = AJ_PeerHandleExchangeGroupKeysReply(msg);
+        break;
+
+    case AJ_REPLY_ID(AJ_METHOD_CANCEL_SESSIONLESS):
+        // handle return code here
+        status = AJ_OK;
         break;
 
     case AJ_SIGNAL_SESSION_JOINED:

@@ -61,6 +61,7 @@
 #define AJ_METHOD_UNBIND_SESSION       AJ_BUS_MESSAGE_ID(1, 0, 9)
 #define AJ_METHOD_JOIN_SESSION         AJ_BUS_MESSAGE_ID(1, 0, 10)
 #define AJ_METHOD_LEAVE_SESSION        AJ_BUS_MESSAGE_ID(1, 0, 11)
+#define AJ_METHOD_CANCEL_SESSIONLESS   AJ_BUS_MESSAGE_ID(1, 0, 12)
 
 /*
  * Members of /org/alljoyn/Bus/Peer interface org.alljoyn.Bus.Peer.Session

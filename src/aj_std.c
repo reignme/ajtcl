@@ -99,6 +99,7 @@ static const char* const BusIface[] = {
     "?UnbindSessionPort <q >u",
     "?JoinSession <s <q <a{sv} >u >u >a{sv}",
     "?LeaveSession <u >u",
+    "?CancelSessionlessMessage <u >u",
     NULL
 };
 
