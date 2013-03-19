@@ -142,6 +142,9 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     service.ipv4 = 0x6501A8C0; // 192.168.1.101
     service.addrTypes = AJ_ADDR_IPV4;
     status = AJ_Discover(serviceName, &service, timeout);
+    if (status != AJ_OK) {
+        goto ExitConnect;
+    }
 #else
     status = AJ_Discover(serviceName, &service, timeout);
     if (status != AJ_OK) {
