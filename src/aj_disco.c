@@ -243,7 +243,7 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
             /*
              * Pause between sending each WHO-HAS
              */
-            AJ_Sleep(100);
+            AJ_Sleep(400);
             printf("Sending who-has \"%s\"\n", prefix);
         }
         /*

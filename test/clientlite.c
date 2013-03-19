@@ -210,53 +210,53 @@ int AJ_Main(void)
         if (status != AJ_OK) {
             if (status == AJ_ERR_TIMEOUT) {
                 AppDoWork(&bus, sessionId);
+                continue;
             }
-            continue;
-        }
+        } else {
+            switch (msg.msgId) {
 
-        switch (msg.msgId) {
+            case AJ_REPLY_ID(PRX_MY_PING):
+                {
+                    AJ_Arg arg;
+                    AJ_UnmarshalArg(&msg, &arg);
+                    status = SendGetProp(&bus, sessionId);
+                }
+                break;
 
-        case AJ_REPLY_ID(PRX_MY_PING):
-            {
-                AJ_Arg arg;
-                AJ_UnmarshalArg(&msg, &arg);
-                status = SendGetProp(&bus, sessionId);
-            }
-            break;
-
-        case AJ_REPLY_ID(PRX_GET_PROP):
-            {
-                const char* sig;
-                status = AJ_UnmarshalVariant(&msg, &sig);
-                if (status == AJ_OK) {
-                    status = AJ_UnmarshalArgs(&msg, sig, &g_iterCount);
-                    printf("Get prop reply %d\n", g_iterCount);
-
+            case AJ_REPLY_ID(PRX_GET_PROP):
+                {
+                    const char* sig;
+                    status = AJ_UnmarshalVariant(&msg, &sig);
                     if (status == AJ_OK) {
-                        g_iterCount = g_iterCount + 1;
-                        status = SendSetProp(&bus, sessionId, g_iterCount);
+                        status = AJ_UnmarshalArgs(&msg, sig, &g_iterCount);
+                        printf("Get prop reply %d\n", g_iterCount);
+
+                        if (status == AJ_OK) {
+                            g_iterCount = g_iterCount + 1;
+                            status = SendSetProp(&bus, sessionId, g_iterCount);
+                        }
                     }
                 }
+                break;
+
+            case AJ_REPLY_ID(PRX_SET_PROP):
+                printf("Set prop reply\n");
+                break;
+
+            case AJ_SIGNAL_SESSION_LOST:
+                /*
+                 * Force a disconnect
+                 */
+                status = AJ_ERR_READ;
+                break;
+
+            default:
+                /*
+                 * Pass to the built-in handlers
+                 */
+                status = AJ_BusHandleBusMessage(&msg);
+                break;
             }
-            break;
-
-        case AJ_REPLY_ID(PRX_SET_PROP):
-            printf("Set prop reply\n");
-            break;
-
-        case AJ_SIGNAL_SESSION_LOST:
-            /*
-             * Force a disconnect
-             */
-            status = AJ_ERR_READ;
-            break;
-
-        default:
-            /*
-             * Pass to the built-in handlers
-             */
-            status = AJ_BusHandleBusMessage(&msg);
-            break;
         }
         /*
          * Messages must be closed to free resources
