@@ -31,9 +31,9 @@ static const uint16_t ServicePort = 24;
 static int32_t propVal = 123456;
 
 /*
- * Set to request authentication
+ * Use AJ_FLAG_ENCRYPTED for authFlag to request app-to-app authentication
  */
-static uint8_t authFlag = AJ_FLAG_ENCRYPTED;
+static uint8_t authFlag = 0;
 
 static const char* testInterface[] = {
     "org.alljoyn.alljoyn_test",
@@ -277,8 +277,7 @@ int AJ_Main(void)
 #ifdef AJ_MAIN
 int main()
 {
-    // Use AJ_FLAG_ENCRYPTED for authFlag if application-to-application authentication is needed
-    authFlag = 0;
+    // authFlag = AJ_FLAG_ENCRYPTED;
     return AJ_Main();
 }
 #endif
