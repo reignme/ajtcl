@@ -30,6 +30,7 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 
 
 #include <string.h>
+#include <malloc.h>
 
 #ifndef TRUE
 #define TRUE (1)
@@ -38,6 +39,27 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 #ifndef FALSE
 #define FALSE (0)
 #endif
+
+// Begin Memory Diagnostics
+static const char *ramstart = (char *)0x20070000;
+static const char *ramend = (char *)0x20088000;
+extern char _end;
+
+inline int stack_used() {
+    register char *stack_ptr asm("sp");
+    return (ramend - stack_ptr);
+}
+
+inline int static_used() { return (&_end - ramstart); }
+
+inline int heap_used() {
+   struct mallinfo mi = mallinfo();
+   return (mi.uordblks);
+}
+
+void ram_diag();
+
+// End Memory Diagnostics
 
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE

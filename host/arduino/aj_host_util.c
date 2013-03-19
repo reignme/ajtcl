@@ -58,3 +58,11 @@ void AJ_Free(void* mem)
         free(mem);
     }
 }
+
+void ram_diag()
+{
+   printf("SRAM usage (stack, heap, static): %d, %d, %d\n", 
+          stack_used(),
+          heap_used(),
+          static_used());
+}
