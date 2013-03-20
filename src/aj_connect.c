@@ -133,7 +133,7 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     if (!serviceName) {
         serviceName = daemonService;
     }
-#if 0 //defined _WIN32 || defined __linux__
+#if defined _WIN32 || defined __linux__
     service.ipv4port = 9955;
     service.ipv4 = 0x0100007F;
     service.addrTypes = AJ_ADDR_IPV4;
