@@ -61,7 +61,7 @@ static AJ_Status Send(AJ_IOBuffer* buf)
         ret = send((SOCKET)buf->context, buf->readPtr, tx, 0);
         if (ret == SOCKET_ERROR) {
 #ifndef NDEBUG
-            fprintf(stderr, "send() failed: %d\n", WSAGetLastError());
+            fprintf(stderr, "send() failed: 0x%x\n", WSAGetLastError());
 #endif
             return AJ_ERR_WRITE;
         }
@@ -138,7 +138,7 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
     ret = connect(sock, (struct sockaddr*)&addrBuf, addrSize);
     if (ret == SOCKET_ERROR) {
 #ifndef NDEBUG
-        fprintf(stderr, "connect() failed: %d\n", WSAGetLastError());
+        fprintf(stderr, "connect() failed: 0x%x\n", WSAGetLastError());
 #endif
         closesocket(sock);
         return AJ_ERR_CONNECT;
@@ -190,7 +190,7 @@ static AJ_Status SendTo(AJ_IOBuffer* buf)
             ret = sendto(sock, buf->readPtr, tx, 0, (struct sockaddr*) &sin, sizeof(sin));
             if (ret == SOCKET_ERROR) {
 #ifndef NDEBUG
-                fprintf(stderr, "sendto() failed: %d\n", WSAGetLastError());
+                fprintf(stderr, "sendto() failed: 0x%x\n", WSAGetLastError());
 #endif
             } else {
                 ++numWrites;
@@ -304,10 +304,12 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
     for (; pinfo; pinfo = pinfo->Next) {
         IP_ADAPTER_UNICAST_ADDRESS* paddr;
 
+#if 0
         // we only care about WIFI adaptors that support multicast
         if (pinfo->IfType != IF_TYPE_IEEE80211) {
             continue;
         }
+#endif
 
         if (pinfo->Flags & IP_ADAPTER_NO_MULTICAST) {
             continue;
@@ -326,7 +328,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
             // create a socket
             sock = socket(AF_INET, SOCK_DGRAM, 0);
             if (sock == INVALID_SOCKET) {
-                printf("socket: %s\n", WSAGetLastError());
+                printf("socket: 0x%x\n", WSAGetLastError());
                 continue;
             }
 
@@ -338,7 +340,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 
             ret = bind(sock, (struct sockaddr*) &sin, sizeof(sin));
             if (ret == SOCKET_ERROR) {
-                printf("Bind: %s\n", WSAGetLastError());
+                printf("Bind: 0x%x\n", WSAGetLastError());
                 closesocket(sock);
                 continue;
             }
@@ -350,7 +352,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
             mreq.imr_interface.s_addr = inet_addr(buffer);
             ret = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq));
             if (ret == SOCKET_ERROR) {
-                printf("setsockopt: %s\n", WSAGetLastError());
+                printf("setsockopt: 0x%x\n", WSAGetLastError());
                 continue;
             }
 
