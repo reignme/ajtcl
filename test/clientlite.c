@@ -178,7 +178,7 @@ int AJ_Main(void)
         AJ_Message msg;
 
         if (!connected) {
-            status = AJ_StartClient(&bus, "org.alljoyn", CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId);
+            status = AJ_StartClient(&bus, "org.alljoyn.daemon", CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId);
             if (status == AJ_OK) {
                 printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
                 connected = TRUE;

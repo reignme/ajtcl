@@ -126,7 +126,7 @@ int AJ_Main(void)
         AJ_Message msg;
 
         if (!connected) {
-            status = AJ_Connect(&bus, "org.alljoyn", CONNECT_TIMEOUT);
+            status = AJ_Connect(&bus, "org.alljoyn.daemon", CONNECT_TIMEOUT);
             if (status != AJ_OK) {
                 printf("AllJoyn failed to connect sleeping for 15 seconds\n");
                 AJ_Sleep(15 * 1000);

@@ -34,7 +34,7 @@ uint32_t sessionId = 0ul;
 AJ_Status authStatus = AJ_ERR_NULL;
 
 
-static const char DaemonName[] = "org.alljoyn";
+static const char DaemonName[] = "org.alljoyn.daemon";
 static const char ServiceName[] = "org.alljoyn.Bus.test.bastress";
 static const uint16_t ServicePort = 25;
 static uint32_t authenticate = TRUE;

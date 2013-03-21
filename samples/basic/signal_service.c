@@ -153,7 +153,7 @@ int main(void)
 
         if (!connected) {
             status = AJ_StartService(&busAttachment,
-                                     "org.alljoyn",
+                                     "org.alljoyn.daemon",
                                      CONNECT_TIMEOUT,
                                      ServicePort,
                                      ServiceName,

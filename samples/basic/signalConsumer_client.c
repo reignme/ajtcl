@@ -107,7 +107,7 @@ int main(void)
 
         if (!connected) {
             status = AJ_StartClient(&bus,
-                                    "org.alljoyn",
+                                    "org.alljoyn.daemon",
                                     CONNECT_TIMEOUT,
                                     ServiceName,
                                     ServicePort,
