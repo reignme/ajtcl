@@ -23,3 +23,4 @@ if env['HOST'] == 'win32' or env['HOST'] == 'linux':
     env.Program('svclite', ['svclite.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
     env.Program('clientlite', ['clientlite.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
     env.Program('siglite', ['siglite.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
+    env.Program('sessions', ['sessions.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
