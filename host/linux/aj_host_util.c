@@ -60,3 +60,28 @@ void AJ_Free(void* mem)
         free(mem);
     }
 }
+
+/*
+ * get a line of input from the the file pointer (most likely stdin).
+ * This will capture the the num-1 characters or till a newline character is
+ * entered.
+ *
+ * @param[out] str a pointer to a character array that will hold the user input
+ * @param[in]  num the size of the character array 'str'
+ * @param[in]  fp  the file pointer the sting will be read from. (most likely stdin)
+ *
+ * @return returns the same string as 'str' if there has been a read error a null
+ *                 pointer will be returned and 'str' will remain unchanged.
+ */
+char*AJ_GetLine(char*str, size_t num, FILE*fp)
+{
+    char*p = fgets(str, num, fp);
+
+    if (p != NULL) {
+        size_t last = strlen(str) - 1;
+        if (str[last] == '\n') {
+            str[last] = '\0';
+        }
+    }
+    return p;
+}
