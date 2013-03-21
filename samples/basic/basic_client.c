@@ -91,7 +91,7 @@ void MakeMethodCall(AJ_BusAttachment* bus, uint32_t sessionId)
     printf("MakeMethodCall() resulted in a status of 0x%04x.\n", status);
 }
 
-int main(void)
+int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     AJ_BusAttachment bus;
@@ -179,3 +179,10 @@ int main(void)
 
     return status;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

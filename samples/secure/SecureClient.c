@@ -152,7 +152,7 @@ void AuthCallback(const void* context, AJ_Status status)
 
 static uint32_t authenticate = TRUE;
 
-int main(void)
+int AJ_Main(void)
 {
     int done = FALSE;
     AJ_Status status = AJ_OK;
@@ -259,3 +259,10 @@ int main(void)
 
     return status;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

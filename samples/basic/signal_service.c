@@ -135,7 +135,7 @@ static AJ_Status SetName(AJ_Message* replyMsg, uint32_t propId, void* context)
 #define UNMARSHAL_TIMEOUT   (1000 * 5)
 #define SLEEP_TIME          (1000 * 2)
 
-int main(void)
+int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     uint8_t connected = FALSE;
@@ -229,3 +229,10 @@ int main(void)
 
     return status;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

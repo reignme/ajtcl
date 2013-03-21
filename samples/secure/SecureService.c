@@ -128,7 +128,7 @@ static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
 #define UNMARSHAL_TIMEOUT   (1000 * 5)
 #define SLEEP_TIME          (1000 * 2)
 
-int main(void)
+int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     AJ_BusAttachment bus;
@@ -214,3 +214,10 @@ int main(void)
 
     return status;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

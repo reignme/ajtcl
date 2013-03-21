@@ -144,4 +144,27 @@ if env['HOST'] == 'arduino':
     env.Install(Dir(arduinoLibDir).abspath + '/tests', 'host/arduino/tests/AJ_sessions')
     env.Install(Dir(arduinoLibDir + 'tests/AJ_sessions').abspath, env.Glob('host/arduino/tests/AJ_sessions/*'))
 
+    # Install basic samples
+    basicsamples = [ ]
+    basicsamples.append('basic_service')
+    basicsamples.append('basic_client')
+    basicsamples.append('signal_service')
+    basicsamples.append('signalConsumer_client')
+
+    securesamples = [ ]
+    securesamples.append('SecureClient')
+    securesamples.append('SecureService')
+
+    for sample in Flatten(basicsamples):
+        in_path = File('samples/basic/' + sample + '.c')
+        out_path = File('host/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
+        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('host/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
+        env.InstallAs(File(arduinoLibDir + 'samples/AJ_' + sample + '/' + sample + '.cpp').abspath, in_path.abspath)
+
+    for sample in Flatten(securesamples):
+        in_path = File('samples/secure/' + sample + '.c')
+        out_path = File('host/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
+        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('host/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
+        env.InstallAs(File(arduinoLibDir + 'samples/AJ_' + sample + '/' + sample + '.cpp').abspath, in_path.abspath)
+
 Return('env')

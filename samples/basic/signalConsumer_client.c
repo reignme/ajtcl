@@ -87,7 +87,7 @@ AJ_Status ReceiveNewName(AJ_Message*msg)
     return status;
 }
 
-int main(void)
+int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     AJ_BusAttachment bus;
@@ -246,3 +246,10 @@ int main(void)
 
     return status;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif
