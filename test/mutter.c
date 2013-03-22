@@ -316,123 +316,107 @@ int AJ_Main()
         }
 
         switch (i) {
-            case 0:
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
-                while (TRUE) {
-                    char* fruit;
-                    AJ_Arg dict;
-                    CHECK(AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY));
-                    CHECK(AJ_UnmarshalArgs(&rxMsg, "us", &key, &fruit));
-                    printf("Unmarshal[%d] = %s\n", key, fruit);
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &dict));
-                }
-                /*
-                 * We expect AJ_ERR_NO_MORE
-                 */
-                if (status == AJ_ERR_NO_MORE) {
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
-                }
-                break;
-
-            case 1:
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "u", &u));
-                printf("Unmarshal %u\n", u);
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "usu", &u, &str, &v));
-                printf("Unmarshal %u %s %u\n", u, str, v);
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &struct2, AJ_ARG_STRUCT));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "ii", &n, &m));
-                printf("Unmarshal %d %d\n", n, m);
-                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct2));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "qsq", &q, &str, &r));
-                printf("Unmarshal %u %s %u\n", q, str, r);
-                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
-                printf("Unmarshal %d\n", y);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
-                printf("Unmarshal %d\n", y);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
-                printf("Unmarshal %d\n", y);
-                break;
-
-            case 2:
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
-                while (status == AJ_OK) {
-                    CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-                    CHECK(AJ_UnmarshalArgs(&rxMsg, "us", &u, &str));
-                    CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
-                }
-                /*
-                 * We expect AJ_ERR_NO_MORE
-                 */
-                if (status == AJ_ERR_NO_MORE) {
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
-                }
-                break;
-
-            case 3:
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
-                while (status == AJ_OK) {
-                    CHECK(AJ_UnmarshalContainer(&rxMsg, &array2, AJ_ARG_ARRAY));
-                    while (status == AJ_OK) {
-                        CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
-                        printf("Unmarshal %s\n", arg.val.v_string);
-                    }
-                    /*
-                     * We expect AJ_ERR_NO_MORE
-                     */
-                    if (status == AJ_ERR_NO_MORE) {
-                        CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array2));
-                    }
-                }
-                /*
-                 * We expect AJ_ERR_NO_MORE
-                 */
-                if (status == AJ_ERR_NO_MORE) {
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
-                }
-                break;
-
-            case 4:
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
-                printf("Unmarshal %d\n", j);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
-                while (status == AJ_OK) {
-                    CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-                    CHECK(AJ_UnmarshalArgs(&rxMsg, "ii", &j, &k));
-                    printf("Unmarshal[%d] %d\n", j, k);
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
-                }
-                /*
-                 * We expect AJ_ERR_NO_MORE
-                 */
-                if (status != AJ_ERR_NO_MORE) {
-                    break;
-                }
+        case 0:
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (TRUE) {
+                char* fruit;
+                AJ_Arg dict;
+                CHECK(AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY));
+                CHECK(AJ_UnmarshalArgs(&rxMsg, "us", &key, &fruit));
+                printf("Unmarshal[%d] = %s\n", key, fruit);
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &dict));
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
                 CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
-                printf("Unmarshal %d\n", j);
-                break;
+            }
+            break;
 
-            case 5:
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
+        case 1:
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "u", &u));
+            printf("Unmarshal %u\n", u);
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "usu", &u, &str, &v));
+            printf("Unmarshal %u %s %u\n", u, str, v);
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &struct2, AJ_ARG_STRUCT));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "ii", &n, &m));
+            printf("Unmarshal %d %d\n", n, m);
+            CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct2));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "qsq", &q, &str, &r));
+            printf("Unmarshal %u %s %u\n", q, str, r);
+            CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            printf("Unmarshal %d\n", y);
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            printf("Unmarshal %d\n", y);
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            printf("Unmarshal %d\n", y);
+            break;
+
+        case 2:
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (status == AJ_OK) {
                 CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
-                printf("Unmarshal %d\n", j);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
-                printf("Unmarshal %s\n", str);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
-                printf("Unmarshal %d\n", j);
+                CHECK(AJ_UnmarshalArgs(&rxMsg, "us", &u, &str));
+                CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
                 CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
-                break;
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            }
+            break;
 
-<<<<<<< HEAD
+        case 3:
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (status == AJ_OK) {
+                CHECK(AJ_UnmarshalContainer(&rxMsg, &array2, AJ_ARG_ARRAY));
+                while (status == AJ_OK) {
+                    CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
+                    printf("Unmarshal %s\n", arg.val.v_string);
+                }
+                /*
+                 * We expect AJ_ERR_NO_MORE
+                 */
+                if (status == AJ_ERR_NO_MORE) {
+                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array2));
+                }
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            }
+            break;
+
+        case 4:
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
+            printf("Unmarshal %d\n", j);
+            CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
+            printf("Unmarshal variant %s\n", sig);
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (status == AJ_OK) {
+                CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
+                CHECK(AJ_UnmarshalArgs(&rxMsg, "ii", &j, &k));
+                printf("Unmarshal[%d] %d\n", j, k);
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status != AJ_ERR_NO_MORE) {
+                break;
+            }
+            CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
+            printf("Unmarshal %d\n", j);
+            break;
+
         case 5:
             CHECK(AJ_UnmarshalVariant(&rxMsg, (const char**)&sig));
             printf("Unmarshal variant %s\n", sig);
@@ -495,84 +479,37 @@ int AJ_Main()
                 if (v != (uint8_t)j) {
                     status = AJ_ERR_FAILURE;
                     break;
-            case 6:
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
-                printf("Unmarshal %s\n", str);
-                break;
-
-            case 7:
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &j));
-                printf("Unmarshal %d\n", j);
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "s", &str));
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
-                CHECK(AJ_UnmarshalVariant(&rxMsg, &sig));
-                printf("Unmarshal variant %s\n", sig);
-                CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
-                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
-                break;
-
-            case 8:
-                CHECK(AJ_UnmarshalArgs(&rxMsg, "uq", &j, &q));
-                printf("Unmarshal %d\n", j);
-                printf("Unmarshal %d\n", q);
-                CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, sizeof(len), &sz));
-                len = *((uint32_t*)raw);
-                printf("UnmarshalRaw %d\n", len);
-                for (j = 0; j < len; ++j) {
-                    uint8_t v;
-                    CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 1, &sz));
-                    v = *((uint8_t*)raw);
-                    if (v != (uint8_t)j) {
-                        status = AJ_ERR_FAILURE;
-                        break;
-                    }
                 }
-                break;
+            }
+            break;
 
-            case 9:
-                CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 4, &sz));
-                len = *((uint32_t*)raw) / sizeof(TestStruct);
-                /*
-                 * Structs are always 8 byte aligned
-                 */
-                CHECK(AJ_UnmarshalRaw(&rxMsg, &raw, 4, &sz));
-                for (j = 0; j < len; ++j) {
-                    TestStruct* ts;
-                    CHECK(AJ_UnmarshalRaw(&rxMsg, &ts, sizeof(TestStruct), &sz));
-                    if ((ts->a != j) || (ts->b != (j + 1)) || (ts->c != (j + 2)) || (ts->d != (j + 3))) {
-                        status = AJ_ERR_FAILURE;
-                        break;
-                    }
+        case 9:
+            CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 4, &sz));
+            len = *((uint32_t*)raw) / sizeof(TestStruct);
+            /*
+             * Structs are always 8 byte aligned
+             */
+            CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 4, &sz));
+            for (j = 0; j < len; ++j) {
+                TestStruct* ts;
+                CHECK(AJ_UnmarshalRaw(&rxMsg, (const void**)&ts, sizeof(TestStruct), &sz));
+                if ((ts->a != j) || (ts->b != (j + 1)) || (ts->c != (j + 2)) || (ts->d != (j + 3))) {
+                    status = AJ_ERR_FAILURE;
+                    break;
                 }
-                break;
+            }
+            break;
 
-            case 10:
-                CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
-                status = AJ_UnmarshalArg(&rxMsg, &arg);
-                /*
-                 * We expect AJ_ERR_NO_MORE
-                 */
-                if (status == AJ_ERR_NO_MORE) {
-                    CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
-                }
-                break;
+        case 10:
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            status = AJ_UnmarshalArg(&rxMsg, &arg);
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            }
+            break;
         }
         if (status != AJ_OK) {
             printf("Failed %d\n", i);
