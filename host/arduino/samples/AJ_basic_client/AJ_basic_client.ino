@@ -37,11 +37,11 @@ void setup() {
     }
 
     printf("setup...\n");
-    
+
 #ifdef WIFI_UDP_WORKING
     char ssid[] = "yourNetwork";     // the name of your network
     int status = WL_IDLE_STATUS;     // the Wifi radio's status
-    
+
     // check for the presence of the shield:
     if (WiFi.status() == WL_NO_SHIELD) {
         printf("WiFi shield not present\n");
