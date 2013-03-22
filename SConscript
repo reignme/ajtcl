@@ -33,12 +33,9 @@ env.Append(CPPDEFINES = ['AJ_MAIN'])
 # In case of target platforms, the compilation/linking does not take place
 # using SCons files.
 if env['HOST'] == 'win32':
-    if not env.has_key('OPENSSL_DIR'):
-        env.Append(OPENSSL_DIR='c:\OpenSSL-Win64')
-    env['libs'] = ['wsock32', 'libeay32']
-    env.Append(CFLAGS=['/I${OPENSSL_DIR}\include', '/J', '/W3'])
+    env['libs'] = ['wsock32', 'advapi32']
+    env.Append(CFLAGS=['/J', '/W3'])
     env.Append(CPPDEFINES=['_CRT_SECURE_NO_WARNINGS'])
-    env.Append(LINKFLAGS=['/LIBPATH:${OPENSSL_DIR}\lib'])
     if env['VARIANT'] == 'debug':
         env.Append(CFLAGS=['/MD', '/Zi', '/Od'])
         env.Append(LINKFLAGS=['/debug'])
@@ -78,7 +75,7 @@ env['aj_srcs'] = [Glob('src/*.c')]
 
 # Build objects for the host-specific sources and AllJoyn Thin Client sources
 if env['HOST'] == 'win32' or env['HOST'] == 'linux':
-    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'], CPPPATH=env['includes'])
+    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + ['crypto/aj_sw_crypto.c'], CPPPATH=env['includes'])
 
 Export('env')
 
