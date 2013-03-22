@@ -1098,6 +1098,7 @@ static AJ_Status MarshalContainer(AJ_Message* msg, const char** sig, AJ_Arg* arg
     AJ_IOBuffer* ioBuf = &msg->bus->sock.tx;
 
     *sig -= 1;
+    arg->sigPtr = *sig + 1;
     if (**sig == AJ_ARG_ARRAY) {
         /*
          * Reserve space for the length and save a pointer to it
@@ -1108,12 +1109,11 @@ static AJ_Status MarshalContainer(AJ_Message* msg, const char** sig, AJ_Arg* arg
          * Might need to pad if the elements align on an 8 byte boundary
          */
         if (status == AJ_OK) {
-            status = WritePad(msg, PadForType(**sig, ioBuf));
+            status = WritePad(msg, PadForType(arg->sigPtr[0], ioBuf));
         }
     } else {
         status = WritePad(msg, pad);
     }
-    arg->sigPtr = *sig + 1;
     /*
      * Consume container signature
      */
@@ -1546,9 +1546,10 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
     if (arg->typeId == AJ_ARG_ARRAY) {
         arg->len = (uint16_t)(ioBuf->writePtr - (uint8_t*)arg->val.v_data) - 4;
         /*
-         * If the array element is 8 byte aligned check if there was padding after the length
+         * If the array element is 8 byte aligned and the array is not empty check if there was
+         * padding after the length
          */
-        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 7)) {
+        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 7) && arg->len) {
             arg->len -= 4;
         }
         /*
