@@ -41,20 +41,22 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 #endif
 
 // Begin Memory Diagnostics
-static const char *ramstart = (char *)0x20070000;
-static const char *ramend = (char *)0x20088000;
+static const char* ramstart = (char*)0x20070000;
+static const char* ramend = (char*)0x20088000;
 extern char _end;
 
 inline int stack_used() {
-    register char *stack_ptr asm("sp");
+    register char* stack_ptr asm ("sp");
     return (ramend - stack_ptr);
 }
 
-inline int static_used() { return (&_end - ramstart); }
+inline int static_used() {
+    return (&_end - ramstart);
+}
 
 inline int heap_used() {
-   struct mallinfo mi = mallinfo();
-   return (mi.uordblks);
+    struct mallinfo mi = mallinfo();
+    return (mi.uordblks);
 }
 
 void ram_diag();
