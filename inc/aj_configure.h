@@ -26,8 +26,6 @@
 /** Identify Function */
 typedef void (*IdentifyFunction)(char*, size_t);
 
-struct AJ_Message;
-
 
 /** Note to OEM: Make this the *FIRST* object in your list of AllJoyn objects */
 extern const AJ_InterfaceDescription AJ_ConfigInterfaces[];
