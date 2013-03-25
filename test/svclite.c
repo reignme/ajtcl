@@ -168,6 +168,7 @@ int AJ_Main(void)
                 continue;
             }
             printf("StartService returned AJ_OK\n");
+            printf("Connected to Daemon:%s\n", &bus);
 
             connected = TRUE;
             AJ_BusSetPasswordCallback(&bus, PasswordCallback);
@@ -273,6 +274,7 @@ int AJ_Main(void)
 
         if (status == AJ_ERR_READ) {
             printf("AllJoyn disconnect\n");
+            printf("Disconnected from Daemon:%s\n", &bus);
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*
