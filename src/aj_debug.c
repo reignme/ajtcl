@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -63,8 +63,10 @@ static const char* msgType[] = { "INVALID", "CALL", "REPLY", "ERROR", "SIGNAL" }
 
 void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 {
+#if DUMP_MSG_RAW
     uint8_t* p = (uint8_t*)msg->hdr + sizeof(AJ_MsgHeader);
     uint32_t hdrBytes = ((msg->hdr->headerLen + 7) & ~7);
+#endif
     printf("%s message[%d] type %s sig=\"%s\"\n", tag, msg->hdr->serialNum, msgType[(msg->hdr->msgType <= 4) ? msg->hdr->msgType : 0], msg->signature);
     switch (msg->hdr->msgType) {
     case AJ_MSG_SIGNAL:
