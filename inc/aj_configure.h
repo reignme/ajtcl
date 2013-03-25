@@ -22,10 +22,7 @@
 #define _AJ_CONFIGURE_H
 
 #include <aj_introspect.h>
-
-/** Identify Function */
-typedef void (*IdentifyFunction)(char*, size_t);
-
+#include "aj_configureme.h"
 
 /** Note to OEM: Make this the *FIRST* object in your list of AllJoyn objects */
 extern const AJ_InterfaceDescription AJ_ConfigInterfaces[];
