@@ -38,7 +38,7 @@ void AJ_ClearConfig(uint32_t index)
     }
 
     // copy the new profile into the saved configuration
-    old_config = AJ_Malloc(sizeof(AJ_Configuration));
+    old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
     memset(&(old_config->profiles[index]), 0xFF, sizeof(AJ_ConnectionProfile));
 
@@ -56,7 +56,7 @@ AJ_Status AJ_SetActive(uint32_t index)
         return AJ_ERR_UNKNOWN;
     }
 
-    old_config = AJ_Malloc(sizeof(AJ_Configuration));
+    old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
 
     printf("Setting active index %u\n", index);
@@ -93,7 +93,7 @@ void AJ_SavePassword(char* password)
     AJ_Configuration* old_config;
 
     printf("Setting password to %s\n", password);
-    old_config = AJ_Malloc(sizeof(AJ_Configuration));
+    old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
     strcpy(old_config->aj_password, password);
 
@@ -117,7 +117,7 @@ void AJ_StoreConfig(uint32_t index, char* ssid, char* password, uint32_t auth, u
            index, ssid, password, auth, encryption);
 
     // copy config and overwrite the profile
-    old_config = AJ_Malloc(sizeof(AJ_Configuration));
+    old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
 
     // get the config profile and the wifi profile
