@@ -145,4 +145,9 @@ void AJ_ClearConfig(uint32_t index);
  */
 void AJ_ClearAll();
 
+
+void AJ_WriteConfiguration(AJ_Configuration* config);
+
+AJ_Configuration* AJ_InitializeConfig();
+
 #endif /* _AJ_CONFIGUREME_H */
