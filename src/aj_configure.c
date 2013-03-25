@@ -62,135 +62,136 @@ AJ_Status AJ_ProcessInternal(AJ_Message* msg, IdentifyFunction identifyFunction)
 
     switch (msg->msgId) {
     case APP_SET_WIFI:
-    {
-        uint32_t active = AJ_GetActive();
-        uint32_t index;
-        char* ssid;
-        char* password;
-        uint32_t auth;
-        uint32_t encryption;
-        status = AJ_UnmarshalArgs(msg, "ussuu", &index, &ssid, &password, &auth, &encryption);
-
-        if (status == AJ_OK) {
-            status = AJ_SaveWifiProfile(index, ssid, password, auth, encryption);
+        {
+            uint32_t active = AJ_GetActive();
+            uint32_t index;
+            char* ssid;
+            char* password;
+            uint32_t auth;
+            uint32_t encryption;
+            status = AJ_UnmarshalArgs(msg, "ussuu", &index, &ssid, &password, &auth, &encryption);
 
             if (status == AJ_OK) {
-                AJ_Message reply;
-                AJ_MarshalReplyMsg(msg, &reply);
-                status = AJ_DeliverMsg(&reply);
-            } else {
+                status = AJ_SaveWifiProfile(index, ssid, password, auth, encryption);
+
+                if (status == AJ_OK) {
+                    AJ_Message reply;
+                    AJ_MarshalReplyMsg(msg, &reply);
+                    status = AJ_DeliverMsg(&reply);
+                } else {
+                    AJ_Message reply;
+                    AJ_MarshalErrorMsg(msg, &reply, "Invalid parameter");
+                    status = AJ_DeliverMsg(&reply);
+                }
+            }
+
+            // if we are modifying the current profile, we need to
+            if (status == AJ_OK && index == active) {
+                status = AJ_ERR_RESTART;
+            }
+
+            break;
+        }
+
+    case APP_GET_WIFI:
+        {
+            uint32_t index;
+            status = AJ_UnmarshalArgs(msg, "u", &index);
+
+            if (status == AJ_OK) {
+                const AJ_ConnectionProfile* config = AJ_ReadProfile(index);
+
+                switch (config->type) {
+                case PROFILE_TYPE_WIFI:
+                    {
+                        const AJ_WifiProfile* profile = &(config->wifi);
+                        AJ_Message reply;
+                        AJ_MarshalReplyMsg(msg, &reply);
+                        AJ_MarshalArgs(&reply, "ssuu", profile->ssid, profile->password, &profile->auth, &profile->encryption);
+                        status = AJ_DeliverMsg(&reply);
+                        break;
+                    }
+
+                default:
+                    status = AJ_ERR_INVALID;
+                    break;
+                }
+            }
+
+            if (status != AJ_OK) {
                 AJ_Message reply;
                 AJ_MarshalErrorMsg(msg, &reply, "Invalid parameter");
                 status = AJ_DeliverMsg(&reply);
             }
+
+            break;
         }
-
-        // if we are modifying the current profile, we need to
-        if (status == AJ_OK && index == active) {
-            status = AJ_ERR_RESTART;
-        }
-
-        break;
-    }
-
-    case APP_GET_WIFI:
-    {
-        uint32_t index;
-        status = AJ_UnmarshalArgs(msg, "u", &index);
-
-        if (status == AJ_OK) {
-            const AJ_ConnectionProfile* config = AJ_ReadProfile(index);
-
-            switch (config->type){
-            case PROFILE_TYPE_WIFI:
-                {
-                    const AJ_WifiProfile* profile = &(config->wifi);
-                    AJ_Message reply;
-                    AJ_MarshalReplyMsg(msg, &reply);
-                    AJ_MarshalArgs(&reply, "ssuu", profile->ssid, profile->password, &profile->auth, &profile->encryption);
-                    status = AJ_DeliverMsg(&reply);
-                    break;
-                }
-            default:
-                status = AJ_ERR_INVALID;
-                break;
-            }
-        }
-
-        if (status != AJ_OK) {
-            AJ_Message reply;
-            AJ_MarshalErrorMsg(msg, &reply, "Invalid parameter");
-            status = AJ_DeliverMsg(&reply);
-        }
-
-        break;
-    }
 
     case APP_IDENTIFY:
-    {
-        AJ_Message reply;
-        char name[80];
-        // limit the output to 80 bytes
-        (*identifyFunction)(name, sizeof(name));
-        name[sizeof(name) - 1] = '\0';
+        {
+            AJ_Message reply;
+            char name[80];
+            // limit the output to 80 bytes
+            (*identifyFunction)(name, sizeof(name));
+            name[sizeof(name) - 1] = '\0';
 
-        AJ_MarshalReplyMsg(msg, &reply);
-        AJ_MarshalArgs(&reply, "s", name);
-        status = AJ_DeliverMsg(&reply);
-        break;
-    }
-
-    case APP_MAX_PROFILE:
-    {
-        AJ_Message reply;
-        uint32_t max = MAX_PROFILES;
-        AJ_MarshalReplyMsg(msg, &reply);
-        AJ_MarshalArgs(&reply, "u", &max);
-        status = AJ_DeliverMsg(&reply);
-        break;
-    }
-
-    case APP_CLEAR:
-    {
-        AJ_Message reply;
-        uint32_t index;
-        status = AJ_UnmarshalArgs(msg, "u", &index);
-
-        if (index == AJ_GetActive()) {
-            AJ_MarshalErrorMsg(msg, &reply, "Cannot clear active profile");
-            status = AJ_DeliverMsg(&reply);
-        } else {
-            AJ_ClearConfig(index);
             AJ_MarshalReplyMsg(msg, &reply);
+            AJ_MarshalArgs(&reply, "s", name);
             status = AJ_DeliverMsg(&reply);
+            break;
         }
 
-        break;
-    }
+    case APP_MAX_PROFILE:
+        {
+            AJ_Message reply;
+            uint32_t max = MAX_PROFILES;
+            AJ_MarshalReplyMsg(msg, &reply);
+            AJ_MarshalArgs(&reply, "u", &max);
+            status = AJ_DeliverMsg(&reply);
+            break;
+        }
 
-    case APP_CONNECT:
-    {
-        AJ_Message reply;
-        uint32_t index;
-        status = AJ_UnmarshalArgs(msg, "u", &index);
+    case APP_CLEAR:
+        {
+            AJ_Message reply;
+            uint32_t index;
+            status = AJ_UnmarshalArgs(msg, "u", &index);
 
-        if (status == AJ_OK) {
-            status = AJ_SetActive(index);
-            if (status == AJ_OK) {
+            if (index == AJ_GetActive()) {
+                AJ_MarshalErrorMsg(msg, &reply, "Cannot clear active profile");
+                status = AJ_DeliverMsg(&reply);
+            } else {
+                AJ_ClearConfig(index);
                 AJ_MarshalReplyMsg(msg, &reply);
                 status = AJ_DeliverMsg(&reply);
             }
+
+            break;
         }
 
-        if (status != AJ_OK) {
-            AJ_MarshalErrorMsg(msg, &reply, "Invalid parameter");
-            status = AJ_DeliverMsg(&reply);
-        } else {
-            status = AJ_ERR_RESTART;
-        }
+    case APP_CONNECT:
+        {
+            AJ_Message reply;
+            uint32_t index;
+            status = AJ_UnmarshalArgs(msg, "u", &index);
 
-        break;
-    }
+            if (status == AJ_OK) {
+                status = AJ_SetActive(index);
+                if (status == AJ_OK) {
+                    AJ_MarshalReplyMsg(msg, &reply);
+                    status = AJ_DeliverMsg(&reply);
+                }
+            }
+
+            if (status != AJ_OK) {
+                AJ_MarshalErrorMsg(msg, &reply, "Invalid parameter");
+                status = AJ_DeliverMsg(&reply);
+            } else {
+                status = AJ_ERR_RESTART;
+            }
+
+            break;
+        }
 
     default:
         status = AJ_ERR_UNEXPECTED;
