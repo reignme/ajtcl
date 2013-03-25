@@ -147,4 +147,15 @@ void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_
  */
 void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv);
 
+
+/**
+ * Encrypt a single 16 byte block using AES in ECB mode
+ *
+ * @param key  The AES encryption key
+ * @param in   The data to encrypt
+ * @param out  The encrypted data
+ */
+void AJ_AES_ECB_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out);
+
+
 #endif
