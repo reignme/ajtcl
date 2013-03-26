@@ -28,8 +28,6 @@
 static const char ServiceName[] = "org.alljoyn.svclite";
 static const uint16_t ServicePort = 24;
 
-static int32_t propVal = 123456;
-
 /*
  * Use AJ_FLAG_ENCRYPTED for authFlag to request app-to-app authentication
  */
@@ -76,7 +74,7 @@ static AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned in
 static int32_t g_iterCount = 0;
 static void AppDoWork(AJ_BusAttachment* bus, uint32_t sessionId)
 {
-    printf("AppDoWork");
+    AJ_Printf("AppDoWork");
     /*
      * This function is called if there are no messages to unmarshal
      */
@@ -96,18 +94,16 @@ static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
 #define UNMARSHAL_TIMEOUT  (1000 * 5)
 #define METHOD_TIMEOUT     (100 * 10)
 
+static const char PingString[] = "Ping String";
 
 AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned int num)
 {
     AJ_Status status;
     AJ_Message msg;
-    char buf[80];
-
-    sprintf(buf, "Ping String %u", num);
 
     status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, authFlag, METHOD_TIMEOUT);
     if (status == AJ_OK) {
-        status = AJ_MarshalArgs(&msg, "s", buf);
+        status = AJ_MarshalArgs(&msg, "s", PingString);
     }
     if (status == AJ_OK) {
         status = AJ_DeliverMsg(&msg);
@@ -140,13 +136,13 @@ AJ_Status SendSetProp(AJ_BusAttachment* bus, uint32_t sessionId, int val)
         if (status == AJ_OK) {
             status = AJ_MarshalArgs(&msg, "i", val);
         } else {
-            printf(">>>>>>>>In SendSetProp() AJ_MarshalPropertyArgs() returned status = 0x%04x\n", status);
+            AJ_Printf(">>>>>>>>In SendSetProp() AJ_MarshalPropertyArgs() returned status = 0x%04x\n", status);
         }
 
         if (status == AJ_OK) {
             status = AJ_DeliverMsg(&msg);
         } else {
-            printf(">>>>>>>>In SendSetProp() AJ_MarshalArgs() returned status = 0x%04x\n", status);
+            AJ_Printf(">>>>>>>>In SendSetProp() AJ_MarshalArgs() returned status = 0x%04x\n", status);
         }
     }
 
@@ -180,20 +176,20 @@ int AJ_Main(void)
         if (!connected) {
             status = AJ_StartClient(&bus, "org.alljoyn.daemon", CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId);
             if (status == AJ_OK) {
-                printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
-                printf("Connected to Daemon:%s\n", &bus);
+                AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
+                AJ_Printf("Connected to Daemon:\n");
                 connected = TRUE;
                 if (authFlag) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
                     status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
                     if (status != AJ_OK) {
-                        printf("AJ_BusAuthenticatePeer returned %d\n", status);
+                        AJ_Printf("AJ_BusAuthenticatePeer returned %d\n", status);
                     }
                 } else {
                     authStatus = AJ_OK;
                 }
             } else {
-                printf("StartClient returned %d\n", status);
+                AJ_Printf("StartClient returned %d\n", status);
                 break;
             }
         }
@@ -230,7 +226,7 @@ int AJ_Main(void)
                     status = AJ_UnmarshalVariant(&msg, &sig);
                     if (status == AJ_OK) {
                         status = AJ_UnmarshalArgs(&msg, sig, &g_iterCount);
-                        printf("Get prop reply %d\n", g_iterCount);
+                        AJ_Printf("Get prop reply %d\n", g_iterCount);
 
                         if (status == AJ_OK) {
                             g_iterCount = g_iterCount + 1;
@@ -241,7 +237,7 @@ int AJ_Main(void)
                 break;
 
             case AJ_REPLY_ID(PRX_SET_PROP):
-                printf("Set prop reply\n");
+                AJ_Printf("Set prop reply\n");
                 break;
 
             case AJ_SIGNAL_SESSION_LOST:
@@ -265,13 +261,13 @@ int AJ_Main(void)
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", &bus);
+            AJ_Printf("AllJoyn disconnect\n");
+            AJ_Printf("Disconnected from Daemon\n");
             AJ_Disconnect(&bus);
-            exit(0);
+            return status;
         }
     }
-    printf("clientlite EXIT %d\n", status);
+    AJ_Printf("clientlite EXIT %d\n", status);
 
     return status;
 }
