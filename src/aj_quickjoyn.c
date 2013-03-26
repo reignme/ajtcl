@@ -76,7 +76,7 @@ const AJ_ConnectionProfile* AJ_ReadProfile(uint32_t index)
         profile = &(config->profiles[index]);
     }
 
-#ifdef NDEBUG
+#ifndef NDEBUG
     printf("Config:\n");
     AJ_DumpBytes(NULL, config,  sizeof(AJ_Configuration));
 
@@ -134,8 +134,8 @@ void AJ_StoreConfig(uint32_t index, char* ssid, char* password, uint32_t auth, u
 
     AJ_WriteConfiguration(old_config);
 
-#ifdef NDEBUG
-    printf("AJ_StoreConfig:\n");
+#ifndef NDEBUG
+    AJ_Printf("AJ_StoreConfig:\n");
     AJ_DumpBytes(NULL, config,  sizeof(AJ_Configuration));
 #endif
 
