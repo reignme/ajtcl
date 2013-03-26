@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
 
 #include "aj_host.h"
 #include "aj_introspect.h"
@@ -276,10 +275,10 @@ void PrintXML(void* context, const char* str, uint32_t len)
 {
     if (len) {
         while (len--) {
-            putchar(*str++);
+            AJ_Printf("%c", *str++);
         }
     } else {
-        printf("%s", str);
+        AJ_Printf("%s", str);
     }
 }
 
@@ -292,7 +291,7 @@ void AJ_PrintXML(const AJ_Object* obj)
     emptyList.interfaces = NULL;
     status = GenXML(PrintXML, NULL, obj, &emptyList);
     if (status != AJ_OK) {
-        printf("\nFailed to generate XML - check interface descriptions for errors\n");
+        AJ_Printf("\nFailed to generate XML - check interface descriptions for errors\n");
     }
 }
 #endif
@@ -369,13 +368,13 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         context.len = 0;
         status = GenXML(SizeXML, &context.len, obj, objectLists[1]);
         if (status != AJ_OK) {
-            printf("Failed to generate XML - check interface descriptions for errors\n");
+            AJ_Printf("Failed to generate XML - check interface descriptions for errors\n");
             return status;
         }
         /*
          * Second pass marshals the XML
          */
-        printf("AJ_HandleIntrospectRequest() %d bytes of XML\n", context.len);
+        AJ_Printf("AJ_HandleIntrospectRequest() %d bytes of XML\n", context.len);
         AJ_MarshalReplyMsg(msg, reply);
         /*
          * Do a partial delivery
@@ -404,7 +403,7 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         /*
          * Return a ServiceUnknown error response
          */
-        printf("AJ_HandleIntrospectRequest() NO MATCH for %s\n", msg->objPath);
+        AJ_Printf("AJ_HandleIntrospectRequest() NO MATCH for %s\n", msg->objPath);
         AJ_MarshalErrorMsg(msg, reply, AJ_ErrServiceUnknown);
     }
     return status;
@@ -565,7 +564,7 @@ static uint8_t CheckIndex(const void* ptr, uint8_t index, size_t stride)
     }
     do {
         if (*((void**)ptr) == NULL) {
-            printf("\n!!!Invalid msg identifier indicates programming error!!!\n");
+            AJ_Printf("\n!!!Invalid msg identifier indicates programming error!!!\n");
             return FALSE;
         }
         ptr = (((uint8_t*)ptr) + stride);
@@ -750,7 +749,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
                 if (status != AJ_ERR_NO_MATCH) {
                     if (status == AJ_OK) {
                         *propId = (oIndex << 24) | (pIndex << 16) | (iIndex << 8) | mIndex;
-                        printf("Identified property %x sig \"%s\"\n", *propId, sig);
+                        AJ_Printf("Identified property %x sig \"%s\"\n", *propId, sig);
                     }
                     break;
                 }
@@ -780,7 +779,7 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
             status = LookupMessageId(objectLists[oIndex], msg);
             if (status == AJ_OK) {
                 msg->msgId |= (oIndex << 24);
-                printf("Identified message %x\n", msg->msgId);
+                AJ_Printf("Identified message %x\n", msg->msgId);
                 break;
             }
         }
@@ -822,7 +821,7 @@ AJ_Status AJ_AllocReplyContext(AJ_Message* msg, uint32_t timeout)
     } else {
         ReplyContext* repCtx = FindReplyContext(0);
 
-        assert(msg->hdr->msgType == AJ_MSG_METHOD_CALL);
+        AJ_ASSERT(msg->hdr->msgType == AJ_MSG_METHOD_CALL);
 
         if (repCtx) {
             repCtx->serial = msg->hdr->serialNum;
@@ -831,7 +830,7 @@ AJ_Status AJ_AllocReplyContext(AJ_Message* msg, uint32_t timeout)
             AJ_InitTimer(&repCtx->callTime);
             return AJ_OK;
         } else {
-            printf("Failed to allocate a reply context\n");
+            AJ_Printf("Failed to allocate a reply context\n");
             return AJ_ERR_RESOURCES;
         }
     }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -51,14 +51,14 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
         if (AJ_GetElapsedTime(&timer, TRUE) > timeout) {
             return AJ_ERR_TIMEOUT;
         }
-        printf("Attempting to connect to bus\n");
+        AJ_Printf("Attempting to connect to bus\n");
         status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
         if (status != AJ_OK) {
-            printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
+            AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
             AJ_Sleep(CONNECT_PAUSE);
             continue;
         }
-        printf("AllJoyn service connected to bus\n");
+        AJ_Printf("AllJoyn service connected to bus\n");
         /*
          * Kick things off by binding a session port
          */
@@ -66,7 +66,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
         if (status == AJ_OK) {
             break;
         }
-        printf("Failed to send bind session port message\n");
+        AJ_Printf("Failed to send bind session port message\n");
         AJ_Disconnect(bus);
     }
 
@@ -114,7 +114,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
     }
 
     if (status != AJ_OK) {
-        printf("AllJoyn disconnect bus status=%d\n", status);
+        AJ_Printf("AllJoyn disconnect bus status=%d\n", status);
         AJ_Disconnect(bus);
     }
     return status;
@@ -138,14 +138,14 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
         if (AJ_GetElapsedTime(&timer, TRUE) > timeout) {
             return AJ_ERR_TIMEOUT;
         }
-        printf("Attempting to connect to bus\n");
+        AJ_Printf("Attempting to connect to bus\n");
         status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
         if (status != AJ_OK) {
-            printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
+            AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
             AJ_Sleep(CONNECT_PAUSE);
             continue;
         }
-        printf("AllJoyn client connected to bus\n");
+        AJ_Printf("AllJoyn client connected to bus\n");
         /*
          * Kick things off by finding the service names
          */
@@ -153,7 +153,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
         if (status == AJ_OK) {
             break;
         }
-        printf("FindAdvertisedName failed\n");
+        AJ_Printf("FindAdvertisedName failed\n");
         AJ_Disconnect(bus);
     }
 
@@ -194,7 +194,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
             {
                 AJ_Arg arg;
                 AJ_UnmarshalArg(&msg, &arg);
-                printf("FoundAdvertisedName(%s)\n", arg.val.v_string);
+                AJ_Printf("FoundAdvertisedName(%s)\n", arg.val.v_string);
                 foundName = TRUE;
                 status = AJ_BusJoinSession(bus, arg.val.v_string, port, NULL);
             }
@@ -234,7 +234,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
         AJ_CloseMsg(&msg);
     }
     if (status != AJ_OK) {
-        printf("AllJoyn disconnect bus status=%d\n", status);
+        AJ_Printf("AllJoyn disconnect bus status=%d\n", status);
         AJ_Disconnect(bus);
     }
     return status;

@@ -74,4 +74,7 @@ void ram_diag();
     #include <EthernetUdp.h>
 #endif
 
+#define AJ_Printf    printf
+#define AJ_ASSERT(x) assert(x)
+
 #endif

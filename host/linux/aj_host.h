@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <string.h>
+#include <assert.h>
 
 #ifndef TRUE
 #define TRUE (1)
@@ -42,5 +43,8 @@
 
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE
+
+#define AJ_Printf    printf
+#define AJ_ASSERT(x) assert(x)
 
 #endif

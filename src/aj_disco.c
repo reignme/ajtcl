@@ -17,7 +17,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 
 #include "aj_host.h"
@@ -186,7 +185,7 @@ static AJ_Status ParseIsAt(AJ_IOBuffer* rxBuf, const char* prefix, AJ_Service* s
             {
                 char sav = p[sz];
                 p[sz] = 0;
-                printf("Found %s IP %x\n", p, service->addrTypes);
+                AJ_Printf("Found %s IP %x\n", p, service->addrTypes);
                 p[sz] = sav;
             }
             if ((preLen <= sz) && (memcmp(p, prefix, preLen) == 0)) {
@@ -221,7 +220,7 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
     AJ_Time stopwatch;
     AJ_NetSocket sock;
 
-    printf("Starting discovery\n");
+    AJ_Printf("Starting discovery\n");
     /*
      * Initialize the timer
      */
@@ -244,7 +243,7 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
              * Pause between sending each WHO-HAS
              */
             AJ_Sleep(400);
-            printf("Sending who-has \"%s\"\n", prefix);
+            AJ_Printf("Sending who-has \"%s\"\n", prefix);
         }
         /*
          * Flush stale rx data
@@ -265,6 +264,6 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
      */
     AJ_Net_MCastDown(&sock);
 
-    printf("Stopping discovery\n");
+    AJ_Printf("Stopping discovery\n");
     return status;
 }

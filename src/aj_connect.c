@@ -17,7 +17,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 
 #include "aj_host.h"
@@ -203,7 +202,7 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
 ExitConnect:
 
     if (status != AJ_OK) {
-        printf("AllJoyn connect failed %d\n", status);
+        AJ_Printf("AllJoyn connect failed %d\n", status);
         AJ_Disconnect(bus);
     }
     return status;

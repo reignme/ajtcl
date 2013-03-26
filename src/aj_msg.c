@@ -17,7 +17,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -720,7 +719,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
     /*
      * Check that messages are getting closed
      */
-    assert(!currentMsg);
+    AJ_ASSERT(!currentMsg);
     currentMsg = msg;
 #endif
     /*
@@ -815,7 +814,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
         }
     }
     if (status == AJ_OK) {
-        assert(ioBuf->readPtr == endOfHeader);
+        AJ_ASSERT(ioBuf->readPtr == endOfHeader);
         /*
          * Consume the header pad bytes.
          */
@@ -853,7 +852,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
         /*
          * TODO - should this be silent?
          */
-        printf("Discarding bad message %d\n", status);
+        AJ_Printf("Discarding bad message %d\n", status);
         AJ_DumpMsg("DISCARDING", msg, FALSE);
         AJ_CloseMsg(msg);
     }
@@ -1047,8 +1046,8 @@ AJ_Status AJ_UnmarshalContainer(AJ_Message* msg, AJ_Arg* arg, uint8_t typeId)
 
 AJ_Status AJ_UnmarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
 {
-    assert(TYPE_FLAG(arg->typeId) & AJ_CONTAINER);
-    assert(msg->outer == arg);
+    AJ_ASSERT(TYPE_FLAG(arg->typeId) & AJ_CONTAINER);
+    AJ_ASSERT(msg->outer == arg);
 
     msg->outer = arg->container;
 
@@ -1455,7 +1454,7 @@ AJ_Status AJ_DeliverMsgPartial(AJ_Message* msg, uint32_t bytesRemaining)
     uint8_t typeId = msg->signature[msg->sigOffset];
     size_t pad;
 
-    assert(!msg->outer);
+    AJ_ASSERT(!msg->outer);
 
     if (!msg->hdr || !bytesRemaining) {
         return AJ_ERR_UNEXPECTED;
@@ -1538,8 +1537,8 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
     AJ_IOBuffer* ioBuf = &msg->bus->sock.tx;
     AJ_Status status = AJ_OK;
 
-    assert(TYPE_FLAG(arg->typeId) & AJ_CONTAINER);
-    assert(msg->outer == arg);
+    AJ_ASSERT(TYPE_FLAG(arg->typeId) & AJ_CONTAINER);
+    AJ_ASSERT(msg->outer == arg);
 
     msg->outer = arg->container;
 
@@ -1612,7 +1611,7 @@ AJ_Status AJ_MarshalSignal(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t msgI
 
 AJ_Status AJ_MarshalReplyMsg(const AJ_Message* methodCall, AJ_Message* reply)
 {
-    assert(methodCall->hdr->msgType == AJ_MSG_METHOD_CALL);
+    AJ_ASSERT(methodCall->hdr->msgType == AJ_MSG_METHOD_CALL);
     memset(reply, 0, sizeof(AJ_Message));
     reply->bus = methodCall->bus;
     reply->destination = methodCall->sender;
@@ -1623,7 +1622,7 @@ AJ_Status AJ_MarshalReplyMsg(const AJ_Message* methodCall, AJ_Message* reply)
 
 AJ_Status AJ_MarshalErrorMsg(const AJ_Message* methodCall, AJ_Message* reply, const char* error)
 {
-    assert(methodCall->hdr->msgType == AJ_MSG_METHOD_CALL);
+    AJ_ASSERT(methodCall->hdr->msgType == AJ_MSG_METHOD_CALL);
     memset(reply, 0, sizeof(AJ_Message));
     reply->bus = methodCall->bus;
     reply->destination = methodCall->sender;

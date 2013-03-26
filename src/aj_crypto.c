@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
 
 #include "aj_host.h"
 #include "aj_util.h"
@@ -144,7 +143,7 @@ static CCM_Context* InitCCMContext(const char* nonce, uint32_t nLen, uint32_t hd
     uint8_t flags = ((hdrLen) ? 0x40 : 0) | (((M - 2) / 2) << 3) | (L - 1);
     CCM_Context* context;
 
-    assert(nLen <= 15);
+    AJ_ASSERT(nLen <= 15);
 
     context = (CCM_Context*)AJ_Malloc(sizeof(CCM_Context));
     if (context) {

@@ -39,7 +39,7 @@ void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len)
     char ascii[CHUNKING + 1];
 
     if (tag) {
-        printf("%s:\n", tag);
+        AJ_Printf("%s:\n", tag);
     }
     ascii[CHUNKING] = '\0';
     for (i = 0; i < len; i += CHUNKING) {
@@ -48,14 +48,18 @@ void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len)
             if ((i + j) < len) {
                 uint8_t n = *data;
                 ascii[j] = Printable(n);
-                printf((n < 0x10) ? "0%x " : "%x ", n);
+                if (n < 0x10) {
+                    AJ_Printf("0%x ", n);
+                } else {
+                    AJ_Printf("%x ", n);
+                }
             } else {
                 ascii[j] = '\0';
-                printf("   ");
+                AJ_Printf("   ");
             }
         }
         ascii[j] = '\0';
-        printf("    %s\n", ascii);
+        AJ_Printf("    %s\n", ascii);
     }
 }
 
@@ -67,28 +71,28 @@ void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
     uint8_t* p = (uint8_t*)msg->hdr + sizeof(AJ_MsgHeader);
     uint32_t hdrBytes = ((msg->hdr->headerLen + 7) & ~7);
 #endif
-    printf("%s message[%d] type %s sig=\"%s\"\n", tag, msg->hdr->serialNum, msgType[(msg->hdr->msgType <= 4) ? msg->hdr->msgType : 0], msg->signature);
+    AJ_Printf("%s message[%d] type %s sig=\"%s\"\n", tag, msg->hdr->serialNum, msgType[(msg->hdr->msgType <= 4) ? msg->hdr->msgType : 0], msg->signature);
     switch (msg->hdr->msgType) {
     case AJ_MSG_SIGNAL:
     case AJ_MSG_METHOD_CALL:
-        printf("%s::%s\n", msg->iface, msg->member);
+        AJ_Printf("%s::%s\n", msg->iface, msg->member);
         break;
 
     case AJ_MSG_ERROR:
-        printf("Error %s\n", msg->error);
+        AJ_Printf("Error %s\n", msg->error);
 
     case AJ_MSG_METHOD_RET:
-        printf("Reply serial %d\n", msg->replySerial);
+        AJ_Printf("Reply serial %d\n", msg->replySerial);
         break;
     }
-    printf("hdr len=%d\n", msg->hdr->headerLen);
+    AJ_Printf("hdr len=%d\n", msg->hdr->headerLen);
 #if DUMP_MSG_RAW
     AJ_DumpBytes(NULL, p,  hdrBytes);
-    printf("body len=%d\n", msg->hdr->bodyLen);
+    AJ_Printf("body len=%d\n", msg->hdr->bodyLen);
     if (body) {
         AJ_DumpBytes(NULL, p + hdrBytes, msg->hdr->bodyLen);
     }
-    printf("-----------------------\n");
+    AJ_Printf("-----------------------\n");
 #endif
 }
 

@@ -21,6 +21,7 @@
 
 #include <stddef.h>
 #include <windows.h>
+#include <assert.h>
 
 #if _MSC_VER >= 1600   /* MSVC 2010 or higher */
 #include <stdint.h>
@@ -53,5 +54,8 @@ typedef unsigned long long uint64_t;  /** 64-bit unsigned integer */
 
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE
+
+#define AJ_Printf     printf
+#define AJ_ASSERT(x)  assert(x)
 
 #endif

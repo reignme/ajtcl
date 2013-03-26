@@ -17,7 +17,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 
 #include "aj_host.h"
@@ -98,7 +97,7 @@ static AJ_Status ComputeVerifier(const char* label, char* buffer, size_t bufLen)
 
     status = AJ_Crypto_PRF(data, lens, ArraySize(data), (uint8_t*)buffer, VERIFIER_LEN);
 #ifndef NDEBUG
-    printf("ComputeVerifier(%s): %s\n", label, Hex((uint8_t*)buffer, VERIFIER_LEN));
+    AJ_Printf("ComputeVerifier(%s): %s\n", label, Hex((uint8_t*)buffer, VERIFIER_LEN));
 #endif
     if (status == AJ_OK) {
         status = AJ_RawToHex((uint8_t*)buffer, VERIFIER_LEN, buffer, bufLen);
@@ -133,7 +132,7 @@ static AJ_Status ComputeMS(const uint8_t* nonce)
      */
     status = AJ_Crypto_PRF(data, lens, ArraySize(data), context.masterSecret, MASTER_SECRET_LEN);
 #ifndef NDEBUG
-    printf("MasterSecret: %s\n", Hex(context.masterSecret, MASTER_SECRET_LEN));
+    AJ_Printf("MasterSecret: %s\n", Hex(context.masterSecret, MASTER_SECRET_LEN));
 #endif
     return status;
 }
@@ -286,7 +285,7 @@ static AJ_Status AuthFinal(const AJ_GUID* peerGuid)
          */
         if (context.success) {
             AJ_PeerCred cred;
-            assert(sizeof(cred.secret) == MASTER_SECRET_LEN);
+            AJ_ASSERT(sizeof(cred.secret) == MASTER_SECRET_LEN);
             memcpy(&cred.guid, peerGuid, sizeof(AJ_GUID));
             memcpy(&cred.secret, context.masterSecret, MASTER_SECRET_LEN);
             status = AJ_StoreCredential(&cred);

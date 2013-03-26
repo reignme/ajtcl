@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
 
 #include "aj_host.h"
 #include "aj_status.h"
@@ -223,12 +222,13 @@ static AJ_Status Rejected(AJ_SASL_Context* context, char* outStr, uint32_t outLe
     SetStr(CMD_REJECTED, outStr, outLen);
     outLen -= (uint32_t)sizeof(CMD_REJECTED);
     while (*mech) {
+        uint32_t len = strlen(outStr);
         outLen -= (uint32_t)(strlen((*mech)->name) + 1);
         if ((int32_t)outLen < 0) {
             return AJ_ERR_RESOURCES;
         }
-        strcat(outStr, " ");
-        strcat(outStr, (*mech)->name);
+        outStr[len++] = ' ';
+        strcpy(outStr + len, (*mech)->name);
         ++mech;
     }
     return AJ_OK;
@@ -482,13 +482,13 @@ AJ_Status AJ_SASL_Advance(AJ_SASL_Context* context, char* inStr, char* outStr, u
     if (++context->authCount > MAX_AUTH_COUNT) {
         return AJ_ERR_SECURITY;
     }
-    printf("SASL->%s\n", inStr);
+    AJ_Printf("SASL->%s\n", inStr);
     *outStr = '\0';
     if (context->role == AJ_AUTH_CHALLENGER) {
         status = Challenge(context, inStr, outStr, outLen);
     } else {
         status = Response(context, inStr, outStr, outLen);
     }
-    printf("SASL<-%s\n", outStr);
+    AJ_Printf("SASL<-%s\n", outStr);
     return status;
 }
