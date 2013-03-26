@@ -218,6 +218,7 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
 {
     AJ_Status status;
     AJ_Time stopwatch;
+    AJ_Time recvStopWatch;
     AJ_NetSocket sock;
 
     AJ_Printf("Starting discovery\n");
@@ -233,32 +234,33 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
         return status;
     }
     while ((int32_t)timeout > 0) {
-        int whoHasCount = WHO_HAS_REPEAT;
-        status = AJ_OK;
-        while (whoHasCount-- && (status == AJ_OK)) {
-            AJ_IO_BUF_RESET(&sock.tx);
-            ComposeWhoHas(&sock.tx, prefix);
-            status = sock.tx.send(&sock.tx);
-            /*
-             * Pause between sending each WHO-HAS
-             */
-            AJ_Sleep(400);
-            AJ_Printf("Sending who-has \"%s\"\n", prefix);
-        }
+        AJ_IO_BUF_RESET(&sock.tx);
+        ComposeWhoHas(&sock.tx, prefix);
+        status = sock.tx.send(&sock.tx);
+        AJ_Printf("Sending who-has \"%s\"\n", prefix);
         /*
-         * Flush stale rx data
+         * Pause between sending each WHO-HAS
          */
-        AJ_IO_BUF_RESET(&sock.rx);
-        status = sock.rx.recv(&sock.rx, AJ_IO_BUF_SPACE(&sock.rx), RX_TIMEOUT);
-        if (status == AJ_OK) {
-            memset(service, 0, sizeof(AJ_Service));
-            status = ParseIsAt(&sock.rx, prefix, service);
+
+        AJ_InitTimer(&recvStopWatch);
+        while (TRUE) {
+            AJ_IO_BUF_RESET(&sock.rx);
+            status = sock.rx.recv(&sock.rx, AJ_IO_BUF_SPACE(&sock.rx), RX_TIMEOUT);
             if (status == AJ_OK) {
+                memset(service, 0, sizeof(AJ_Service));
+                status = ParseIsAt(&sock.rx, prefix, service);
+                if (status == AJ_OK) {
+                    goto _Exit;
+                }
+            }
+            if (AJ_GetElapsedTime(&recvStopWatch, TRUE) > RX_TIMEOUT) {
                 break;
             }
         }
+
         timeout -= AJ_GetElapsedTime(&stopwatch, FALSE);
     }
+_Exit:
     /*
      * All done with multicast for now
      */
