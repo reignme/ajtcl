@@ -55,7 +55,13 @@ typedef unsigned long long uint64_t;  /** 64-bit unsigned integer */
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE
 
-#define AJ_Printf     printf
+#ifndef NDEBUG
+    #define AJ_Printf(fmat, ...) \
+    do { printf(fmat, __VA_ARGS__); } while (0)
+#else
+    #define AJ_Printf(fmat, ...)
+#endif
+
 #define AJ_ASSERT(x)  assert(x)
 
 #endif

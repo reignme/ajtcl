@@ -31,6 +31,7 @@ typedef uint16_t suint32_t;  /* amount of data sent into a socket */
 
 #include <string.h>
 #include <malloc.h>
+#include <assert.h>
 
 #ifndef TRUE
 #define TRUE (1)
@@ -74,7 +75,13 @@ void ram_diag();
     #include <EthernetUdp.h>
 #endif
 
-#define AJ_Printf    printf
+#ifndef NDEBUG
+    #define AJ_Printf(fmat, ...) \
+    do { printf(fmat, ## __VA_ARGS__); } while (0)
+#else
+    #define AJ_Printf(fmat, ...)
+#endif
+
 #define AJ_ASSERT(x) assert(x)
 
 #endif

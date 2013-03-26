@@ -20,6 +20,7 @@
 #include <aj_configure.h>
 
 #include <alljoyn.h>
+#include "aj_debug.h"
 
 uint32_t AJ_GetActive()
 {
@@ -59,7 +60,7 @@ AJ_Status AJ_SetActive(uint32_t index)
     old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
 
-    printf("Setting active index %u\n", index);
+    AJ_Printf("Setting active index %u\n", index);
     old_config->active = index;
     AJ_WriteConfiguration(old_config);
     AJ_Free(old_config);
@@ -70,18 +71,18 @@ const AJ_ConnectionProfile* AJ_ReadProfile(uint32_t index)
 {
     AJ_Configuration* config = AJ_InitializeConfig();
     AJ_ConnectionProfile* profile = NULL;
-    printf("AJ_ReadConfig\n");
+    AJ_Printf("AJ_ReadConfig\n");
 
     if (index < MAX_PROFILES && config->profiles[index].type != PROFILE_TYPE_UNDEFINED) {
         profile = &(config->profiles[index]);
     }
 
 #ifndef NDEBUG
-    printf("Config:\n");
-    AJ_DumpBytes(NULL, config,  sizeof(AJ_Configuration));
+    AJ_Printf("Config:\n");
+    AJ_DumpBytes(NULL, (const uint8_t*)config,  sizeof(AJ_Configuration));
 
-    printf("Profile:\n");
-    AJ_DumpBytes(NULL, profile,  sizeof(AJ_ConnectionProfile));
+    AJ_Printf("Profile:\n");
+    AJ_DumpBytes(NULL, (const uint8_t*)profile,  sizeof(AJ_ConnectionProfile));
 #endif
 
     return profile;
@@ -92,7 +93,7 @@ void AJ_SavePassword(char* password)
     AJ_Configuration* config = AJ_InitializeConfig();
     AJ_Configuration* old_config;
 
-    printf("Setting password to %s\n", password);
+    AJ_Printf("Setting password to %s\n", password);
     old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
     memcpy(old_config, config, sizeof(AJ_Configuration));
     strcpy(old_config->aj_password, password);
@@ -113,8 +114,8 @@ void AJ_StoreConfig(uint32_t index, char* ssid, char* password, uint32_t auth, u
         return;
     }
 
-    printf("Storing WIFI Profile [%u]: ssid=[%s], pass=[%s], auth=[%u], encryption=[%u]\n",
-           index, ssid, password, auth, encryption);
+    AJ_Printf("Storing WIFI Profile [%u]: ssid=[%s], pass=[%s], auth=[%u], encryption=[%u]\n",
+              index, ssid, password, auth, encryption);
 
     // copy config and overwrite the profile
     old_config = (AJ_Configuration*) AJ_Malloc(sizeof(AJ_Configuration));
@@ -136,7 +137,7 @@ void AJ_StoreConfig(uint32_t index, char* ssid, char* password, uint32_t auth, u
 
 #ifndef NDEBUG
     AJ_Printf("AJ_StoreConfig:\n");
-    AJ_DumpBytes(NULL, config,  sizeof(AJ_Configuration));
+    AJ_DumpBytes(NULL, (const uint8_t*)config,  sizeof(AJ_Configuration));
 #endif
 
     AJ_Free(old_config);
@@ -231,13 +232,13 @@ static AJ_Status AppSaveState(AJ_Message* msg)
     uint32_t auth;
     uint32_t encryption;
 
-    printf("AppSaveState\n");
+    AJ_Printf("AppSaveState\n");
     status = AJ_UnmarshalArgs(msg, "ssuu", &ssid, &password, &auth, &encryption);
 
     if (status == AJ_OK) {
         status = AJ_SaveWifiProfile(0, ssid, password, auth, encryption);
     } else {
-        printf("Unmarshall returned %d\n", status);
+        AJ_Printf("Unmarshall returned %d\n", status);
     }
 
     return status;
@@ -279,7 +280,7 @@ AJ_Status AJ_RunConfigureMe()
         AJ_Message msg;
 
         if (connected == FALSE) {
-            printf("Calling AJ_StartService\n");
+            AJ_Printf("Calling AJ_StartService\n");
             status = AJ_StartService(&bus,
                                      "org.alljoyn",
                                      CONNECT_TIMEOUT,
@@ -288,10 +289,10 @@ AJ_Status AJ_RunConfigureMe()
                                      AJ_NAME_REQ_DO_NOT_QUEUE);
 
             if (status != AJ_OK) {
-                printf("AJ_StartService returned %d\n", status);
+                AJ_Printf("AJ_StartService returned %d\n", status);
                 continue;
             }
-            printf("StartService started\n");
+            AJ_Printf("StartService started\n");
             connected = TRUE;
         }
 
@@ -359,7 +360,7 @@ AJ_Status AJ_RunConfigureMe()
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
+            AJ_Printf("AllJoyn disconnect\n");
             AJ_Disconnect(&bus);
             //AJ_ReadConfig(config);
             connected = FALSE;
@@ -367,7 +368,7 @@ AJ_Status AJ_RunConfigureMe()
         }
     }
 
-    printf("AJ_RunConfigureMe: finished %d\n", status);
+    AJ_Printf("AJ_RunConfigureMe: finished %d\n", status);
     AJ_Disconnect(&bus);
     return status;
 }
