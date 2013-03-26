@@ -61,7 +61,7 @@
 
 #define VERIFIER_LEN  12
 #define NONCE_LEN     28
-#define KEY_LEN       16
+#define AES_KEY_LEN   16
 
 typedef struct _AuthContext {
     AJ_BusAuthPeerCallback callback; /* Callback function to report completion */
@@ -211,11 +211,11 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
      * We use the outBuf to store both the key and verifier string.
      * Check that there is enough space to do so.
      */
-    if (len < (KEY_LEN + VERIFIER_LEN)) {
+    if (len < (AES_KEY_LEN + VERIFIER_LEN)) {
         return AJ_ERR_RESOURCES;
     }
 
-    status = AJ_Crypto_PRF(data, lens, ArraySize(data), outBuf, KEY_LEN + VERIFIER_LEN);
+    status = AJ_Crypto_PRF(data, lens, ArraySize(data), outBuf, AES_KEY_LEN + VERIFIER_LEN);
     /*
      * Store the session key and compose the verifier string.
      */
@@ -223,7 +223,7 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
         status = AJ_SetSessionKey(peerName, outBuf, role);
     }
     if (status == AJ_OK) {
-        memmove(outBuf, outBuf + KEY_LEN, VERIFIER_LEN);
+        memmove(outBuf, outBuf + AES_KEY_LEN, VERIFIER_LEN);
         status = AJ_RawToHex(outBuf, VERIFIER_LEN, (char*)outBuf, len);
     }
     return status;
@@ -243,7 +243,7 @@ AJ_Status AJ_PeerHandleGenSessionKey(AJ_Message* msg, AJ_Message* reply)
      * (to store 16 bytes key in addition to the 12 bytes verifier).
      * Hence we allocate, the maximum of (12 * 2 + 1) and (16 + 12).
      */
-    char verifier[KEY_LEN + VERIFIER_LEN];
+    char verifier[AES_KEY_LEN + VERIFIER_LEN];
 
     /*
      * Remote peer GUID, Local peer GUID and Remote peer's nonce
@@ -276,13 +276,13 @@ AJ_Status AJ_PeerHandleExchangeGroupKeys(AJ_Message* msg, AJ_Message* reply)
     /*
      * We expect the key to be 16 bytes
      */
-    if (key.len != KEY_LEN) {
+    if (key.len != AES_KEY_LEN) {
         status = AJ_ERR_INVALID;
     } else {
         status = AJ_SetGroupKey(msg->sender, key.val.v_byte);
     }
     if (status == AJ_OK) {
-        uint8_t groupKey[KEY_LEN];
+        uint8_t groupKey[AES_KEY_LEN];
         AJ_MarshalReplyMsg(msg, reply);
         AJ_GetGroupKey(NULL, groupKey);
         status = AJ_MarshalArg(reply, AJ_InitArg(&key, AJ_ARG_BYTE, AJ_ARRAY_FLAG, groupKey, sizeof(groupKey)));
@@ -469,7 +469,7 @@ AJ_Status AJ_PeerHandleGenSessionKeyReply(AJ_Message* msg)
      * (to store 16 bytes key in addition to the 12 bytes verifier).
      * Hence we allocate, the maximum of (12 * 2 + 1) and (16 + 12).
      */
-    char verifier[VERIFIER_LEN + KEY_LEN];
+    char verifier[VERIFIER_LEN + AES_KEY_LEN];
     char* nonce;
     char* remVerifier;
 
@@ -496,7 +496,7 @@ AJ_Status AJ_PeerHandleGenSessionKeyReply(AJ_Message* msg)
         if (status == AJ_OK) {
             AJ_Arg key;
             AJ_Message call;
-            uint8_t groupKey[KEY_LEN];
+            uint8_t groupKey[AES_KEY_LEN];
             /*
              * Group keys are exchanged via an encrypted message
              */
@@ -528,7 +528,7 @@ AJ_Status AJ_PeerHandleExchangeGroupKeysReply(AJ_Message* msg)
     /*
      * We expect the key to be 16 bytes
      */
-    if (arg.len != KEY_LEN) {
+    if (arg.len != AES_KEY_LEN) {
         status = AJ_ERR_INVALID;
     } else {
         status = AJ_SetGroupKey(msg->sender, arg.val.v_byte);
