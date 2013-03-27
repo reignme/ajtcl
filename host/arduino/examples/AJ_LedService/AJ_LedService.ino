@@ -60,7 +60,7 @@ void setup() {
     // initialize the digital pin as an output.
     pinMode(led, OUTPUT);
 
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial) ;
 
     digitalWrite(led, LOW);

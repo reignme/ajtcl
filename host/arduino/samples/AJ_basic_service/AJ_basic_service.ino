@@ -31,7 +31,7 @@ int AJ_Main(void);
 
 // the setup routine runs once when you press reset:
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial) {
         ;
     }
