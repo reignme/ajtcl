@@ -237,7 +237,7 @@ AJ_Status AJ_Discover(const char* prefix, AJ_Service* service, uint32_t timeout)
         AJ_IO_BUF_RESET(&sock.tx);
         ComposeWhoHas(&sock.tx, prefix);
         status = sock.tx.send(&sock.tx);
-        AJ_Printf("Sending who-has \"%s\"\n", prefix);
+        AJ_Printf("Sending who-has \"%s\". Result = %d\n", prefix, status);
         /*
          * Pause between sending each WHO-HAS
          */

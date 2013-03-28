@@ -70,7 +70,7 @@ AJ_Status Send(AJ_IOBuffer* buf)
         ret = g_client.write(buf->readPtr, tx);
         if (ret == 0) {
             #ifndef NDEBUG
-            printf("error sending %d\n", g_client.getWriteError());
+            AJ_Printf("error sending %d\n", g_client.getWriteError());
             #endif
             return AJ_ERR_WRITE;
         }
@@ -91,7 +91,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     unsigned long Recv_lastCall = millis();
 
 #ifndef NDEBUG
-    printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
+    AJ_Printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
 #endif
 
 
@@ -99,7 +99,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     uint32_t M = 0;
     if (rxLeftover != 0) {
         // there was something leftover from before,
-        printf("leftover was: %d\n", rxLeftover);
+        AJ_Printf("leftover was: %d\n", rxLeftover);
         M = min(rx, rxLeftover);
         memcpy(buf->writePtr, rxDataStash, M);  // copy leftover into buffer.
         buf->writePtr += M;  // move the data pointer over
@@ -116,7 +116,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 
 
     if ((M != 0) && (rxLeftover != 0)) {
-        printf("M was: %d, rxLeftover was: %d\n", M, rxLeftover);
+        AJ_Printf("M was: %d, rxLeftover was: %d\n", M, rxLeftover);
     }
 
     // wait for data to become available
@@ -128,7 +128,7 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     }
 
     // return timeout if nothing is available
-    printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_client.available());
+    AJ_Printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_client.available());
     if (g_client.connected() && (millis() - Recv_lastCall >= timeout) && (g_client.available() == 0)) {
         return AJ_ERR_TIMEOUT;
     }
@@ -136,25 +136,25 @@ AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     if (g_client.connected()) {
         uint32_t askFor = rx;
         askFor -= M;
-        printf("ask for: %d\n", askFor);
+        AJ_Printf("ask for: %d\n", askFor);
         ret = g_client.read(buf->writePtr, askFor);
-        printf("Recv: ret %d  askfor %d\n", ret, askFor);
+        AJ_Printf("Recv: ret %d  askfor %d\n", ret, askFor);
 
         if (askFor < ret) {
-            printf("BUFFER OVERRUN: askFor=%u, ret=%u\n", askFor, ret);
+            AJ_Printf("BUFFER OVERRUN: askFor=%u, ret=%u\n", askFor, ret);
         }
 
         if (ret == -1) {
 #ifndef NDEBUG
-            printf("Recv failed\n");
+            AJ_Printf("Recv failed\n");
 #endif
             status = AJ_ERR_READ;
         } else {
-            printf("ret now %d\n", ret);
+            AJ_Printf("ret now %d\n", ret);
             AJ_DumpBytes("Recv", buf->writePtr, ret);
 
             if (ret > askFor) {
-                printf("new leftover %d\n", ret - askFor);
+                AJ_Printf("new leftover %d\n", ret - askFor);
                 // now shove the extra into the stash
                 memcpy(rxDataStash + rxLeftover, buf->writePtr + askFor, ret - askFor);
                 rxLeftover += (ret - askFor);
@@ -184,7 +184,7 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
     Serial.println(ip);
 
     if (ret == -1) {
-        printf("connect() failed: %d\n", ret);
+        AJ_Printf("connect() failed: %d\n", ret);
         return AJ_ERR_CONNECT;
     } else {
         AJ_IOBufInit(&netSock->rx, rxData, sizeof(rxData), AJ_IO_BUF_RX, (void*)&g_client);
@@ -207,16 +207,21 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
     uint32_t tx = AJ_IO_BUF_AVAIL(buf);
 
     if (tx > 0) {
-        ret = g_clientUDP.beginPacket(AJ_IPV4_MULTICAST_GROUP, AJ_UDP_PORT);
-        printf("SendTo beginPacket %d\n", ret);
+        // send to subnet-directed broadcast address
+        IPAddress subnet = Ethernet.subnetMask();
+        IPAddress localIp = Ethernet.localIP();
+        uint32_t directedBcastAddr = (uint32_t(subnet) & uint32_t(localIp)) | (~uint32_t(subnet));
+        IPAddress a(directedBcastAddr);
+        ret = g_clientUDP.beginPacket(IPAddress(directedBcastAddr), AJ_UDP_PORT);
+        AJ_Printf("SendTo beginPacket to %d.%d.%d.%d, result = %d\n", a[0], a[1], a[2], a[3],  ret);
         if (ret == 0) {
-            printf("no sender\n");
+            AJ_Printf("no sender\n");
         }
 
         ret = g_clientUDP.write(buf->readPtr, tx);
-        printf("SendTo write %d\n", ret);
+        AJ_Printf("SendTo write %d\n", ret);
         if (ret == 0) {
-            printf("no bytes\n");
+            AJ_Printf("no bytes\n");
             return AJ_ERR_WRITE;
         }
 
@@ -224,7 +229,7 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
 
         ret = g_clientUDP.endPacket();
         if (ret == 0) {
-            printf("err endpacket\n");
+            AJ_Printf("err endpacket\n");
             return AJ_ERR_WRITE;
         }
 
@@ -235,14 +240,14 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
 
 AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
-    printf("RecvFrom ");
+    AJ_Printf("RecvFrom ");
     AJ_Status status = AJ_OK;
     int ret;
     uint32_t rx = AJ_IO_BUF_SPACE(buf);
     unsigned long Recv_lastCall = millis();
 
 #ifndef NDEBUG
-    printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
+    AJ_Printf("len: %d rx: %d timeout %d\n", len, rx, timeout);
 #endif
 
     rx = min(rx, len);
@@ -251,9 +256,9 @@ AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
         delay(10); // wait for data or timeout
     }
 
-    printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_clientUDP.available());
+    AJ_Printf("millis %d, Last_call %d timeout %d Avail: %d\n", millis(), Recv_lastCall, timeout, g_clientUDP.available());
     ret = g_clientUDP.read(buf->writePtr, rx);
-    printf("RecvFrom: ret %d  rx %d\n", ret, rx);
+    AJ_Printf("RecvFrom: ret %d  rx %d\n", ret, rx);
 
     if (ret == -1) {
         status = AJ_ERR_READ;
