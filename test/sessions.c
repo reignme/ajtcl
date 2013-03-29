@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include <stdio.h>
-
 #include <alljoyn.h>
 
 #define CONNECT_TIMEOUT    (1000ul * 200)
@@ -160,10 +159,18 @@ int AJ_Main()
 
     while (TRUE) {
         // check for serial input and dispatch if needed.
-        // read a line
         char buf[1024];
         AJ_Message msg;
+#ifdef ARDUINO
+        if (Serial.available() > 0) {
+            int countBytesRead;
+            // read the incoming bytes until a newline character:
+            countBytesRead = Serial.readBytesUntil('\n', buf, sizeof(buf));
+            buf[countBytesRead] = '\0';
+#else
+        // read a line
         if (AJ_GetLine(buf, 1024, stdin) != NULL) {
+#endif
             char*command;
             printf(">~~~%s\n", buf);
             command = strtok(buf, " \r\n");

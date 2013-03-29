@@ -115,6 +115,7 @@ if env['HOST'] == 'arduino':
     tests.append('siglite')
     tests.append('bastress2')
     tests.append('mutter')
+    tests.append('sessions')
     testInputs = [ ]
     testOutputs = [ ]
 
@@ -139,10 +140,6 @@ if env['HOST'] == 'arduino':
 
     # install the examples into their source
     env.Install(Dir(arduinoLibDir).abspath, 'host/arduino/examples/')
-
-    # install the 'sessions' test app
-    env.Install(Dir(arduinoLibDir).abspath + '/tests', 'host/arduino/tests/AJ_sessions')
-    env.Install(Dir(arduinoLibDir + 'tests/AJ_sessions').abspath, env.Glob('host/arduino/tests/AJ_sessions/*'))
 
     # Install basic samples
     basicsamples = [ ]
