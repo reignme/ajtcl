@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "alljoyn.h"
 #include "aj_crypto.h"
@@ -325,26 +326,26 @@ int AJ_Main(void)
         AJ_HexToRaw(testVector[i].nonce, 0, nonce, nlen);
         AJ_HexToRaw(testVector[i].input, 0, msg, mlen);
 
-        status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, nonce, nlen);
+        status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
             printf("Encryption failed (%d) for test #%d\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen + testVector[i].authLen, out, sizeof(out));
-        if (strcmp(out, testVector[i].output) != 0) {
+        AJ_RawToHex(msg, mlen + testVector[i].authLen, (char*)out, sizeof(out));
+        if (strcmp((char*)out, testVector[i].output) != 0) {
             printf("Encrypt verification failure for test #%d\n%s\n", i, out);
             goto ErrorExit;
         }
         /*
          * Verify decryption.
          */
-        status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, nonce, nlen);
+        status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
             printf("Authentication failure (%d) for test #%d\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen, out, sizeof(out));
-        if (strcmp(out, testVector[i].input) != 0) {
+        AJ_RawToHex(msg, mlen, (char*)out, sizeof(out));
+        if (strcmp((char*)out, testVector[i].input) != 0) {
             printf("Decrypt verification failure for test #%d\n%s\n", i, out);
             goto ErrorExit;
         }
@@ -358,7 +359,7 @@ int AJ_Main(void)
         const char secret[] = "1234ABCDE";
         const char seed[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234";
         uint8_t key[40];
-        const uint8_t* inputs[3];
+        const char* inputs[3];
         uint8_t length[3];
 
         inputs[0] = secret;
@@ -368,13 +369,13 @@ int AJ_Main(void)
         inputs[2] = "prf test";
         length[2] = 8;
 
-        status = AJ_Crypto_PRF(inputs, length, ArraySize(inputs), key, sizeof(key));
+        status = AJ_Crypto_PRF((const uint8_t**)inputs, length, ArraySize(inputs), key, sizeof(key));
         if (status != AJ_OK) {
             printf("AJ_Crypto_PRF %d\n", status);
             goto ErrorExit;
         }
-        AJ_RawToHex(key, sizeof(key), out, sizeof(out));
-        if (strcmp(out, expect) != 0) {
+        AJ_RawToHex(key, sizeof(key), (char*)out, sizeof(out));
+        if (strcmp((char*)out, expect) != 0) {
             printf("AJ_Crypto_PRF failed: %d\n", status);
             goto ErrorExit;
         }

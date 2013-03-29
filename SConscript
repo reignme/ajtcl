@@ -113,6 +113,7 @@ if env['HOST'] == 'arduino':
     tests.append('bastress2')
     tests.append('mutter')
     tests.append('sessions')
+    tests.append('aestest')
     testInputs = [ ]
     testOutputs = [ ]
 
