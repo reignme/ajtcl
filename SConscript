@@ -72,10 +72,11 @@ env['aj_host_srcs'] = [Glob('host/' + env['HOST'] + '/*.c')]
 # AllJoyn Thin Client headers and sources (host/target independent)
 env['aj_headers'] = [Glob('inc/*.h')]
 env['aj_srcs'] = [Glob('src/*.c')]
+env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 
 # Build objects for the host-specific sources and AllJoyn Thin Client sources
 if env['HOST'] == 'win32':
-    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + ['crypto/aj_sw_crypto.c'], CPPPATH=env['includes'])
+    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + env['aj_sw_crypto'], CPPPATH=env['includes'])
 else:
     if env['HOST'] == 'linux':
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'], CPPPATH=env['includes'])
@@ -131,11 +132,11 @@ if env['HOST'] == 'arduino':
         env.InstallAs(File(arduinoLibDir + 'tests/AJ_' + test + '/' + test + '.cpp').abspath, in_path.abspath)
 
     replaced_names = []
-    for x in Flatten([env['aj_srcs'], env['aj_host_srcs']]):
+    for x in Flatten([env['aj_srcs'], env['aj_host_srcs'], env['aj_sw_crypto']]):
         replaced_names.append( File(arduinoLibDir + x.name.replace('.c', '.cpp') ) )
 
     # change the extension
-    install_renamed_files = env.InstallAs(Flatten(replaced_names), Flatten([env['aj_srcs'], env['aj_host_srcs']]))
+    install_renamed_files = env.InstallAs(Flatten(replaced_names), Flatten([env['aj_srcs'], env['aj_host_srcs'], env['aj_sw_crypto']]))
     install_host_headers = env.Install(arduinoLibDir, env['aj_host_headers'])
     install_headers = env.Install(arduinoLibDir, env['aj_headers'])
 
