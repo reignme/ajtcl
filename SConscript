@@ -74,8 +74,11 @@ env['aj_headers'] = [Glob('inc/*.h')]
 env['aj_srcs'] = [Glob('src/*.c')]
 
 # Build objects for the host-specific sources and AllJoyn Thin Client sources
-if env['HOST'] == 'win32' or env['HOST'] == 'linux':
+if env['HOST'] == 'win32':
     env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + ['crypto/aj_sw_crypto.c'], CPPPATH=env['includes'])
+else:
+    if env['HOST'] == 'linux':
+        env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'], CPPPATH=env['includes'])
 
 Export('env')
 
