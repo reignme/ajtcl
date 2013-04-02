@@ -31,6 +31,7 @@
  * @param port         The port to bind
  * @param name         The name being requested
  * @param flags        An OR of the name request flags
+ * @param opts         The session option setting.
  *
  * @return AJ_OK if service was successfully started.
  */
@@ -40,7 +41,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           uint16_t port,
                           const char* name,
                           uint32_t flags,
-                          AJ_SessionOpts* opts);
+                          const AJ_SessionOpts* opts);
 
 /**
  * Initializes an AllJoyn client and connect to a service
@@ -51,7 +52,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
  * @param name           The name of the service to connect to.
  * @param port           The service port to connect to.
  * @param[out] sessionId The session id returned if the service connection was succesfully
- *                       established.
+ * @param opts           The session option setting.
  *
  * @return AJ_OK if connection was successfully established
  */
@@ -61,7 +62,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                          const char* name,
                          uint16_t port,
                          uint32_t* sessionId,
-                         AJ_SessionOpts* opts);
+                         const AJ_SessionOpts* opts);
 
 
 
