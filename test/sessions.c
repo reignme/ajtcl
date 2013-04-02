@@ -142,7 +142,7 @@ int AJ_Main()
     AJ_RegisterObjects(AppObjects, NULL);
 
     while (!connected) {
-        status = AJ_StartService(&bus, DaemonName, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE);
+        status = AJ_StartService(&bus, DaemonName, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
         if (status == AJ_OK) {
             printf("StartService returned %d\n", status);
             connected = TRUE;
