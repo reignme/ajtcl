@@ -115,7 +115,8 @@ int AJ_Main(void)
                                     CONNECT_TIMEOUT,
                                     ServiceName,
                                     ServicePort,
-                                    &sessionId);
+                                    &sessionId,
+                                    NULL);
 
             if (status == AJ_OK) {
                 printf("StartClient returned %d, sessionId=%u.\n", status, sessionId);

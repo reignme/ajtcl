@@ -39,7 +39,9 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           uint32_t timeout,
                           uint16_t port,
                           const char* name,
-                          uint32_t flags)
+                          uint32_t flags,
+                          AJ_SessionOpts* opts
+                          )
 {
     AJ_Status status;
     AJ_Time timer;
@@ -62,7 +64,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
         /*
          * Kick things off by binding a session port
          */
-        status = AJ_BusBindSessionPort(bus, port, NULL);
+        status = AJ_BusBindSessionPort(bus, port, opts);
         if (status == AJ_OK) {
             break;
         }
@@ -125,7 +127,9 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                          uint32_t timeout,
                          const char* name,
                          uint16_t port,
-                         uint32_t* sessionId)
+                         uint32_t* sessionId,
+                         AJ_SessionOpts* opts
+                         )
 {
     AJ_Status status = AJ_OK;
     AJ_Time timer;
@@ -196,7 +200,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                 AJ_UnmarshalArg(&msg, &arg);
                 AJ_Printf("FoundAdvertisedName(%s)\n", arg.val.v_string);
                 foundName = TRUE;
-                status = AJ_BusJoinSession(bus, arg.val.v_string, port, NULL);
+                status = AJ_BusJoinSession(bus, arg.val.v_string, port, opts);
             }
             break;
 

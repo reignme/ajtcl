@@ -170,6 +170,18 @@ typedef struct _AJ_SessionOpts {
 AJ_Status AJ_BusBindSessionPort(AJ_BusAttachment* bus, uint16_t port, const AJ_SessionOpts* opts);
 
 /**
+ * Make a method call to unbind a session port.
+ *
+ * @param bus          The bus attachment
+ * @param port         The port the session is associated with
+ *
+ * @return  Return AJ_Status
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusUnbindSession(AJ_BusAttachment* bus, uint16_t port);
+
+/**
  * Make a method call to cancel a sessionless signal
  *
  * @param bus          The bus attachment
@@ -214,6 +226,18 @@ AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept);
  *         - An error status otherwise
  */
 AJ_Status AJ_BusJoinSession(AJ_BusAttachment* bus, const char* sessionHost, uint16_t port, const AJ_SessionOpts* opts);
+
+/**
+ * Make a method call join a session.
+ *
+ * @param bus          The bus attachment
+ * @param sessionId    The Id of the session joined
+ *
+ * @return  Return AJ_Status
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId);
 
 #define AJ_BUS_SIGNAL_ALLOW  0     /**< Allow signals */
 #define AJ_BUS_SIGNAL_DENY   1     /**< Deny signals */

@@ -39,7 +39,8 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           uint32_t timeout,
                           uint16_t port,
                           const char* name,
-                          uint32_t flags);
+                          uint32_t flags,
+                          AJ_SessionOpts* opts);
 
 /**
  * Initializes an AllJoyn client and connect to a service
@@ -59,7 +60,8 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                          uint32_t timeout,
                          const char* name,
                          uint16_t port,
-                         uint32_t* sessionId);
+                         uint32_t* sessionId,
+                         AJ_SessionOpts* opts);
 
 
 

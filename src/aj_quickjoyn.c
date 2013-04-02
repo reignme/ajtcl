@@ -286,7 +286,8 @@ AJ_Status AJ_RunConfigureMe()
                                      CONNECT_TIMEOUT,
                                      ServicePort,
                                      ServiceName,
-                                     AJ_NAME_REQ_DO_NOT_QUEUE);
+                                     AJ_NAME_REQ_DO_NOT_QUEUE,
+                                     NULL);
 
             if (status != AJ_OK) {
                 AJ_Printf("AJ_StartService returned %d\n", status);

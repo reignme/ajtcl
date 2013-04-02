@@ -156,6 +156,21 @@ AJ_Status AJ_BusBindSessionPort(AJ_BusAttachment* bus, uint16_t port, const AJ_S
     return status;
 }
 
+AJ_Status AJ_BusUnbindSession(AJ_BusAttachment* bus, uint16_t port)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_UNBIND_SESSION, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        AJ_MarshalArgs(&msg, "q", port);
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
 AJ_Status AJ_BusCancelSessionless(AJ_BusAttachment* bus, uint32_t serialNum)
 {
     AJ_Status status;
@@ -186,6 +201,21 @@ AJ_Status AJ_BusJoinSession(AJ_BusAttachment* bus, const char* sessionHost, uint
         if (status == AJ_OK) {
             status = MarshalSessionOpts(&msg, opts);
         }
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
+AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_JOIN_SESSION, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        status = AJ_MarshalArgs(&msg, "u", sessionId);
     }
     if (status == AJ_OK) {
         status = AJ_DeliverMsg(&msg);

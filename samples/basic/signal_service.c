@@ -157,7 +157,8 @@ int AJ_Main(void)
                                      CONNECT_TIMEOUT,
                                      ServicePort,
                                      ServiceName,
-                                     AJ_NAME_REQ_DO_NOT_QUEUE);
+                                     AJ_NAME_REQ_DO_NOT_QUEUE,
+                                     NULL);
 
             if (status != AJ_OK) {
                 continue;
