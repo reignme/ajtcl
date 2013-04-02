@@ -385,6 +385,16 @@ int AJ_Main()
 
                 chatMsg = strtok(NULL, "\r\n");
                 status = AppSendChatSignal(&bus, session, chatMsg, flags, ttl);
+            } else if (0 == strcmp("cancelsessionless", command)) {
+                uint32_t serialId = 0;
+                char* token = strtok(NULL, " \r\n");
+                if (token) serialId = (uint32_t)atoi(token);
+                if (serialId == 0) {
+                    printf("Invalid serial number\n");
+                    printf("Usage: cancelsessionless <serialNum>\n");
+                    continue;
+                }
+                status = AJ_BusCancelSessionless(&bus, serialId);
             } else if (0 == strcmp("exit", command)) {
                 break;
             } else if (0 == strcmp("help", command)) {
@@ -401,12 +411,11 @@ int AJ_Main()
                 printf("join <name> <port> [isMultipoint] [traffic] [proximity] [transports] - Join a session\n");
                 printf("leave <sessionId>                                             - Leave a session\n");
                 printf("chat <sessionId> <msg>                                        - Send a message over a given session\n");
-                printf("cchat <sessionId> <msg>                                       - Send a message over a given session with compression\n");
                 printf("schat <msg>                                                   - Send a sessionless message\n");
                 printf("cancelsessionless <serialNum>                                 - Cancel a sessionless message\n");
                 printf("addmatch <rule>                                               - Add a DBUS rule\n");
                 printf("removematch <rule>                                            - Remove a DBUS rule\n");
-                printf("sendttl <ttl>                                                 - Set ttl (in ms) for all chat messages (0 = infinite)\n");
+                printf("sendttl <ttl>                                                 - Set default ttl (in ms) for all chat messages (0 = infinite)\n");
                 printf("exit                                                          - Exit this program\n");
                 printf("\n");
                 continue;
