@@ -213,7 +213,7 @@ AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId)
     AJ_Status status;
     AJ_Message msg;
 
-    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_JOIN_SESSION, AJ_BusDestination, 0, 0, TIMEOUT);
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_LEAVE_SESSION, AJ_BusDestination, 0, 0, TIMEOUT);
     if (status == AJ_OK) {
         status = AJ_MarshalArgs(&msg, "u", sessionId);
     }
