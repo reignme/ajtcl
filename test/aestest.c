@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -328,12 +328,12 @@ int AJ_Main(void)
 
         status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            printf("Encryption failed (%d) for test #%d\n", status, i);
+            printf("Encryption failed (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen + testVector[i].authLen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].output) != 0) {
-            printf("Encrypt verification failure for test #%d\n%s\n", i, out);
+            printf("Encrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
         /*
@@ -341,15 +341,15 @@ int AJ_Main(void)
          */
         status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            printf("Authentication failure (%d) for test #%d\n", status, i);
+            printf("Authentication failure (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].input) != 0) {
-            printf("Decrypt verification failure for test #%d\n%s\n", i, out);
+            printf("Decrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
-        printf("Passed and verified test #%d\n", i);
+        printf("Passed and verified test #%zu\n", i);
     }
 
     printf("AES CCM unit test PASSED\n");

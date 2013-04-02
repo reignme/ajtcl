@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include "alljoyn.h"
@@ -118,7 +119,7 @@ static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
     pinLength = strlen(pinStr);
     memcpy(buffer, pinStr, pinLength);
 
-    printf("Need password of '%s' length %d.\n", buffer, pinLength);
+    printf("Need password of '%s' length %zu.\n", buffer, pinLength);
 
     return (uint32_t)pinLength;
 }

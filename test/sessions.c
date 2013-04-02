@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <alljoyn.h>
 
 #define CONNECT_TIMEOUT    (1000ul * 60)
@@ -145,7 +146,7 @@ int AJ_Main()
         AJ_Printf("Attempting to connect to bus\n");
         status = AJ_Connect(&bus, DaemonName, CONNECT_TIMEOUT);
         if (status != AJ_OK) {
-            AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
+            AJ_Printf("Failed to connect to bus sleeping for %lu seconds\n", CONNECT_PAUSE / 1000);
             AJ_Sleep(CONNECT_PAUSE);
             continue;
         }

@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include <time.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "aj_host.h"

@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -76,18 +76,16 @@ static AJ_Status AppHandleCat(AJ_Message* msg)
     const char* string1;
     char buffer[BUFFER_SIZE];
     AJ_Message reply;
-    AJ_Arg args[2];
     AJ_Arg replyArg;
-    const uint8_t argCount = sizeof(args) / sizeof(args[0]);
 
     AJ_UnmarshalArgs(msg, "ss", &string0, &string1);
     AJ_MarshalReplyMsg(msg, &reply);
 
     /* We have the arguments. Now do the concatenation. */
     strncpy(buffer, string0, BUFFER_SIZE);
-    buffer[BUFFER_SIZE] = '\0';
+    buffer[BUFFER_SIZE - 1] = '\0';
     strncat(buffer, string1, BUFFER_SIZE - strlen(buffer));
-    buffer[BUFFER_SIZE] = '\0';
+    buffer[BUFFER_SIZE - 1] = '\0';
 
     AJ_InitArg(&replyArg, AJ_ARG_STRING, 0, buffer, 0);
     AJ_MarshalArg(&reply, &replyArg);

@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ int AJ_Main(void)
                 continue;
             }
             printf("StartService returned AJ_OK\n");
-            printf("Connected to Daemon:%s\n", &bus);
+            printf("Connected to Daemon:%s\n", bus.uniqueName);
 
             connected = TRUE;
             AJ_BusSetPasswordCallback(&bus, PasswordCallback);
@@ -274,7 +274,7 @@ int AJ_Main(void)
 
         if (status == AJ_ERR_READ) {
             printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", &bus);
+            printf("Disconnected from Daemon:%s\n", bus.uniqueName);
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*

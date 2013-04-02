@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -45,14 +45,14 @@ int main(void)
         for (hdrLen = 10; hdrLen < 60; hdrLen += 3) {
             memcpy(cmp, msg, sizeof(msg));
 
-            status = AJ_Encrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (uint8_t*)nonce, sizeof(nonce));
+            status = AJ_Encrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const char*)nonce, sizeof(nonce));
             if (status != AJ_OK) {
-                printf("Encryption failed (%d) for test #%d\n", status, i);
+                printf("Encryption failed (%d) for test #%zu\n", status, i);
                 goto ErrorExit;
             }
-            status = AJ_Decrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (uint8_t*)nonce, sizeof(nonce));
+            status = AJ_Decrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const char*)nonce, sizeof(nonce));
             if (status != AJ_OK) {
-                printf("Authentication failure (%d) for test #%d\n", status, i);
+                printf("Authentication failure (%d) for test #%zu\n", status, i);
                 goto ErrorExit;
             }
             if (memcmp(cmp, msg, sizeof(msg)) != 0) {

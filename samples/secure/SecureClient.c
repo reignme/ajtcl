@@ -19,6 +19,7 @@
  ******************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include "alljoyn.h"
@@ -201,6 +202,7 @@ int AJ_Main(void)
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
 
         if (AJ_ERR_TIMEOUT == status) {
+            AppDoWork();
             continue;
         }
 
