@@ -40,7 +40,7 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           uint16_t port,
                           const char* name,
                           uint32_t flags,
-                          AJ_SessionOpts* opts
+                          const AJ_SessionOpts* opts
                           )
 {
     AJ_Status status;
@@ -128,7 +128,7 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                          const char* name,
                          uint16_t port,
                          uint32_t* sessionId,
-                         AJ_SessionOpts* opts
+                         const AJ_SessionOpts* opts
                          )
 {
     AJ_Status status = AJ_OK;
