@@ -1,10 +1,10 @@
-#ifndef _ALLJOYN_H
-#define _ALLJOYN_H
+#ifndef _AJ_VERSION_H
+#define _AJ_VERSION_H
 /**
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,17 +19,9 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include "aj_host.h"
-#include "alljoyn.h"
-#include "aj_status.h"
-#include "aj_status.h"
-#include "aj_init.h"
-#include "aj_util.h"
-#include "aj_bus.h"
-#include "aj_msg.h"
-#include "aj_introspect.h"
-#include "aj_std.h"
-#include "aj_connect.h"
-#include "aj_helper.h"
+#define AJ_MINOR_VERSION   3
+#define AJ_MAJOR_VERSION   3
+
+#define AJ_VERSION  (AJ_MAJOR_VERSION << 8) | (AJ_MINOR_VERSION)
 
 #endif
