@@ -14,8 +14,8 @@
 
 Import('env')
 
-env.Program('basic_service', ['basic_service.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
-env.Program('basic_client', ['basic_client.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
-env.Program('signal_service', ['signal_service.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
-env.Program('nameChange_client', ['nameChange_client.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
-env.Program('signalConsumer_client', ['signalConsumer_client.c'] + env['aj_obj'], CPPPATH=env['includes'], LIBS=env['libs'])
+env.Program('basic_service', ['basic_service.c'] + env['aj_obj'])
+env.Program('basic_client', ['basic_client.c'] + env['aj_obj'])
+env.Program('signal_service', ['signal_service.c'] + env['aj_obj'])
+env.Program('nameChange_client', ['nameChange_client.c'] + env['aj_obj'])
+env.Program('signalConsumer_client', ['signalConsumer_client.c'] + env['aj_obj'])

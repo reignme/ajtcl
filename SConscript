@@ -27,8 +27,6 @@ vars.Add(EnumVariable('WS', 'Whitespace Policy Checker', 'check', allowed_values
 
 env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
 
-env.Append(CPPDEFINES = ['AJ_MAIN'])
-
 # Define compile/link options only for win32/linux.
 # In case of target platforms, the compilation/linking does not take place
 # using SCons files.
@@ -74,12 +72,23 @@ env['aj_headers'] = [Glob('inc/*.h')]
 env['aj_srcs'] = [Glob('src/*.c')]
 env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 
+# Set-up the environment for Win/Linux
+if env['HOST'] == 'win32' or env['HOST'] == 'linux':
+    # To compile, sources need access to include files
+    env.Append(CPPPATH = [env['includes']])
+
+    # Win/Linux programs need libs to link
+    env.Append(LIBS = [env['libs']])
+
+    # Win/Linux programs need their own 'main' function
+    env.Append(CPPDEFINES = ['AJ_MAIN'])
+
 # Build objects for the host-specific sources and AllJoyn Thin Client sources
 if env['HOST'] == 'win32':
-    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + env['aj_sw_crypto'], CPPPATH=env['includes'])
+    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + env['aj_sw_crypto'])
 else:
     if env['HOST'] == 'linux':
-        env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'], CPPPATH=env['includes'])
+        env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'])
 
 Export('env')
 
