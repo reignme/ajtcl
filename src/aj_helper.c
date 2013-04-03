@@ -43,24 +43,40 @@ AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           const AJ_SessionOpts* opts
                           )
 {
+    return AJ_StartService2(bus, daemonName, timeout, FALSE, port, name, flags, opts);
+}
+
+AJ_Status AJ_StartService2(AJ_BusAttachment* bus,
+                           const char* daemonName,
+                           uint32_t timeout,
+                           uint8_t connected,
+                           uint16_t port,
+                           const char* name,
+                           uint32_t flags,
+                           const AJ_SessionOpts* opts
+                           )
+{
     AJ_Status status;
     AJ_Time timer;
     uint8_t serviceStarted = FALSE;
-
+    uint8_t initial = TRUE;
     AJ_InitTimer(&timer);
 
     while (TRUE) {
         if (AJ_GetElapsedTime(&timer, TRUE) > timeout) {
             return AJ_ERR_TIMEOUT;
         }
-        AJ_Printf("Attempting to connect to bus\n");
-        status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
-        if (status != AJ_OK) {
-            AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
-            AJ_Sleep(CONNECT_PAUSE);
-            continue;
+        if (!initial || !connected) {
+            initial = FALSE;
+            AJ_Printf("Attempting to connect to bus\n");
+            status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
+            if (status != AJ_OK) {
+                AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
+                AJ_Sleep(CONNECT_PAUSE);
+                continue;
+            }
+            AJ_Printf("AllJoyn service connected to bus\n");
         }
-        AJ_Printf("AllJoyn service connected to bus\n");
         /*
          * Kick things off by binding a session port
          */
@@ -131,25 +147,41 @@ AJ_Status AJ_StartClient(AJ_BusAttachment* bus,
                          const AJ_SessionOpts* opts
                          )
 {
+    return AJ_StartClient2(bus, daemonName, timeout, FALSE, name, port, sessionId, opts);
+}
+
+AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
+                          const char* daemonName,
+                          uint32_t timeout,
+                          uint8_t connected,
+                          const char* name,
+                          uint16_t port,
+                          uint32_t* sessionId,
+                          const AJ_SessionOpts* opts
+                          )
+{
     AJ_Status status = AJ_OK;
     AJ_Time timer;
     uint8_t foundName = FALSE;
     uint8_t clientStarted = FALSE;
-
+    uint8_t initial = TRUE;
     AJ_InitTimer(&timer);
 
     while (TRUE) {
         if (AJ_GetElapsedTime(&timer, TRUE) > timeout) {
             return AJ_ERR_TIMEOUT;
         }
-        AJ_Printf("Attempting to connect to bus\n");
-        status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
-        if (status != AJ_OK) {
-            AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
-            AJ_Sleep(CONNECT_PAUSE);
-            continue;
+        if (!initial || !connected) {
+            initial = FALSE;
+            AJ_Printf("Attempting to connect to bus\n");
+            status = AJ_Connect(bus, daemonName, CONNECT_TIMEOUT);
+            if (status != AJ_OK) {
+                AJ_Printf("Failed to connect to bus sleeping for %d seconds\n", CONNECT_PAUSE / 1000);
+                AJ_Sleep(CONNECT_PAUSE);
+                continue;
+            }
+            AJ_Printf("AllJoyn client connected to bus\n");
         }
-        AJ_Printf("AllJoyn client connected to bus\n");
         /*
          * Kick things off by finding the service names
          */
