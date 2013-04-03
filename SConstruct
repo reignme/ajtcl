@@ -24,3 +24,11 @@ Help(vars.GenerateHelpText(env))
 # Add/remove projects from build
 env.SConscript('test/SConscript')
 env.SConscript('samples/SConscript')
+
+# Build googletests only for VARIANT=debug and for HOST=linux
+# TODO: Enable the tests on Windows as well (compile failures at the moment)
+if env['VARIANT'] == 'debug' and env['HOST'] == 'linux':
+    if env.has_key('GTEST_DIR'):
+        env.SConscript('unit_test/SConscript')
+    else:
+        print 'GTEST_DIR is not set, skipping unittest build'
