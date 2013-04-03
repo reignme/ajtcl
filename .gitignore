@@ -1,5 +1,7 @@
 TAGS
 LinuxTAGS
+tags
+cscope.out
 .sconsign.dblite
 *.pdb
 .*.swp
@@ -10,6 +12,7 @@ LinuxTAGS
 *.aps
 *.user
 *.obj
+*.lib
 *.exe
 *.sln
 *.o

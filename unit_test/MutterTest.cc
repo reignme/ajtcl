@@ -24,6 +24,10 @@ extern "C" {
 #include "aj_util.h"
 #include "aj_debug.h"
 #include "aj_bufio.h"
+
+#ifndef NDEBUG
+extern AJ_MutterHook MutterHook;
+#endif
 }
 
 static uint8_t wireBuffer[16 * 1024];
@@ -91,10 +95,6 @@ static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
     msg->signature = testSignature[msgId];
     return AJ_OK;
 }
-
-#ifndef NDEBUG
-extern AJ_MutterHook MutterHook;
-#endif
 
 static const char* Fruits[] = {
     "apple", "banana", "cherry", "durian", "elderberry", "fig", "grape"

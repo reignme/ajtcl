@@ -33,7 +33,7 @@ else:
     if(env['HOST'] == 'win32'):
         # gTest needs different CPPDEFINES as compared to AllJoyn TCL.
         gtest_env.Append(CPPDEFINES = ['WIN32', '_LIB'])
-        gtest_env.Append(CXXFLAGS = ['/EHsc'])
+        gtest_env.Append(CXXFLAGS = ['/wd4355', '/vmm', '/vmg', '/MDd', '/Od', '/Gd', '/Ob1', '/EHsc'])
 
     # Microsoft Visual Studio 2012 has a different _VARIADIC_MAX default value.
     # See: http://blogs.msdn.com/b/vcblog/archive/2011/09/12/10209291.aspx
@@ -64,7 +64,7 @@ else:
     unittest_env.Append(CPPPATH = [env['includes']])
 
     if(env['HOST'] == 'win32'):
-        unittest_env.Append(CXXFLAGS = ['/EHsc'])
+        unittest_env.Append(CXXFLAGS = ['/wd4355', '/vmm', '/vmg', '/MDd', '/Od', '/Gd', '/Ob1', '/EHsc'])
 
     unittest_env.Append(CPPDEFINES = ['GTEST_HAS_RTTI=0'])
     unittest_env.Append(CPPDEFINES = ['GTEST_HAS_EXCEPTIONS=0'])
@@ -81,11 +81,16 @@ else:
         if unittest_env['VARIANT'] == 'debug':
             unittest_env.Append(CXXFLAGS='-g')
 
-        #gtest library file is placed in the same directory
-        unittest_env.Append(LIBPATH = ['./'])
-        unittest_env.Prepend(LIBS = ['gtest'])
         unittest_env.Append(LIBS = ['rt', 'crypto'])
 
+    #gtest library file is placed in the same directory
+    unittest_env.Append(LIBPATH = ['./'])
+    unittest_env.Prepend(LIBS = ['gtest'])
+
     objs = [ unittest_env.Object(test_src) ]
+
+    if(env['HOST'] == 'win32'):
+        unittest_env.Append(LFLAGS=['/NODEFAULTLIB:msvcrt.lib'])
+        unittest_env.Append(LINKFLAGS=['/NODEFAULTLIB:msvcrt.lib'])
 
     unittest_prog = unittest_env.Program('ajtcltest', objs + unittest_env['aj_obj'])
