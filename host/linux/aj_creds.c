@@ -40,11 +40,12 @@ AJ_Status WriteCreds()
 
 AJ_Status ReadCreds()
 {
+    size_t num_items_read = 0;
     FILE* f = fopen("ajlite.creds", "r");
     if (f) {
-        fread(&credentials, sizeof(credentials), 1, f);
+        num_items_read = fread(&credentials, sizeof(credentials), 1, f);
         fclose(f);
-        return AJ_OK;
+        return (1 == num_items_read) ? AJ_OK : AJ_ERR_READ;
     } else {
         return AJ_ERR_READ;
     }

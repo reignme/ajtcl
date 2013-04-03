@@ -22,8 +22,6 @@ static AJ_Configuration Config;
 
 #define CONFIG_SENTINEL 0xAABBCCDD
 
-#define NDEBUG
-
 AJ_Configuration* AJ_InitializeConfig()
 {
     memset(&Config, 0, sizeof(AJ_Configuration));
