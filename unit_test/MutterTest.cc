@@ -83,7 +83,8 @@ static const char* testSignature[] = {
     "v",
     "(vvvv)",
     "uqay",
-    "a(uuuu)"
+    "a(uuuu)",
+    "a(sss)"
 };
 
 static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
@@ -107,6 +108,11 @@ static const uint16_t Data16[] = { 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF0
 static AJ_BusAttachment testBus;
 static AJ_Message txMsg;
 static AJ_Message rxMsg;
+static AJ_Arg arg;
+static AJ_Arg array1;
+static AJ_Arg array2;
+static AJ_Arg struct1;
+static AJ_Arg struct2;
 
 class MutterTest : public testing::Test {
   public:
@@ -140,11 +146,621 @@ typedef struct {
     uint32_t d;
 } MutterTestStruct;
 
-TEST_F(MutterTest, ArrayOfStructs)
+TEST_F(MutterTest, ArrayofDict) {
+
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "a{us}" in testSignature[] is 0
+    status = AJ_MarshalSignal(&testBus, &txMsg, 0, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+    if (AJ_OK == status) {
+        status = AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        for (uint32_t key = 0; key < ArraySize(Fruits); ++key) {
+            AJ_Arg dict;
+            status = AJ_MarshalContainer(&txMsg, &dict, AJ_ARG_DICT_ENTRY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalArgs(&txMsg, "us", key, Fruits[key]);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalCloseContainer(&txMsg, &dict);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        if (AJ_OK == status) {
+            status = AJ_MarshalCloseContainer(&txMsg, &array1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            uint32_t key;
+            status = AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            for (uint32_t i = 0; i < ArraySize(Fruits); ++i) {
+                char* fruit;
+                AJ_Arg dict;
+                status = AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalArgs(&rxMsg, "us", &key, &fruit);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                printf("Unmarshal[%d] = %s\n", key, fruit);
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &dict);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+            AJ_Arg dict;
+            status = AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY);
+            EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &array1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, BasicTypesAndNestedStruct) {
+    uint32_t u;
+    uint32_t v;
+    int32_t n;
+    int32_t m;
+    uint16_t q;
+    uint16_t r;
+    uint8_t y;
+    char* str;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "u(usu(ii)qsq)yyy" in testSignature[] is 1
+    status = AJ_MarshalSignal(&testBus, &txMsg, 1, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+    if (AJ_OK == status) {
+        status = AJ_MarshalArgs(&txMsg, "u", 11111);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "usu", 22222, "hello", 33333);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalContainer(&txMsg, &struct2, AJ_ARG_STRUCT);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "ii", -100, -200);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalCloseContainer(&txMsg, &struct2);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "qsq", 4444, "goodbye", 5555);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalCloseContainer(&txMsg, &struct1);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "yyy", 1, 2, 3);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        if (AJ_OK == status) {
+
+            status = AJ_UnmarshalArgs(&rxMsg, "u", &u);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "usu", &u, &str, &v);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalContainer(&rxMsg, &struct2, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "ii", &n, &m);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalCloseContainer(&rxMsg, &struct2);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "qsq", &q, &str, &r);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalCloseContainer(&rxMsg, &struct1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "y", &y);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "y", &y);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "y", &y);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, ArrayOfStructofBasicTypeStringandByteArray)
 {
+    char* str;
     AJ_Status status = AJ_ERR_FAILURE;
 
-    // Index of "a(uuuu)" in testSignature[] is 9
+    //Index of "a(usay)" in testSignature[] is 2
+    status = AJ_MarshalSignal(&testBus, &txMsg, 2, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        for (uint32_t u = 0; u < ArraySize(Fruits); ++u) {
+
+            status = AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalArgs(&txMsg, "us", u, Fruits[u]);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalArg(&txMsg, AJ_InitArg(&arg, AJ_ARG_BYTE, AJ_ARRAY_FLAG, Data8, u));
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalCloseContainer(&txMsg, &struct1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        if (AJ_OK == status) {
+            status = AJ_MarshalCloseContainer(&txMsg, &array1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        if (AJ_OK == status) {
+            uint32_t u;
+            status = AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY);
+
+            for (uint32_t i = 0; i < ArraySize(Fruits); ++i) {
+
+                status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalArgs(&rxMsg, "us", &u, &str);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalArg(&rxMsg, &arg);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &struct1);
+
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            if (AJ_ERR_NO_MORE == status) {
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &array1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, ArrayOfArrayofString)
+{
+    uint32_t count = 3;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "aas" in testSignature[] is 3
+    status = AJ_MarshalSignal(&testBus, &txMsg, 3, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        for (uint32_t j = 0; j < count; ++j) {
+
+            status = AJ_MarshalContainer(&txMsg, &array2, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            for (uint32_t k = j; k < ArraySize(Fruits); ++k) {
+
+                status = AJ_MarshalArgs(&txMsg, "s", Fruits[k]);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+
+            status = AJ_MarshalCloseContainer(&txMsg, &array2);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+        if (AJ_OK == status) {
+
+            status = AJ_MarshalCloseContainer(&txMsg, &array1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        if (AJ_OK == status) {
+
+            status = AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            for (uint32_t j = 0; j < count; ++j) {
+
+                status = AJ_UnmarshalContainer(&rxMsg, &array2, AJ_ARG_ARRAY);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+                for (uint32_t k = j; k < ArraySize(Fruits); ++k) {
+
+                    status = AJ_UnmarshalArg(&rxMsg, &arg);
+                    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                    AJ_Printf("Unmarshal %s\n", arg.val.v_string);
+                }
+
+                /*
+                 * We expect AJ_ERR_NO_MORE
+                 */
+
+                status = AJ_UnmarshalArg(&rxMsg, &arg);
+                EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+
+                if (AJ_ERR_NO_MORE == status) {
+                    status = AJ_UnmarshalCloseContainer(&rxMsg, &array2);
+                    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                }
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+
+            status = AJ_UnmarshalContainer(&rxMsg, &array2, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            if (AJ_ERR_NO_MORE == status) {
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &array1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, IntegerandVariant)
+{
+    char* sig;
+    uint32_t count = 16;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "ivi" in testSignature[] is 4
+    status = AJ_MarshalSignal(&testBus, &txMsg, 4, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalArgs(&txMsg, "i", 987654321);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "a(ii)");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        for (uint32_t i = 0; i < count; ++i) {
+            status = AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalArgs(&txMsg, "ii", i + 1, (i + 1) * 100);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_MarshalCloseContainer(&txMsg, &struct1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+        if (AJ_OK == status) {
+
+            status = AJ_MarshalCloseContainer(&txMsg, &array1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        status = AJ_MarshalArgs(&txMsg, "i", 123456789);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            uint32_t k;
+            uint32_t l;
+            status = AJ_UnmarshalArgs(&rxMsg, "i", &k);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %d\n", k);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            for (uint32_t i = 0; i < count; ++i) {
+
+                status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalArgs(&rxMsg, "ii", &k, &l);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                AJ_Printf("Unmarshal[%d] %d\n", k, l);
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &struct1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            }
+
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+            if (AJ_ERR_NO_MORE == status) {
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &array1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                status = AJ_UnmarshalArgs(&rxMsg, "i", &k);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                AJ_Printf("Unmarshal %d\n", k);
+            }
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+
+TEST_F(MutterTest, StructofInteger_VariantandInteger)
+{
+    char* str;
+    char* sig;
+    uint32_t j;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "v" in testSignature[] is 5
+    status = AJ_MarshalSignal(&testBus, &txMsg, 5, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+    if (AJ_OK == status) {
+        status = AJ_MarshalVariant(&txMsg, "(ivi)");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "i", 1212121);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "s");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "s", "inner variant");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "i", 3434343);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalCloseContainer(&txMsg, &struct1);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+            status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArgs(&rxMsg, "i", &j);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %d\n", j);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArgs(&rxMsg, "s", &str);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %s\n", str);
+
+            status = AJ_UnmarshalArgs(&rxMsg, "i", &j);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %d\n", j);
+
+            status = AJ_UnmarshalCloseContainer(&rxMsg, &struct1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+
+TEST_F(MutterTest, DeepVariant)
+{
+    char* str;
+    char* sig;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "v" in testSignature[] is 6
+    status = AJ_MarshalSignal(&testBus, &txMsg, 6, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalVariant(&txMsg, "v");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "v");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "v");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "v");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "s");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "s", "deep variant");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArgs(&rxMsg, "s", &str);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %s\n", str);
+
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+
+TEST_F(MutterTest, StructofVariants)
+{
+    char* str;
+    char* sig;
+    uint32_t j;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "(vvvv)" in testSignature[] is 7
+    status = AJ_MarshalSignal(&testBus, &txMsg, 7, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+    if (AJ_OK == status) {
+        status = AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "i");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "i", 1212121);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "s");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArgs(&txMsg, "s", "variant");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "ay");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArg(&txMsg, AJ_InitArg(&arg, AJ_ARG_BYTE, AJ_ARRAY_FLAG, Data8, sizeof(Data8)));
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalVariant(&txMsg, "aq");
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalArg(&txMsg, AJ_InitArg(&arg, AJ_ARG_UINT16, AJ_ARRAY_FLAG, Data16, sizeof(Data16)));
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalCloseContainer(&txMsg, &struct1);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            status = AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArgs(&rxMsg, "i", &j);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal %d\n", j);
+
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArgs(&rxMsg, "s", &str);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArg(&rxMsg, &arg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalVariant(&rxMsg, (const char**)&sig);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            AJ_Printf("Unmarshal variant %s\n", sig);
+
+            status = AJ_UnmarshalArg(&rxMsg, &arg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalCloseContainer(&rxMsg, &struct1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, IntegerandArrayofInteger)
+{
+    uint32_t len;
+    uint32_t j;
+    uint16_t q;
+    void* raw;
+    size_t sz;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "uqay" in testSignature[] is 8
+    status = AJ_MarshalSignal(&testBus, &txMsg, 8, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalArgs(&txMsg, "uq", 0xF00F00F00, 0x070707);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        len = 5000;
+        status = AJ_DeliverMsgPartial(&txMsg, len + 4);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalRaw(&txMsg, &len, 4);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        for (j = 0; j < len; ++j) {
+            uint8_t n = (uint8_t)j;
+            status = AJ_MarshalRaw(&txMsg, &n, 1);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+            status = AJ_UnmarshalArgs(&rxMsg, "uq", &j, &q);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, sizeof(len), &sz);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            len = *((uint32_t*)raw);
+            for (j = 0; j < len; ++j) {
+                uint8_t v;
+                status = AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 1, &sz);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+                v = *((uint8_t*)raw);
+                EXPECT_EQ(v, (uint8_t)j);
+            }
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+TEST_F(MutterTest, ArrayOfStructs)
+{
+    void* raw;
+    size_t sz;
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "a(uuuu)" in testSignature[] is 9
     status = AJ_MarshalSignal(&testBus, &txMsg, 9, "mutter.service", 0, 0, 0);
     EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
 
@@ -179,8 +795,6 @@ TEST_F(MutterTest, ArrayOfStructs)
         EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
 
         if (AJ_OK == status) {
-            void* raw;
-            size_t sz;
             status = AJ_UnmarshalRaw(&rxMsg, (const void**)&raw, 4, &sz);
             EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
             len = *((uint32_t*)raw) / sizeof(MutterTestStruct);
@@ -200,6 +814,50 @@ TEST_F(MutterTest, ArrayOfStructs)
                 EXPECT_EQ((j + 1), ts->b);
                 EXPECT_EQ((j + 2), ts->c);
                 EXPECT_EQ((j + 3), ts->d);
+            }
+
+            status = AJ_CloseMsg(&rxMsg);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        }
+    }
+}
+
+
+TEST_F(MutterTest, ArrayOfStructofStrings)
+{
+    AJ_Status status = AJ_ERR_FAILURE;
+    //Index of "a(sss)" in testSignature[] is 10
+    status = AJ_MarshalSignal(&testBus, &txMsg, 10, "mutter.service", 0, 0, 0);
+    EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+    if (AJ_OK == status) {
+
+        status = AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+        status = AJ_MarshalCloseContainer(&txMsg, &array1);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+
+        status = AJ_DeliverMsg(&txMsg);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        status = AJ_UnmarshalMsg(&testBus, &rxMsg, 0);
+        EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+
+        if (AJ_OK == status) {
+
+            status = AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY);
+            EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
+            status = AJ_UnmarshalArg(&rxMsg, &arg);
+            EXPECT_EQ(AJ_ERR_NO_MORE, status) << "  Actual Status: " << AJ_StatusText(status);
+
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (AJ_ERR_NO_MORE == status) {
+
+                status = AJ_UnmarshalCloseContainer(&rxMsg, &array1);
+                EXPECT_EQ(AJ_OK, status) << "  Actual Status: " << AJ_StatusText(status);
             }
 
             status = AJ_CloseMsg(&rxMsg);
