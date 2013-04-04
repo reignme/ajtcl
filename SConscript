@@ -18,7 +18,7 @@ import shutil
 vars = Variables()
 
 # Common build variables
-vars.Add(EnumVariable('HOST', 'Host platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
+vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(PathVariable('GTEST_DIR', 'The path to googletest sources', os.environ.get('GTEST_DIR'), PathVariable.PathIsDir))
@@ -30,7 +30,7 @@ env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
 # Define compile/link options only for win32/linux.
 # In case of target platforms, the compilation/linking does not take place
 # using SCons files.
-if env['HOST'] == 'win32':
+if env['TARG'] == 'win32':
     env['libs'] = ['wsock32', 'advapi32']
     env.Append(CFLAGS=['/J', '/W3'])
     env.Append(CPPDEFINES=['_CRT_SECURE_NO_WARNINGS'])
@@ -43,7 +43,7 @@ if env['HOST'] == 'win32':
         env.Append(LINKFLAGS=['/opt:ref'])
         env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
         env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
-elif env['HOST'] == 'linux':
+elif env['TARG'] == 'linux':
     env['libs'] = ['rt', 'crypto']
     env.Append(LINKFLAGS=[''])
     env.Append(CFLAGS=['-Wall',
@@ -61,19 +61,19 @@ elif env['HOST'] == 'linux':
         env.Append(LINKFLAGS='-s')
 
 # Include paths
-env['includes'] = [ os.getcwd() + '/inc', os.getcwd() + '/host/${HOST}']
+env['includes'] = [ os.getcwd() + '/inc', os.getcwd() + '/target/${TARG}']
 
-# Host-specific headers and sources
-env['aj_host_headers'] = [Glob('host/' + env['HOST'] + '/*.h')]
-env['aj_host_srcs'] = [Glob('host/' + env['HOST'] + '/*.c')]
+# Target-specific headers and sources
+env['aj_host_headers'] = [Glob('target/' + env['TARG'] + '/*.h')]
+env['aj_host_srcs'] = [Glob('target/' + env['TARG'] + '/*.c')]
 
-# AllJoyn Thin Client headers and sources (host/target independent)
+# AllJoyn Thin Client headers and sources (target independent)
 env['aj_headers'] = [Glob('inc/*.h')]
 env['aj_srcs'] = [Glob('src/*.c')]
 env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 
 # Set-up the environment for Win/Linux
-if env['HOST'] == 'win32' or env['HOST'] == 'linux':
+if env['TARG'] == 'win32' or env['TARG'] == 'linux':
     # To compile, sources need access to include files
     env.Append(CPPPATH = [env['includes']])
 
@@ -83,11 +83,11 @@ if env['HOST'] == 'win32' or env['HOST'] == 'linux':
     # Win/Linux programs need their own 'main' function
     env.Append(CPPDEFINES = ['AJ_MAIN'])
 
-# Build objects for the host-specific sources and AllJoyn Thin Client sources
-if env['HOST'] == 'win32':
+# Build objects for the target-specific sources and AllJoyn Thin Client sources
+if env['TARG'] == 'win32':
     env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'] + env['aj_sw_crypto'])
 else:
-    if env['HOST'] == 'linux':
+    if env['TARG'] == 'linux':
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_host_srcs'])
 
 Export('env')
@@ -115,7 +115,7 @@ if env['WS'] != 'off' and not env.GetOption('clean'):
 
 # In case of Arduino target, package the 'SDK' suitable for development
 # on Arduino IDE
-if env['HOST'] == 'arduino':
+if env['TARG'] == 'arduino':
     arduinoLibDir = 'build/arduino_due/libraries/AllJoyn/'
 
     # Arduino sketches need the corresponding platform-independent sources
@@ -135,9 +135,9 @@ if env['HOST'] == 'arduino':
     # Also install the .ino file for the test sketch
     for test in Flatten(tests):
         in_path = File('test/' + test + '.c')
-        out_path = File('host/arduino/tests/AJ_' + test + '/' + test + '.cpp')
+        out_path = File('target/arduino/tests/AJ_' + test + '/' + test + '.cpp')
 
-        env.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File('host/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
+        env.Install(Dir(arduinoLibDir + 'tests/AJ_' + test + '/').abspath, File('target/arduino/tests/AJ_' + test + '/AJ_' + test + '.ino'))
         env.InstallAs(File(arduinoLibDir + 'tests/AJ_' + test + '/' + test + '.cpp').abspath, in_path.abspath)
 
     replaced_names = []
@@ -150,7 +150,7 @@ if env['HOST'] == 'arduino':
     install_headers = env.Install(arduinoLibDir, env['aj_headers'])
 
     # install the examples into their source
-    env.Install(Dir(arduinoLibDir).abspath, 'host/arduino/examples/')
+    env.Install(Dir(arduinoLibDir).abspath, 'target/arduino/examples/')
 
     # Install basic samples
     basicsamples = [ ]
@@ -165,14 +165,14 @@ if env['HOST'] == 'arduino':
 
     for sample in Flatten(basicsamples):
         in_path = File('samples/basic/' + sample + '.c')
-        out_path = File('host/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
-        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('host/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
+        out_path = File('target/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
+        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('target/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
         env.InstallAs(File(arduinoLibDir + 'samples/AJ_' + sample + '/' + sample + '.cpp').abspath, in_path.abspath)
 
     for sample in Flatten(securesamples):
         in_path = File('samples/secure/' + sample + '.c')
-        out_path = File('host/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
-        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('host/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
+        out_path = File('target/arduino/samples/AJ_' + sample + '/' + sample + '.cpp')
+        env.Install(Dir(arduinoLibDir + 'samples/AJ_' + sample + '/').abspath, File('target/arduino/samples/AJ_' + sample + '/AJ_' + sample + '.ino'))
         env.InstallAs(File(arduinoLibDir + 'samples/AJ_' + sample + '/' + sample + '.cpp').abspath, in_path.abspath)
 
 Return('env')

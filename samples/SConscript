@@ -17,9 +17,9 @@ Import('env')
 
 # Add/remove projects from build
 
-# Only build the following samples for the HOST operating system.
+# Only build the following samples for the TARG operating system.
 # The samples/examples for target platforms are handled by
-# the target specific directory (viz. host/arduino).
-if env['HOST'] == 'win32' or env['HOST'] == 'linux':
+# the target specific directory (viz. target/arduino).
+if env['TARG'] == 'win32' or env['TARG'] == 'linux':
     env.SConscript(['basic/SConscript'])
     env.SConscript(['secure/SConscript'])

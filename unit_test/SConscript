@@ -30,7 +30,7 @@ else:
     else:
         gtest_src_base = gtest_dir
 
-    if(env['HOST'] == 'win32'):
+    if(env['TARG'] == 'win32'):
         # gTest needs different CPPDEFINES as compared to AllJoyn TCL.
         gtest_env.Append(CPPDEFINES = ['WIN32', '_LIB'])
         gtest_env.Append(CXXFLAGS = ['/wd4355', '/vmm', '/vmg', '/MDd', '/Od', '/Gd', '/Ob1', '/EHsc'])
@@ -63,7 +63,7 @@ else:
     # The unit test code needs to find the AllJoyn Thin Client include files
     unittest_env.Append(CPPPATH = [env['includes']])
 
-    if(env['HOST'] == 'win32'):
+    if(env['TARG'] == 'win32'):
         unittest_env.Append(CXXFLAGS = ['/wd4355', '/vmm', '/vmg', '/MDd', '/Od', '/Gd', '/Ob1', '/EHsc'])
 
     unittest_env.Append(CPPDEFINES = ['GTEST_HAS_RTTI=0'])
@@ -73,7 +73,7 @@ else:
     if(env['MSVC_VERSION'] == '11.0'):
         unittest_env.Append(CPPDEFINES = ['_VARIADIC_MAX=10'])
 
-    if(env['HOST'] == 'linux'):
+    if(env['TARG'] == 'linux'):
         unittest_env.Append(CXXFLAGS=['-Wall',
                                       '-pipe',
                                       '-funsigned-char',
@@ -89,7 +89,7 @@ else:
 
     objs = [ unittest_env.Object(test_src) ]
 
-    if(env['HOST'] == 'win32'):
+    if(env['TARG'] == 'win32'):
         unittest_env.Append(LFLAGS=['/NODEFAULTLIB:msvcrt.lib'])
         unittest_env.Append(LINKFLAGS=['/NODEFAULTLIB:msvcrt.lib'])
 
