@@ -204,7 +204,7 @@ int AJ_Main()
                 if (token) opts.transports = atoi(token);
                 else opts.transports = 0xFFFF;
 
-                status = AJ_StartService2(&bus, DaemonName, CONNECT_TIMEOUT, port, TRUE, name, AJ_NAME_REQ_DO_NOT_QUEUE, &opts);
+                status = AJ_StartService2(&bus, DaemonName, CONNECT_TIMEOUT, TRUE, port, name, AJ_NAME_REQ_DO_NOT_QUEUE, &opts);
             } else if (0 == strcmp("find", command)) {
                 char* namePrefix = strtok(NULL, "\r\n");
                 if (!namePrefix) {
