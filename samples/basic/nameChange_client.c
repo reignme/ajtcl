@@ -123,7 +123,7 @@ int main(int argc, char*argv[])
 
             if (!connected) {
                 status = AJ_StartClient(&bus,
-                                        "org.alljoyn.daemon",
+                                        NULL,
                                         CONNECT_TIMEOUT,
                                         ServiceName,
                                         ServicePort,

@@ -163,7 +163,7 @@ int AJ_Main(void)
         AJ_Message msg;
 
         if (!connected) {
-            status = AJ_StartService(&bus, "org.alljoyn.daemon", CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
+            status = AJ_StartService(&bus, NULL, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
             if (status != AJ_OK) {
                 continue;
             }

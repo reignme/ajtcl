@@ -34,7 +34,7 @@
 #include "aj_auth.h"
 
 
-static const char daemonService[] = "org.alljoyn.daemon";
+static const char daemonService[] = "org.alljoyn.BusNode";
 
 static uint32_t BusAuthPwd(uint8_t* buffer, uint32_t bufLen)
 {

@@ -174,7 +174,7 @@ int AJ_Main(void)
         AJ_Message msg;
 
         if (!connected) {
-            status = AJ_StartClient(&bus, "org.alljoyn.daemon", CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId, NULL);
+            status = AJ_StartClient(&bus, NULL, CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId, NULL);
             if (status == AJ_OK) {
                 AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
                 AJ_Printf("Connected to Daemon:\n");

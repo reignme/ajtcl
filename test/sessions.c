@@ -34,7 +34,6 @@ uint32_t g_sessionId = 0ul;
 AJ_Status authStatus = AJ_ERR_NULL;
 uint32_t sendTTL = 0;
 
-static const char DaemonName[] = "org.alljoyn.daemon";
 static const char ServiceName[] = "org.alljoyn.bus.test.sessions";
 static const uint16_t ServicePort = 25;
 static uint32_t authenticate = TRUE;
@@ -144,7 +143,7 @@ int AJ_Main()
     while (!connected) {
         AJ_Status status;
         AJ_Printf("Attempting to connect to bus\n");
-        status = AJ_Connect(&bus, DaemonName, CONNECT_TIMEOUT);
+        status = AJ_Connect(&bus, NULL, CONNECT_TIMEOUT);
         if (status != AJ_OK) {
             AJ_Printf("Failed to connect to bus sleeping for %lu seconds\n", CONNECT_PAUSE / 1000);
             AJ_Sleep(CONNECT_PAUSE);
@@ -204,7 +203,7 @@ int AJ_Main()
                 if (token) opts.transports = atoi(token);
                 else opts.transports = 0xFFFF;
 
-                status = AJ_StartService2(&bus, DaemonName, CONNECT_TIMEOUT, TRUE, port, name, AJ_NAME_REQ_DO_NOT_QUEUE, &opts);
+                status = AJ_StartService2(&bus, NULL, CONNECT_TIMEOUT, TRUE, port, name, AJ_NAME_REQ_DO_NOT_QUEUE, &opts);
             } else if (0 == strcmp("find", command)) {
                 char* namePrefix = strtok(NULL, "\r\n");
                 if (!namePrefix) {
