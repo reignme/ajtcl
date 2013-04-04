@@ -25,9 +25,10 @@ Help(vars.GenerateHelpText(env))
 env.SConscript('test/SConscript')
 env.SConscript('samples/SConscript')
 
-# Build googletests only for VARIANT=debug
-if env['VARIANT'] == 'debug':
-    if env.has_key('GTEST_DIR'):
-        env.SConscript('unit_test/SConscript')
-    else:
-        print 'GTEST_DIR is not set, skipping unittest build'
+# Build googletests for VARIANT=debug and for Win/Linux only (not for embedded)
+if env['TARG'] == 'win32' or env['TARG'] == 'linux':
+    if env['VARIANT'] == 'debug':
+        if env.has_key('GTEST_DIR'):
+            env.SConscript('unit_test/SConscript')
+        else:
+            print 'GTEST_DIR is not set, skipping unittest build'
