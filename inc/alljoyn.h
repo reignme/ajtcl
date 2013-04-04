@@ -20,8 +20,7 @@
  ******************************************************************************/
 
 #include "aj_host.h"
-#include "alljoyn.h"
-#include "aj_status.h"
+#include "aj_version.h"
 #include "aj_status.h"
 #include "aj_init.h"
 #include "aj_util.h"
