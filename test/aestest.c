@@ -328,12 +328,12 @@ int AJ_Main(void)
 
         status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            printf("Encryption failed (%d) for test #%zu\n", status, i);
+            AJ_Printf("Encryption failed (%d) for test #%u\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen + testVector[i].authLen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].output) != 0) {
-            printf("Encrypt verification failure for test #%zu\n%s\n", i, out);
+            AJ_Printf("Encrypt verification failure for test #%u\n%s\n", i, out);
             goto ErrorExit;
         }
         /*
@@ -341,18 +341,18 @@ int AJ_Main(void)
          */
         status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            printf("Authentication failure (%d) for test #%zu\n", status, i);
+            AJ_Printf("Authentication failure (%d) for test #%u\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].input) != 0) {
-            printf("Decrypt verification failure for test #%zu\n%s\n", i, out);
+            AJ_Printf("Decrypt verification failure for test #%u\n%s\n", i, out);
             goto ErrorExit;
         }
-        printf("Passed and verified test #%zu\n", i);
+        AJ_Printf("Passed and verified test #%u\n", i);
     }
 
-    printf("AES CCM unit test PASSED\n");
+    AJ_Printf("AES CCM unit test PASSED\n");
 
     {
         static const char expect[] = "F19787716404918CA20F174CFF2E165F21B17A70C472480AE91891B5BB8DD261CBD4273612D41BC6";
@@ -371,22 +371,22 @@ int AJ_Main(void)
 
         status = AJ_Crypto_PRF((const uint8_t**)inputs, length, ArraySize(inputs), key, sizeof(key));
         if (status != AJ_OK) {
-            printf("AJ_Crypto_PRF %d\n", status);
+            AJ_Printf("AJ_Crypto_PRF %d\n", status);
             goto ErrorExit;
         }
         AJ_RawToHex(key, sizeof(key), (char*)out, sizeof(out));
         if (strcmp((char*)out, expect) != 0) {
-            printf("AJ_Crypto_PRF failed: %d\n", status);
+            AJ_Printf("AJ_Crypto_PRF failed: %d\n", status);
             goto ErrorExit;
         }
-        printf("AJ_Crypto_PRF test PASSED: %d\n", status);
+        AJ_Printf("AJ_Crypto_PRF test PASSED: %d\n", status);
     }
 
     return 0;
 
 ErrorExit:
 
-    printf("AES CCM unit test FAILED\n");
+    AJ_Printf("AES CCM unit test FAILED\n");
     return 1;
 }
 
