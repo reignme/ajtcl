@@ -159,6 +159,7 @@ int AJ_Main()
         authStatus = AJ_OK;
     }
 
+    AJ_StartReadFromStdIn();
     while (TRUE) {
         // check for serial input and dispatch if needed.
         char buf[1024];
@@ -171,7 +172,7 @@ int AJ_Main()
             buf[countBytesRead] = '\0';
 #else
         // read a line
-        if (AJ_GetLine(buf, 1024, stdin) != NULL && strlen(buf) > 0) {
+        if (AJ_GetCmdLine(buf, 1024) != NULL && strlen(buf) > 0) {
 #endif
             char*command;
             printf(">~~~%s\n", buf);
@@ -483,6 +484,7 @@ int AJ_Main()
         }
     }
 
+    AJ_StopReadFromStdIn();
     return 0;
 }
 

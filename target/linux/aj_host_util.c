@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "aj_host.h"
 #include "aj_util.h"
@@ -85,4 +86,57 @@ char*AJ_GetLine(char*str, size_t num, void*fp)
         }
     }
     return p;
+}
+
+static uint8_t ioThreadRunning = FALSE;
+static char cmdline[1024];
+static uint8_t consumed = TRUE;
+static pthread_t threadId;
+
+void* RunFunc(void* threadArg)
+{
+    while (ioThreadRunning) {
+        if (consumed) {
+            AJ_GetLine(cmdline, sizeof(cmdline), stdin);
+            consumed = FALSE;
+        }
+        AJ_Sleep(1000);
+    }
+    return 0;
+}
+
+uint8_t AJ_StartReadFromStdIn()
+{
+    int ret = 0;
+    if (!ioThreadRunning) {
+        ret = pthread_create(&threadId, NULL, RunFunc, NULL);
+        if (ret != 0) {
+            printf("Error: fail to spin a thread for reading from stdin\n");
+        }
+        ioThreadRunning = TRUE;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+char* AJ_GetCmdLine(char* buf, size_t num)
+{
+    if (!consumed) {
+        strncpy(buf, cmdline, num);
+        buf[num - 1] = '\0';
+        consumed = TRUE;
+        return buf;
+    }
+    return NULL;
+}
+
+uint8_t AJ_StopReadFromStdIn()
+{
+    void* exit_status;
+    if (ioThreadRunning) {
+        pthread_join(threadId, &exit_status);
+        ioThreadRunning = FALSE;
+        return TRUE;
+    }
+    return FALSE;
 }

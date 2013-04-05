@@ -66,3 +66,18 @@ void ram_diag()
            heap_used(),
            static_used());
 }
+
+uint8_t AJ_StartReadFromStdIn()
+{
+    return FALSE;
+}
+
+uint8_t AJ_StopReadFromStdIn()
+{
+    return FALSE;
+}
+
+char* AJ_GetCmdLine(char* buf, size_t num)
+{
+    return NULL;
+}

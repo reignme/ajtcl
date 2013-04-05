@@ -138,4 +138,28 @@ AJ_Status AJ_HexToRaw(const char* hex, size_t hexLen, uint8_t* raw, size_t rawLe
  */
 char* AJ_GetLine(char*str, size_t num, void*fp);
 
+/**
+ * Prepare to read input from stdin
+ */
+uint8_t AJ_StartReadFromStdIn();
+
+/**
+ * Stop reading input from stdin
+ */
+uint8_t AJ_StopReadFromStdIn();
+
+/**
+ * get a line of input from stdin.
+ * This will capture the the num-1 characters or till a newline character is
+ * entered.
+ *
+ * @param[out] buf a character array that will hold the user input
+ * @param[in]  num the size of the character array 'str'
+ *
+ * @return returns the same string as 'buf' if there has been a read error a null
+ *                 pointer will be returned and 'buf' will remain unchanged.
+ */
+char* AJ_GetCmdLine(char* buf, size_t num);
+
+
 #endif

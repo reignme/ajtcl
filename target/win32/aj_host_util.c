@@ -18,6 +18,7 @@
  ******************************************************************************/
 
 #include <windows.h>
+#include <process.h>
 #include <sys/timeb.h>
 #include <stdio.h>
 #include <assert.h>
@@ -169,7 +170,7 @@ void AJ_Free(void* mem)
  * @return returns the same string as 'str' if there has been a read error a null
  *                 pointer will be returned and 'str' will remain unchanged.
  */
-char*AJ_GetLine(char*str, size_t num, FILE*fp)
+char*AJ_GetLine(char*str, int num, FILE*fp)
 {
     char*p = fgets(str, num, fp);
 
@@ -180,4 +181,57 @@ char*AJ_GetLine(char*str, size_t num, FILE*fp)
         }
     }
     return p;
+}
+
+static boolean ioThreadRunning = FALSE;
+static char cmdline[1024];
+static const uint32_t stacksize = 80 * 1024;
+static uint8_t consumed = TRUE;
+static HANDLE handle;
+static unsigned int threadId;
+
+unsigned __stdcall RunFunc(void* threadArg)
+{
+    while (ioThreadRunning) {
+        if (consumed) {
+            AJ_GetLine(cmdline, sizeof(cmdline), stdin);
+            consumed = FALSE;
+        }
+        AJ_Sleep(1000);
+    }
+    return 0;
+}
+
+uint8_t AJ_StartReadFromStdIn()
+{
+    if (!ioThreadRunning) {
+        handle = _beginthreadex(NULL, stacksize, &RunFunc, NULL, 0, &threadId);
+        if (handle <= 0) {
+            printf("Fail to spin a thread for reading from stdin\n");
+            return FALSE;
+        }
+        ioThreadRunning = TRUE;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+char* AJ_GetCmdLine(char* buf, size_t num)
+{
+    if (!consumed) {
+        strncpy(buf, cmdline, num);
+        buf[num - 1] = '\0';
+        consumed = TRUE;
+        return buf;
+    }
+    return NULL;
+}
+
+uint8_t AJ_StopReadFromStdIn()
+{
+    if (ioThreadRunning) {
+        ioThreadRunning = FALSE;
+        return TRUE;
+    }
+    return FALSE;
 }
