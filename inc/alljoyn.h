@@ -19,7 +19,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_version.h"
 #include "aj_status.h"
 #include "aj_init.h"

@@ -19,7 +19,7 @@
 
 #include "Arduino.h"    // for digitalRead, digitalWrite, etc
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_crypto.h"
 
 int analogPin = 3;

@@ -17,7 +17,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_init.h"
 
 static uint8_t initialized = FALSE;

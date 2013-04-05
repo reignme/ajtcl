@@ -1,5 +1,5 @@
-#ifndef _AJ_HOST_H
-#define _AJ_HOST_H
+#ifndef _AJ_TARGET_H
+#define _AJ_TARGET_H
 /**
  * @file
  */

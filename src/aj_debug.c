@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_debug.h"
 
 /*

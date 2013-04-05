@@ -18,7 +18,7 @@
  ******************************************************************************/
 
 #include "Arduino.h"
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_util.h"
 
 typedef struct time_struct {

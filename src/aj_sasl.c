@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_status.h"
 #include "aj_sasl.h"
 #include "aj_util.h"

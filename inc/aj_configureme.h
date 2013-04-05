@@ -20,7 +20,7 @@
 #ifndef _AJ_CONFIGUREME_H
 #define _AJ_CONFIGUREME_H
 
-#include <aj_host.h>
+#include <aj_target.h>
 #include <aj_status.h>
 
 

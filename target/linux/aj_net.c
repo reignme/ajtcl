@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <time.h>
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_bufio.h"
 #include "aj_net.h"
 #include "aj_util.h"

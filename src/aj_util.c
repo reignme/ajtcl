@@ -19,7 +19,7 @@
 
 #include <assert.h>
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_util.h"
 
 static uint8_t A2H(char hex, AJ_Status* status)

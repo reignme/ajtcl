@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "aj_host.h"
+#include "aj_target.h"
 #include "aj_util.h"
 
 AJ_Status AJ_SuspendWifi(uint32_t msec)
