@@ -100,6 +100,8 @@ static const char* const BusIface[] = {
     "?JoinSession <s <q <a{sv} >u >u >a{sv}",
     "?LeaveSession <u >u",
     "?CancelSessionlessMessage <u >u",
+    "?FindAdvertisedNameByTransport <s <q >u",
+    "?CancelFindAdvertisedNameByTransport <s <q >u",
     NULL
 };
 

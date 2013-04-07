@@ -88,11 +88,27 @@ AJ_Status AJ_BusFindAdvertisedName(AJ_BusAttachment* bus, const char* namePrefix
 {
     AJ_Status status;
     AJ_Message msg;
-    uint32_t msgId = (op == AJ_BUS_START_ADVERTISING) ? AJ_METHOD_FIND_NAME : AJ_METHOD_CANCEL_FIND_NAME;
+    uint32_t msgId = (op == AJ_BUS_START_FINDING) ? AJ_METHOD_FIND_NAME : AJ_METHOD_CANCEL_FIND_NAME;
 
     status = AJ_MarshalMethodCall(bus, &msg, msgId, AJ_BusDestination, 0, 0, TIMEOUT);
     if (status == AJ_OK) {
         status = AJ_MarshalArgs(&msg, "s", namePrefix);
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
+AJ_Status AJ_BusFindAdvertisedNameByTransport(AJ_BusAttachment* bus, const char* namePrefix, uint16_t transpsort, uint8_t op)
+{
+    AJ_Status status;
+    AJ_Message msg;
+    uint32_t msgId = (op == AJ_BUS_START_FINDING) ? AJ_METHOD_FIND_NAME_BY_TRANSPORT : AJ_METHOD_CANCEL_FIND_NAME_BY_TRANSPORT;
+
+    status = AJ_MarshalMethodCall(bus, &msg, msgId, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        status = AJ_MarshalArgs(&msg, "sq", namePrefix, transpsort);
     }
     if (status == AJ_OK) {
         status = AJ_DeliverMsg(&msg);

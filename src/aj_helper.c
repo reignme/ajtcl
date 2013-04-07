@@ -215,6 +215,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
         switch (msg.msgId) {
 
         case AJ_REPLY_ID(AJ_METHOD_FIND_NAME):
+        case AJ_REPLY_ID(AJ_METHOD_FIND_NAME_BY_TRANSPORT):
             if (msg.hdr->msgType == AJ_MSG_ERROR) {
                 status = AJ_ERR_FAILURE;
             } else {
@@ -225,6 +226,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
                 }
             }
             break;
+
 
         case AJ_SIGNAL_FOUND_ADV_NAME:
             {

@@ -135,6 +135,21 @@ AJ_Status AJ_BusAdvertiseName(AJ_BusAttachment* bus, const char* name, uint16_t 
  */
 AJ_Status AJ_BusFindAdvertisedName(AJ_BusAttachment* bus, const char* namePrefix, uint8_t op);
 
+/**
+ * Register interest in a well-known name prefix for the purpose of discovery.
+ *
+ * @param  bus          The bus attachment
+ * @param  namePrefix   Well-known name prefix that application is interested in receiving
+ * @param  transport    Transports by which for well-known name discovery
+ *                      FoundAdvertisedName notifications about.
+ * @param op            Either AJ_BUS_START_FINDING or AJ_BUS_STOP_FINDING
+ *
+ * @return  Return AJ_Status
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusFindAdvertisedNameByTransport(AJ_BusAttachment* bus, const char* namePrefix, uint16_t transport, uint8_t op);
+
 #define AJ_SESSION_PROXIMITY_ANY          0xFF   /**< No proximity restrictions */
 #define AJ_SESSION_PROXIMITY_PHYSICAL     0x01   /**< Limit to services that are physically proximal */
 #define AJ_SESSION_PROXIMITY_NETWORK      0x02   /**< Allow services that are on the same subnet */

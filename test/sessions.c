@@ -206,28 +206,48 @@ int AJ_Main()
 
                 status = AJ_StartService2(&bus, NULL, CONNECT_TIMEOUT, TRUE, port, name, AJ_NAME_REQ_DO_NOT_QUEUE, &opts);
             } else if (0 == strcmp("find", command)) {
-                char* namePrefix = strtok(NULL, "\r\n");
+                char* namePrefix = strtok(NULL, " \r\n");
                 if (!namePrefix) {
                     printf("Usage: find <name_prefix>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedName(&bus, namePrefix, AJ_BUS_START_FINDING);
             } else if (0 == strcmp("cancelfind", command)) {
-                char* namePrefix = strtok(NULL, "\r\n");
+                char* namePrefix = strtok(NULL, " \r\n");
                 if (!namePrefix) {
                     printf("Usage: cancelfind <name_prefix>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedName(&bus, namePrefix, AJ_BUS_STOP_FINDING);
+            } else if (0 == strcmp("find2", command)) {
+                char* namePrefix = strtok(NULL, " \r\n");
+                uint16_t transport = 0;
+                char* token = strtok(NULL, " \r\n");
+                if (token) transport = (uint16_t)atoi(token);
+                if (!namePrefix || !transport) {
+                    printf("Usage: find2 <name_prefix> <transport>\n");
+                    continue;
+                }
+                status = AJ_BusFindAdvertisedNameByTransport(&bus, namePrefix, transport, AJ_BUS_START_FINDING);
+            } else if (0 == strcmp("cancelfind2", command)) {
+                char* namePrefix = strtok(NULL, " \r\n");
+                uint16_t transport = 0;
+                char* token = strtok(NULL, " \r\n");
+                if (token) transport = (uint16_t)atoi(token);
+                if (!namePrefix || !transport) {
+                    printf("Usage: cancelfind2 <name_prefix> <transport>\n");
+                    continue;
+                }
+                status = AJ_BusFindAdvertisedNameByTransport(&bus, namePrefix, transport, AJ_BUS_STOP_FINDING);
             } else if (0 == strcmp("requestname", command)) {
-                char* name = strtok(NULL, "\r\n");
+                char* name = strtok(NULL, " \r\n");
                 if (!name) {
                     printf("Usage: requestname <name>\n");
                     continue;
                 }
                 status = AJ_BusRequestName(&bus, name, AJ_NAME_REQ_DO_NOT_QUEUE);
             } else if (0 == strcmp("releasename", command)) {
-                char* name = strtok(NULL, "\r\n");
+                char* name = strtok(NULL, " \r\n");
                 if (!name) {
                     printf("Usage: releasename <name>\n");
                     continue;
@@ -408,7 +428,9 @@ int AJ_Main()
                 printf("advertise <name> [transports]                                 - Advertise a name\n");
                 printf("canceladvertise <name> [transports]                           - Cancel an advertisement\n");
                 printf("find <name_prefix>                                            - Discover names that begin with prefix\n");
+                printf("find2 <name_prefix> <transport>                               - Discover names that begin with prefix by specific transports\n");
                 printf("cancelfind <name_prefix>                                      - Cancel discovering names that begins with prefix\n");
+                printf("cancelfind2 <name_prefix> <transport>                         - Cancel discovering names that begins with prefix by specific transports\n");
                 printf("join <name> <port> [isMultipoint] [traffic] [proximity] [transports] - Join a session\n");
                 printf("leave <sessionId>                                             - Leave a session\n");
                 printf("chat <sessionId> <msg>                                        - Send a message over a given session\n");
