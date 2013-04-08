@@ -25,7 +25,7 @@ Usage:
     python test_harness.py [ -c config_file ] [ -t gtestfile ] [ -p path_to_gtestfile ]
 where:
     config_file:    test_harness config file;       default: test_harness.conf
-    gtestfile:      name of gtest executable file;  default: ajtest
+    gtestfile:      name of gtest executable file;  default: ajtcltest
     path_to_gtestfile:   optional path to directory containing gtestfile
 """
 
@@ -153,7 +153,7 @@ def main(argv=None):
     if gtestfileopt != '':
         command = gtestfileopt
     if command == '':
-        command = 'ajtest'
+        command = 'ajtcltest'
     if testpath != '':
         command = os.path.join( testpath, command )
 

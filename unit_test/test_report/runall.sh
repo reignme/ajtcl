@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2010 - 2013, Qualcomm Innovation Center, Inc.
+# Copyright 2013, Qualcomm Innovation Center, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -18,18 +18,14 @@
 function Usage() {
 	set +ex
 	echo >&2 "
-Runs GTest executables created by scons in alljoyn_core and common.
+Runs GTest executable ajtcltest
 
-Usage: $(basename -- "$0") [ -s -d alljoyn_dist ] [ -t alljoyn_test ] [-c configfile ] [ ajtest ] [ cmtest ] ...
+Usage: $(basename -- "$0") [ -s -d alljoyn_dist ] [-c configfile ]
 where
 	-s		# start and stop our own AllJoyn-Daemon (default internal transport address, --no-bt)
 	-d alljoyn_dist	# path to the build/.../dist tree, used to find cpp/bin/alljoyn-daemon exe, if used
-	-t alljoyn_test	# path to the build/.../test tree, used to find cpp/bin/cmtest exe, ajtest exe, ...
-			# Note: do not include the 'cpp/bin' subdirectory in alljoyn_dist or alljoyn_test
-	-c configfile	# name of config file(s) (an embedded wildcard is replaced by the gtest test name)
-			#	default '*.conf'
-	ajtest, cmtest	# simple file name(s) of the gtest exe(s) to be run (found in -t path/cpp/bin)
-			#	default runs ajtest and cmtest
+	-c configfile	# name of config file
+			#	default 'ajtcltest.conf'
 "
 	exit 2
 }
@@ -40,15 +36,13 @@ set -e
 
 start_daemon=false
 alljoyn_dist=''
-alljoyn_test=''
 configfile='*.conf'
 
-while getopts sSc:d:t: option
+while getopts sSc:d: option
 do
 	case "$option" in
 	( c ) configfile="$OPTARG" ;;
 	( d ) alljoyn_dist="$OPTARG" ;;
-	( t ) alljoyn_test=$OPTARG ;;
 	( s ) start_daemon=true ;;
 	( S ) start_daemon=false ;;
 	( \? ) Usage ;;
@@ -71,23 +65,10 @@ fi
 
 if test -z "$gtests"
 then
-	gtests="ajtest cmtest"
+	gtests="ajtcltest"
 fi
 
 : check commandline options
-
-# alljoyn_dist, alljoyn_test paths
-if test -z "$alljoyn_dist" -a -z "$alljoyn_test"
-then
-	echo >&2 "error, -d and/or -t path is required"
-	Usage
-elif test -z "$alljoyn_dist"
-then
-	alljoyn_dist="$alljoyn_test/../dist"
-elif test -z "$alljoyn_test"
-then
-	alljoyn_test="$alljoyn_dist/../test"
-fi
 
 ckbin() {
 	ckvar=$1
@@ -102,8 +83,23 @@ ckbin() {
 	eval $binvar="'$binval'"
 }
 
-ckbin alljoyn_dist daemon_bin
-ckbin alljoyn_test gtest_bin
+# alljoyn_dist
+if $start_daemon
+then
+	if test -z "$alljoyn_dist"
+	then
+		echo >&2 "error, -d path is required"
+		Usage
+	fi
+	ckbin alljoyn_dist daemon_bin
+fi
+
+gtest_bin=$( cd "$(dirname -- "$0")/.." > /dev/null && pwd )
+if test -z "$gtest_bin" -o "gtest_bin" = /
+then
+        : unknown error trap
+        exit 2
+fi
 
 if cygpath -wa . > /dev/null 2>&1
 then
