@@ -135,7 +135,7 @@ static void Compute_CCM_AuthTag(const uint8_t* key,
     Trace("CBC-MAC", context->T.data, context->M);
 }
 
-static CCM_Context* InitCCMContext(const char* nonce, uint32_t nLen, uint32_t hdrLen, uint32_t msgLen, uint8_t M)
+static CCM_Context* InitCCMContext(const uint8_t* nonce, uint32_t nLen, uint32_t hdrLen, uint32_t msgLen, uint8_t M)
 {
     int i;
     int l;
@@ -174,7 +174,7 @@ AJ_Status AJ_Encrypt_CCM(const uint8_t* key,
                          uint32_t msgLen,
                          uint32_t hdrLen,
                          uint8_t tagLen,
-                         const char* nonce,
+                         const uint8_t* nonce,
                          uint32_t nLen)
 {
     AJ_Status status = AJ_OK;
@@ -221,7 +221,7 @@ AJ_Status AJ_Decrypt_CCM(const uint8_t* key,
                          uint32_t msgLen,
                          uint32_t hdrLen,
                          uint8_t tagLen,
-                         const char* nonce,
+                         const uint8_t* nonce,
                          uint32_t nLen)
 {
     AJ_Status status = AJ_OK;
@@ -312,7 +312,7 @@ AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
     inBuf += 16;
     while (outLen) {
         uint32_t len =  min(16, outLen);
-        status = AJ_Encrypt_CCM(key, inBuf, inLen, inLen, 16, (const char*)nonce, sizeof(nonce));
+        status = AJ_Encrypt_CCM(key, inBuf, inLen, inLen, 16, nonce, sizeof(nonce));
         if (status != AJ_OK) {
             break;
         }

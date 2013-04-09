@@ -312,7 +312,7 @@ int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     size_t i;
-    uint8_t out[128];
+    char out[128];
 
     for (i = 0; i < ArraySize(testVector); i++) {
 
@@ -326,26 +326,26 @@ int AJ_Main(void)
         AJ_HexToRaw(testVector[i].nonce, 0, nonce, nlen);
         AJ_HexToRaw(testVector[i].input, 0, msg, mlen);
 
-        status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
+        status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, nonce, nlen);
         if (status != AJ_OK) {
             AJ_Printf("Encryption failed (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen + testVector[i].authLen, (char*)out, sizeof(out));
-        if (strcmp((char*)out, testVector[i].output) != 0) {
+        AJ_RawToHex(msg, mlen + testVector[i].authLen, out, sizeof(out));
+        if (strcmp(out, testVector[i].output) != 0) {
             AJ_Printf("Encrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
         /*
          * Verify decryption.
          */
-        status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
+        status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, nonce, nlen);
         if (status != AJ_OK) {
             AJ_Printf("Authentication failure (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen, (char*)out, sizeof(out));
-        if (strcmp((char*)out, testVector[i].input) != 0) {
+        AJ_RawToHex(msg, mlen, out, sizeof(out));
+        if (strcmp(out, testVector[i].input) != 0) {
             AJ_Printf("Decrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
@@ -374,8 +374,8 @@ int AJ_Main(void)
             AJ_Printf("AJ_Crypto_PRF %d\n", status);
             goto ErrorExit;
         }
-        AJ_RawToHex(key, sizeof(key), (char*)out, sizeof(out));
-        if (strcmp((char*)out, expect) != 0) {
+        AJ_RawToHex(key, sizeof(key), out, sizeof(out));
+        if (strcmp(out, expect) != 0) {
             AJ_Printf("AJ_Crypto_PRF failed: %d\n", status);
             goto ErrorExit;
         }

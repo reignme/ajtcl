@@ -259,7 +259,7 @@ static AJ_Status DecryptMessage(AJ_Message* msg)
         status = AJ_ERR_SECURITY;
     } else {
         InitNonce(msg, role, nonce);
-        status = AJ_Decrypt_CCM(key, ioBuf->bufStart, mlen - MAC_LENGTH, hLen, MAC_LENGTH, (const char*)nonce, sizeof(nonce));
+        status = AJ_Decrypt_CCM(key, ioBuf->bufStart, mlen - MAC_LENGTH, hLen, MAC_LENGTH, nonce, sizeof(nonce));
     }
     return status;
 }
@@ -294,7 +294,7 @@ static AJ_Status EncryptMessage(AJ_Message* msg)
         status = AJ_ERR_SECURITY;
     } else {
         InitNonce(msg, role, nonce);
-        status = AJ_Encrypt_CCM(key, ioBuf->bufStart, mlen, hlen, MAC_LENGTH, (const char*)nonce, sizeof(nonce));
+        status = AJ_Encrypt_CCM(key, ioBuf->bufStart, mlen, hlen, MAC_LENGTH, nonce, sizeof(nonce));
     }
     return status;
 }

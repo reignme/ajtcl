@@ -44,7 +44,7 @@ AJ_Status AJ_Encrypt_CCM(const uint8_t* key,
                          uint32_t msgLen,
                          uint32_t hdrLen,
                          uint8_t tagLen,
-                         const char* nonce,
+                         const uint8_t* nonce,
                          uint32_t nLen);
 
 /**
@@ -68,7 +68,7 @@ AJ_Status AJ_Decrypt_CCM(const uint8_t* key,
                          uint32_t msgLen,
                          uint32_t hdrLen,
                          uint8_t tagLen,
-                         const char* nonce,
+                         const uint8_t* nonce,
                          uint32_t nLen);
 
 /**
