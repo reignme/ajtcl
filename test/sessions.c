@@ -132,14 +132,8 @@ AJ_Status AppSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uint8_
     return status;
 }
 
-int AJ_Main()
+void Do_Connect()
 {
-    // you're connected now, so print out the data:
-    printf("You're connected to the network\n");
-    AJ_Initialize();
-    AJ_PrintXML(AppObjects);
-    AJ_RegisterObjects(AppObjects, NULL);
-
     while (!connected) {
         AJ_Status status;
         AJ_Printf("Attempting to connect to bus\n");
@@ -152,6 +146,15 @@ int AJ_Main()
         connected = TRUE;
         AJ_Printf("AllJoyn service connected to bus\n");
     }
+}
+
+int AJ_Main()
+{
+    AJ_Initialize();
+    AJ_PrintXML(AppObjects);
+    AJ_RegisterObjects(AppObjects, NULL);
+
+    Do_Connect();
 
     if (authenticate) {
         AJ_BusSetPasswordCallback(&bus, PasswordCallback);
@@ -452,43 +455,45 @@ int AJ_Main()
         if (status != AJ_OK) {
             if (status == AJ_ERR_TIMEOUT) {
                 AppDoWork();
+                continue;
             }
-            continue;
         }
 
-        switch (msg.msgId) {
+        if (status == AJ_OK) {
+            switch (msg.msgId) {
 
-        case AJ_METHOD_ACCEPT_SESSION:
-            {
-                uint16_t port;
-                char* joiner;
-                printf("Accepting...\n");
-                AJ_UnmarshalArgs(&msg, "qus", &port, &g_sessionId, &joiner);
-                status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                if (status == AJ_OK) {
-                    printf("Accepted session session_id=%u joiner=%s\n", g_sessionId, joiner);
-                } else {
-                    printf("AJ_BusReplyAcceptSession: error %d\n", status);
+            case AJ_METHOD_ACCEPT_SESSION:
+                {
+                    uint16_t port;
+                    char* joiner;
+                    printf("Accepting...\n");
+                    AJ_UnmarshalArgs(&msg, "qus", &port, &g_sessionId, &joiner);
+                    status = AJ_BusReplyAcceptSession(&msg, TRUE);
+                    if (status == AJ_OK) {
+                        printf("Accepted session session_id=%u joiner=%s\n", g_sessionId, joiner);
+                    } else {
+                        printf("AJ_BusReplyAcceptSession: error %d\n", status);
+                    }
                 }
+                break;
+
+            case APP_CHAT_SIGNAL:
+                status = AppHandleChatSignal(&msg);
+                break;
+
+            case AJ_SIGNAL_SESSION_LOST:
+                /*
+                 * don't force a disconnect, be ready to accept another session
+                 */
+                break;
+
+            default:
+                /*
+                 * Pass to the built-in handlers
+                 */
+                status = AJ_BusHandleBusMessage(&msg);
+                break;
             }
-            break;
-
-        case APP_CHAT_SIGNAL:
-            status = AppHandleChatSignal(&msg);
-            break;
-
-        case AJ_SIGNAL_SESSION_LOST:
-            /*
-             * don't force a disconnect, be ready to accept another session
-             */
-            break;
-
-        default:
-            /*
-             * Pass to the built-in handlers
-             */
-            status = AJ_BusHandleBusMessage(&msg);
-            break;
         }
         /*
          * Messages must be closed to free resources
@@ -503,6 +508,7 @@ int AJ_Main()
              * Sleep a little while before trying to reconnect
              */
             AJ_Sleep(10 * 1000);
+            Do_Connect();
         }
     }
 
