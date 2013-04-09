@@ -520,7 +520,7 @@ static AJ_InterfaceDescription FindInterface(const AJ_InterfaceDescription* inte
     return NULL;
 }
 
-static AJ_Status LookupMessageId(const AJ_Object* list, AJ_Message* msg)
+static AJ_Status LookupMessageId(const AJ_Object* list, AJ_Message* msg, uint8_t* secure)
 {
     uint8_t pIndex = 0;
     if (list) {
@@ -534,6 +534,7 @@ static AJ_Status LookupMessageId(const AJ_Object* list, AJ_Message* msg)
                 AJ_InterfaceDescription desc = FindInterface(list->interfaces, msg->iface, &iIndex);
                 if (desc) {
                     uint8_t mIndex = 0;
+                    *secure = (uint8_t)(**desc == SECURE);
                     while (*(++desc)) {
                         if (MatchMember(*desc, msg)) {
                             AJ_Status status = CheckSignature(*desc, msg);
@@ -763,7 +764,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
 AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
 {
     AJ_Status status = AJ_ERR_NO_MATCH;
-
+    uint8_t secure = FALSE;
 #ifndef NDEBUG
     if (MutterHook) {
         return AJ_OK;
@@ -776,12 +777,16 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
          * Methods and signals
          */
         for (oIndex = 0; oIndex < ArraySize(objectLists); ++oIndex) {
-            status = LookupMessageId(objectLists[oIndex], msg);
+            secure = FALSE;
+            status = LookupMessageId(objectLists[oIndex], msg, &secure);
             if (status == AJ_OK) {
                 msg->msgId |= (oIndex << 24);
                 AJ_Printf("Identified message %x\n", msg->msgId);
                 break;
             }
+        }
+        if (status == AJ_OK && secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
+            status = AJ_ERR_SECURITY;
         }
         if ((status != AJ_OK) && (msg->hdr->msgType == AJ_MSG_METHOD_CALL)) {
             /*
