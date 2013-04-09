@@ -110,28 +110,6 @@ AJ_Status AppHandleChatSignal(AJ_Message* msg)
     return status;
 }
 
-AJ_Status AppSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uint8_t rule)
-{
-    AJ_Status status;
-    AJ_Message msg;
-    uint32_t msgId = (rule == AJ_BUS_SIGNAL_ALLOW) ? AJ_METHOD_ADD_MATCH : AJ_METHOD_REMOVE_MATCH;
-
-    status = AJ_MarshalMethodCall(bus, &msg, msgId, AJ_DBusDestination, 0, 0, METHOD_TIMEOUT);
-    if (status == AJ_OK) {
-        uint32_t sz = 0;
-        uint8_t nul = 0;
-        sz = (uint32_t)strlen(ruleString);
-        status = AJ_DeliverMsgPartial(&msg, sz + 5);
-        AJ_MarshalRaw(&msg, &sz, 4);
-        AJ_MarshalRaw(&msg, ruleString, strlen(ruleString));
-        AJ_MarshalRaw(&msg, &nul, 1);
-    }
-    if (status == AJ_OK) {
-        status = AJ_DeliverMsg(&msg);
-    }
-    return status;
-}
-
 void Do_Connect()
 {
     while (!connected) {
@@ -348,14 +326,14 @@ int AJ_Main()
                     printf("Usage: addmatch <rule>\n");
                     continue;
                 }
-                status = AppSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_ALLOW);
+                status = AJ_BusSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_ALLOW);
             } else if (0 == strcmp("removematch", command)) {
                 char* ruleString = strtok(NULL, "\r\n");
                 if (!ruleString) {
                     printf("Usage: removematch <rule>\n");
                     continue;
                 }
-                status = AppSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_DENY);
+                status = AJ_BusSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_DENY);
             }  else if (0 == strcmp("sendttl", command)) {
                 int32_t ttl = 0;
                 char* token = strtok(NULL, " \r\n");
