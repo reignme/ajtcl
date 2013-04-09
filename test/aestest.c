@@ -328,12 +328,12 @@ int AJ_Main(void)
 
         status = AJ_Encrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            AJ_Printf("Encryption failed (%d) for test #%u\n", status, i);
+            AJ_Printf("Encryption failed (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen + testVector[i].authLen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].output) != 0) {
-            AJ_Printf("Encrypt verification failure for test #%u\n%s\n", i, out);
+            AJ_Printf("Encrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
         /*
@@ -341,15 +341,15 @@ int AJ_Main(void)
          */
         status = AJ_Decrypt_CCM(key, msg, mlen, testVector[i].hdrLen, testVector[i].authLen, (const char*)nonce, nlen);
         if (status != AJ_OK) {
-            AJ_Printf("Authentication failure (%d) for test #%u\n", status, i);
+            AJ_Printf("Authentication failure (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
         AJ_RawToHex(msg, mlen, (char*)out, sizeof(out));
         if (strcmp((char*)out, testVector[i].input) != 0) {
-            AJ_Printf("Decrypt verification failure for test #%u\n%s\n", i, out);
+            AJ_Printf("Decrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
         }
-        AJ_Printf("Passed and verified test #%u\n", i);
+        AJ_Printf("Passed and verified test #%zu\n", i);
     }
 
     AJ_Printf("AES CCM unit test PASSED\n");
