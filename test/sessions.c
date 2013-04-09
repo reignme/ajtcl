@@ -167,16 +167,8 @@ int AJ_Main()
         // check for serial input and dispatch if needed.
         char buf[1024];
         AJ_Message msg;
-#ifdef ARDUINO
-        if (Serial.available() > 0) {
-            int countBytesRead;
-            // read the incoming bytes until a newline character:
-            countBytesRead = Serial.readBytesUntil('\n', buf, sizeof(buf));
-            buf[countBytesRead] = '\0';
-#else
         // read a line
         if (AJ_GetCmdLine(buf, 1024) != NULL && strlen(buf) > 0) {
-#endif
             char*command;
             printf(">~~~%s\n", buf);
             command = strtok(buf, " \r\n");

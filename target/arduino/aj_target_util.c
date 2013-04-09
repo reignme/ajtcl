@@ -79,5 +79,13 @@ uint8_t AJ_StopReadFromStdIn()
 
 char* AJ_GetCmdLine(char* buf, size_t num)
 {
-    return NULL;
+    if (Serial.available() > 0) {
+        int countBytesRead;
+        // read the incoming bytes until a newline character:
+        countBytesRead = Serial.readBytesUntil('\n', buf, num);
+        buf[countBytesRead] = '\0';
+        return buf;
+    } else {
+        return NULL;
+    }
 }
