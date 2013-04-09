@@ -27,14 +27,22 @@ static const AJ_GUID InvalidGUID = { { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 
 AJ_Status WriteCreds()
 {
-    // Stub: implement soon.
+    // TODO Arduino does not have a file system. For permanent data storage, we have to use the on-board EEPROM (512 bytes) or add one of the many external storage option data.
+    // Currently we do not save the credential to as well as reading from NVRAM
     return AJ_OK;
 }
 
 AJ_Status ReadCreds()
 {
-    // Stub: implement soon.
-    return AJ_ERR_READ;
+    // TODO Arduino does not have a file system. For permanent data storage, we have to use the on-board EEPROM (512 bytes) or add one of the many external storage option data.
+    // Currently we do not save the credential to as well as reading from NVRAM
+    static int credInit = FALSE;
+    if (!credInit) {
+        credInit = TRUE;
+        return AJ_ERR_READ;
+    } else {
+        return AJ_OK;
+    }
 }
 
 AJ_Status AJ_StoreCredential(AJ_PeerCred* peerCred)
