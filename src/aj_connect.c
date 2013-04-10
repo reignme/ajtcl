@@ -36,10 +36,17 @@
 
 static const char daemonService[] = "org.alljoyn.BusNode";
 
-static uint32_t BusAuthPwd(uint8_t* buffer, uint32_t bufLen)
+static uint32_t DefaultBusAuthPwdFunc(uint8_t* buffer, uint32_t bufLen)
 {
     strcpy((char*)buffer, "1234");
     return 4;
+}
+
+static BusAuthPwdFunc busAuthPwdFunc = DefaultBusAuthPwdFunc;
+
+void SetBusAuthPwdCallback(BusAuthPwdFunc callback)
+{
+    busAuthPwdFunc = callback;
 }
 
 static AJ_AuthResult AnonMechAdvance(const char* inStr, char* outStr, uint32_t outLen)
@@ -163,7 +170,7 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     if (status != AJ_OK) {
         goto ExitConnect;
     }
-    AJ_SASL_InitContext(&sasl, mechList, AJ_AUTH_RESPONDER, BusAuthPwd);
+    AJ_SASL_InitContext(&sasl, mechList, AJ_AUTH_RESPONDER, busAuthPwdFunc);
     while (TRUE) {
         status = AuthAdvance(&sasl, &bus->sock.rx, &bus->sock.tx);
         if ((status != AJ_OK) || (sasl.state == AJ_SASL_FAILED)) {

@@ -43,4 +43,13 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
  */
 void AJ_Disconnect(AJ_BusAttachment* bus);
 
+typedef uint32_t (*BusAuthPwdFunc)(uint8_t* buffer, uint32_t bufLen);
+
+/**
+ * Set the callback for the application to provide a password for authentication to the daemon bus
+ *
+ * @param callback  The callback provided by the application
+ */
+void SetBusAuthPwdCallback(BusAuthPwdFunc callback);
+
 #endif
