@@ -135,7 +135,7 @@ class MutterTest : public testing::Test {
     }
 
     virtual void TearDown() {
-
+        MutterHook = NULL;
     }
 };
 
