@@ -155,11 +155,12 @@ int AJ_Main()
                 const char* name;
                 AJ_SessionOpts opts;
                 char* token = strtok(NULL, " \r\n");
-                if (token) port = (uint16_t)atoi(token);
-                if (port == 0) port = ServicePort;
-                token = strtok(NULL, " \r\n");
                 if (token) name = token;
                 else name = ServiceName;
+
+                token = strtok(NULL, " \r\n");
+                if (token) port = (uint16_t)atoi(token);
+                if (port == 0) port = ServicePort;
 
                 token = strtok(NULL, " \r\n");
                 if (token) opts.isMultipoint = (0 == strcmp("true", token));
@@ -365,20 +366,8 @@ int AJ_Main()
                     }
                 }
 
-                flagsString = strtok(NULL, " \r\n");
-                if (flagsString != NULL) {
-                    flags = atoi(flagsString);
-                }
-
-                ttlString = strtok(NULL, " \r\n");
-                if (ttlString != NULL) {
-                    ttl = atoi(ttlString);
-                } else {
-                    ttl = sendTTL;
-                }
-
                 chatMsg = strtok(NULL, "\r\n");
-                status = AppSendChatSignal(&bus, session, chatMsg, flags, ttl);
+                status = AppSendChatSignal(&bus, session, chatMsg, 0, sendTTL);
             } else if (0 == strcmp("cancelsessionless", command)) {
                 uint32_t serialId = 0;
                 char* token = strtok(NULL, " \r\n");
