@@ -140,10 +140,10 @@ static AJ_Status PropSetHandler(AJ_Message* replyMsg, uint32_t propId, void* con
     }
 }
 
-uint32_t MyBusAuthPwdCB (uint8_t* buf, uint32_t bufLen)
+uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
 {
-   strncpy((char*)buf, "123456", bufLen);
-   return 6;
+    strncpy((char*)buf, "123456", bufLen);
+    return 6;
 }
 
 #define CONNECT_TIMEOUT    (1000 * 1000)
