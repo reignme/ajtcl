@@ -28,6 +28,7 @@ void DUE_led_timed(uint32_t msec);
 void DUE_led(uint8_t on);
 
 static const char ServiceName[] = "org.alljoyn.sample.ledservice";
+static const char DaemonServiceName[] = "org.alljoyn.BusNode.Led";
 static const uint16_t ServicePort = 24;
 
 
@@ -126,7 +127,7 @@ int AJ_Main(void)
         AJ_Message msg;
 
         if (!connected) {
-            status = AJ_StartService(&bus, NULL, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
+            status = AJ_StartService(&bus, DaemonServiceName, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
             if (status != AJ_OK) {
                 continue;
             }
