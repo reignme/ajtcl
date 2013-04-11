@@ -20,8 +20,6 @@
 #include "aj_target.h"
 #include "aj_crypto.h"
 
-#include <assert.h>
-
 
 #define MAX_SCHEDULE_LEN 120
 
@@ -255,11 +253,10 @@ void AJ_AES_CTR_128(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_
 
 void AJ_AES_CBC_128_ENCRYPT(const uint8_t* key, const uint8_t* in, uint8_t* out, uint32_t len, uint8_t* iv)
 {
-    uint8_t* ivp = iv;
     uint32_t xorbuf[4];
     uint32_t ivt[4];
 
-    assert((len % 16) == 0);
+    AJ_ASSERT((len % 16) == 0);
 
     Pack32(ivt, iv);
     while (len) {
