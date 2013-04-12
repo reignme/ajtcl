@@ -14,8 +14,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <stdio.h>
-
 #include <aj_configureme.h>
 #include <aj_configure.h>
 

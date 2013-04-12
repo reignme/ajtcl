@@ -17,8 +17,6 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <stdio.h>
-
 #include "aj_target.h"
 #include "aj_status.h"
 #include "aj_sasl.h"

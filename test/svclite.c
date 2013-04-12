@@ -17,8 +17,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-#include <stdio.h>
-
+#include <aj_target.h>
 #include <alljoyn.h>
 
 

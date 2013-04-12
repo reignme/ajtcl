@@ -19,6 +19,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 typedef signed char int8_t;           /** 8-bit signed integer */

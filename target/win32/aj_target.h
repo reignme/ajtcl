@@ -19,6 +19,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
+#include <stdio.h>
 #include <stddef.h>
 #include <windows.h>
 #include <assert.h>
