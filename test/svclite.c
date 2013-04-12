@@ -143,7 +143,7 @@ uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
 {
     const char* myPwd = "123456";
     strncpy((char*)buf, myPwd, bufLen);
-    return strlen(myPwd);
+    return (uint32_t)strlen(myPwd);
 }
 
 #define CONNECT_TIMEOUT    (1000 * 1000)
@@ -177,7 +177,12 @@ int AJ_Main(void)
             printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
 
             connected = TRUE;
+
+            /* Register a callback for providing bus authentication password */
             AJ_BusSetPasswordCallback(&bus, PasswordCallback);
+
+            /* Configure timeout for the link to the daemon bus */
+            AJ_SetBusLinkTimeout(&bus, 60); // 60 seconds
         }
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);

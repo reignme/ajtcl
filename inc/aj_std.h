@@ -90,6 +90,12 @@
 #define AJ_METHOD_PING                 AJ_BUS_MESSAGE_ID(3, 2, 0)    /**< method for ping */
 #define AJ_METHOD_GET_MACHINE_ID       AJ_BUS_MESSAGE_ID(3, 2, 1)    /**< method for get machine id */
 
+/*
+ * Members of /org/alljoyn/Daemon interface org.alljoyn.Daemon
+ */
+#define AJ_SIGNAL_PROBE_REQ            AJ_BUS_MESSAGE_ID(4, 0, 0)    /**< signal for link probe request */
+#define AJ_SIGNAL_PROBE_ACK            AJ_BUS_MESSAGE_ID(4, 0, 1)    /**< signal for link probe acknowledgement */
+
 /**
  * Message identifier that indicates a message was invalid.
  */
@@ -139,6 +145,6 @@ extern const char* const AJ_IntrospectionIface[3];
 /**
  * The standard objects that implement AllJoyn core functionality
  */
-extern const AJ_Object AJ_StandardObjects[5];
+extern const AJ_Object AJ_StandardObjects[6];
 
 #endif
