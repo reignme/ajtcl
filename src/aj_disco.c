@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ static AJ_Status ParseIsAt(AJ_IOBuffer* rxBuf, const char* prefix, AJ_Service* s
         /*
          * Must be reliable IPV4 or IPV6
          */
-        if (!flags & (R4_FLAG | R6_FLAG)) {
+        if (!(flags & (R4_FLAG | R6_FLAG))) {
             return status;
         }
         /*

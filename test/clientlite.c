@@ -3,7 +3,7 @@
  */
 
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ int AJ_Main(void)
             status = AJ_StartClient(&bus, NULL, CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId, NULL);
             if (status == AJ_OK) {
                 AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
-                AJ_Printf("Connected to Daemon:\n");
+                AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
                 connected = TRUE;
                 if (authFlag) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
@@ -262,7 +262,7 @@ int AJ_Main(void)
 
         if (status == AJ_ERR_READ) {
             AJ_Printf("AllJoyn disconnect\n");
-            AJ_Printf("Disconnected from Daemon\n");
+            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             return status;
         }

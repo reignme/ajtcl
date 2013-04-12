@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -38,8 +38,9 @@ static const char daemonService[] = "org.alljoyn.BusNode";
 
 static uint32_t DefaultBusAuthPwdFunc(uint8_t* buffer, uint32_t bufLen)
 {
-    strcpy((char*)buffer, "1234");
-    return 4;
+    const char* defaultPwd = "1234";
+    strcpy((char*)buffer, defaultPwd);
+    return strlen(defaultPwd);
 }
 
 static BusAuthPwdFunc busAuthPwdFunc = DefaultBusAuthPwdFunc;

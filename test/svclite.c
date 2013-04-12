@@ -142,8 +142,9 @@ static AJ_Status PropSetHandler(AJ_Message* replyMsg, uint32_t propId, void* con
 
 uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
 {
-    strncpy((char*)buf, "123456", bufLen);
-    return 6;
+    const char* myPwd = "123456";
+    strncpy((char*)buf, myPwd, bufLen);
+    return strlen(myPwd);
 }
 
 #define CONNECT_TIMEOUT    (1000 * 1000)
@@ -174,7 +175,7 @@ int AJ_Main(void)
                 continue;
             }
             printf("StartService returned AJ_OK\n");
-            printf("Connected to Daemon:%s\n", bus.uniqueName);
+            printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
 
             connected = TRUE;
             AJ_BusSetPasswordCallback(&bus, PasswordCallback);
@@ -280,7 +281,7 @@ int AJ_Main(void)
 
         if (status == AJ_ERR_READ) {
             printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", bus.uniqueName);
+            printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*

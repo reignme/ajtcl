@@ -123,6 +123,7 @@ void Do_Connect()
         }
         connected = TRUE;
         AJ_Printf("AllJoyn service connected to bus\n");
+        AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
     }
 }
 
@@ -353,11 +354,7 @@ int AJ_Main()
                 status = AppSendChatSignal(&bus, 0, chatMsg, ALLJOYN_FLAG_SESSIONLESS, sendTTL);
             } else if (0 == strcmp("chat", command)) {
                 char* sessionIdString = strtok(NULL, " \r\n");
-                char*flagsString;
-                char*ttlString;
                 char*chatMsg;
-                uint8_t flags = 0;
-                uint32_t ttl = 0;
 
                 uint32_t session = g_sessionId;
                 if (sessionIdString != NULL) {
@@ -461,6 +458,7 @@ int AJ_Main()
 
         if (status == AJ_ERR_READ) {
             printf("AllJoyn disconnect\n");
+            printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*

@@ -45,12 +45,12 @@ int main(void)
         for (hdrLen = 10; hdrLen < 60; hdrLen += 3) {
             memcpy(cmp, msg, sizeof(msg));
 
-            status = AJ_Encrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const char*)nonce, sizeof(nonce));
+            status = AJ_Encrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const uint8_t*) nonce, sizeof(nonce));
             if (status != AJ_OK) {
                 printf("Encryption failed (%d) for test #%zu\n", status, i);
                 goto ErrorExit;
             }
-            status = AJ_Decrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const char*)nonce, sizeof(nonce));
+            status = AJ_Decrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const uint8_t*) nonce, sizeof(nonce));
             if (status != AJ_OK) {
                 printf("Authentication failure (%d) for test #%zu\n", status, i);
                 goto ErrorExit;

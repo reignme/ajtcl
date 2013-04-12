@@ -181,7 +181,9 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
     ret = g_client.connect(ip, port);
 
     Serial.print("Connecting to: ");
-    Serial.println(ip);
+    Serial.print(ip);
+    Serial.print(':');
+    Serial.println(port);
 
     if (ret == -1) {
         AJ_Printf("connect() failed: %d\n", ret);

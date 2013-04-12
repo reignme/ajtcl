@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
         sa->sin_port = htons(port);
         sa->sin_addr.s_addr = *addr;
         addrSize = sizeof(*sa);
-        printf("CONNECT: %s\n", inet_ntoa(sa->sin_addr));
+        printf("CONNECT: %s:%u\n", inet_ntoa(sa->sin_addr), port);
     } else {
         struct sockaddr_in6* sa = (struct sockaddr_in6*)&addrBuf;
         sa->sin6_family = AF_INET6;
