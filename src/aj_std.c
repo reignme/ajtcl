@@ -37,6 +37,9 @@ static const char DBusIntrospectableInterface[] = "org.freedesktop.DBus.Introspe
 static const char BusObjectPath[] = "/org/alljoyn/Bus";
 static const char BusInterface[] = "org.alljoyn.Bus";
 
+static const char DaemonObjectPath[] = "/";
+static const char DaemonInterface[] = "org.alljoyn.Daemon";
+
 static const char PeerObjectPath[] = "/org/alljoyn/Bus/Peer";
 static const char PeerSessionInterface[] = "org.alljoyn.Bus.Peer.Session";
 static const char PeerAuthInterface[] = "org.alljoyn.Bus.Peer.Authentication";
@@ -105,6 +108,13 @@ static const char* const BusIface[] = {
     NULL
 };
 
+static const char* const DaemonIface[] = {
+    DaemonInterface,
+    "!ProbeReq",
+    "!ProbeAck",
+    NULL
+};
+
 static const char* const PeerSessionIface[] = {
     PeerSessionInterface,
     "?AcceptSession <q <u <s <a{sv} >b",
@@ -143,10 +153,16 @@ static const AJ_InterfaceDescription CommonIfaces[] = {
     NULL
 };
 
+static const AJ_InterfaceDescription DaemonIfaces[] = {
+    DaemonIface,
+    NULL
+};
+
 const AJ_Object AJ_StandardObjects[] = {
     { DBusObjectPath, DBusIfaces },
     { BusObjectPath,  BusIfaces },
     { PeerObjectPath, PeerIfaces },
     { "*",            CommonIfaces },
+    { DaemonObjectPath, DaemonIfaces },
     { NULL,           NULL }
 };

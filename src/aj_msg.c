@@ -30,7 +30,7 @@
 #include "aj_introspect.h"
 #include "aj_std.h"
 #include "aj_debug.h"
-
+#include "aj_bus.h"
 
 #ifdef HOST_IS_LITTLE_ENDIAN
 #define HOST_ENDIANESS AJ_LITTLE_ENDIAN
@@ -646,7 +646,55 @@ static AJ_Status Unmarshal(AJ_Message* msg, const char** sig, AJ_Arg* arg)
     return status;
 }
 
+void AJ_BusLinkStateProc(AJ_BusAttachment* bus, AJ_Status* status)
+{
+    AJ_BusLinkWatcher* linkWatcher = &bus->linkWatcher;
+    if (*status == AJ_OK) {
+        memset(linkWatcher, 0, sizeof(AJ_BusLinkWatcher));
+    } else if ((*status == AJ_ERR_TIMEOUT) && bus->linkTimeout) {
+        if (linkWatcher->numOfPingTimedOut >= AJ_MAX_LINK_PING_PACKETS) {
+            *status = AJ_ERR_READ;
+        } else {
+            uint32_t eclipse = 0;
+            if (!linkWatcher->linkTimerInited) {
+                linkWatcher->linkTimerInited = TRUE;
+                AJ_InitTimer(&(linkWatcher->linkTimer));
+            }
+            eclipse = AJ_GetElapsedTime(&(linkWatcher->linkTimer), TRUE);
+            if (eclipse >= bus->linkTimeout) {
+                if (!linkWatcher->pingTimerInited) {
+                    linkWatcher->pingTimerInited = TRUE;
+                    AJ_InitTimer(&(linkWatcher->pingTimer));
+                    if (AJ_OK != AJ_SendLinkProbeReq(bus)) printf("Error: Fail to send probe reqeust!\n");
+                } else {
+                    uint32_t eclipse2 = AJ_GetElapsedTime(&(linkWatcher->pingTimer), TRUE);
+                    if (eclipse2 >=  AJ_BUS_LINK_PING_TIMEOUT) {
+                        if (++linkWatcher->numOfPingTimedOut < AJ_MAX_LINK_PING_PACKETS) {
+                            AJ_InitTimer(&(linkWatcher->pingTimer));
+                            if (AJ_OK != AJ_SendLinkProbeReq(bus)) printf("Error: Fail to send probe reqeust!\n");
+                        } else {
+                            *status = AJ_ERR_READ;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 static const AJ_MsgHeader internalErrorHdr = { HOST_ENDIANESS, AJ_MSG_ERROR, 0, 0, 0, 1, 0 };
+
+AJ_Status AJ_SendLinkProbeReq(AJ_BusAttachment* bus)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalSignal(bus, &msg, AJ_SIGNAL_PROBE_REQ, AJ_BusDestination, 0, 0, 0);
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
 
 AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeout)
 {
@@ -654,7 +702,6 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
     AJ_IOBuffer* ioBuf = &bus->sock.rx;
     uint8_t* endOfHeader;
     uint32_t hdrPad;
-
     /*
      * Clear message then set the bus
      */
@@ -684,6 +731,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
                 msg->destination = msg->sender;
                 status = AJ_OK;
             }
+            AJ_BusLinkStateProc(bus, &status);
             return status;
         }
     }
@@ -855,6 +903,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
         AJ_DumpMsg("DISCARDING", msg, FALSE);
         AJ_CloseMsg(msg);
     }
+
     return status;
 }
 
