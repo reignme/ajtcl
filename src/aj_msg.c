@@ -646,6 +646,18 @@ static AJ_Status Unmarshal(AJ_Message* msg, const char** sig, AJ_Arg* arg)
     return status;
 }
 
+AJ_Status AJ_SendLinkProbeReq(AJ_BusAttachment* bus)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalSignal(bus, &msg, AJ_SIGNAL_PROBE_REQ, AJ_BusDestination, 0, 0, 0);
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
 void AJ_BusLinkStateProc(AJ_BusAttachment* bus, AJ_Status* status)
 {
     AJ_BusLinkWatcher* linkWatcher = &bus->linkWatcher;
@@ -683,18 +695,6 @@ void AJ_BusLinkStateProc(AJ_BusAttachment* bus, AJ_Status* status)
 }
 
 static const AJ_MsgHeader internalErrorHdr = { HOST_ENDIANESS, AJ_MSG_ERROR, 0, 0, 0, 1, 0 };
-
-AJ_Status AJ_SendLinkProbeReq(AJ_BusAttachment* bus)
-{
-    AJ_Status status;
-    AJ_Message msg;
-
-    status = AJ_MarshalSignal(bus, &msg, AJ_SIGNAL_PROBE_REQ, AJ_BusDestination, 0, 0, 0);
-    if (status == AJ_OK) {
-        status = AJ_DeliverMsg(&msg);
-    }
-    return status;
-}
 
 AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeout)
 {
