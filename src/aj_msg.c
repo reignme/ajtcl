@@ -32,11 +32,11 @@
 #include "aj_debug.h"
 #include "aj_bus.h"
 
-#ifdef HOST_IS_LITTLE_ENDIAN
+#if HOST_IS_LITTLE_ENDIAN
 #define HOST_ENDIANESS AJ_LITTLE_ENDIAN
 #endif
 
-#ifdef HOST_IS_BIG_ENDIAN
+#if HOST_IS_BIG_ENDIAN
 #define HOST_ENDIANESS AJ_BIG_ENDIAN
 #endif
 
