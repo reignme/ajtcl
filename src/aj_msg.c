@@ -37,7 +37,7 @@
 #endif
 
 #ifdef HOST_IS_BIG_ENDIAN
-#define HOST_ENDIANESS AJ_LITTLE_ENDIAN
+#define HOST_ENDIANESS AJ_BIG_ENDIAN
 #endif
 
 #define AJ_STRUCT_CLOSE          ')'
