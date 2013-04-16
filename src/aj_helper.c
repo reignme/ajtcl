@@ -89,7 +89,21 @@ AJ_Status AJ_StartService2(AJ_BusAttachment* bus,
     while (!serviceStarted && (status == AJ_OK)) {
         AJ_Message msg;
 
+        AJ_GetElapsedTime(&timer, TRUE);
+
         status = AJ_UnmarshalMsg(bus, &msg, UNMARSHAL_TIMEOUT);
+
+        /*
+         * TODO This is a temporary hack to work around buggy select imlpementations
+         */
+        if (status == AJ_ERR_TIMEOUT) {
+            if (AJ_GetElapsedTime(&timer, TRUE) < UNMARSHAL_TIMEOUT) {
+                AJ_Printf("Spurious timeout error - continuing\n");
+                status = AJ_OK;
+                continue;
+            }
+        }
+
         if (status != AJ_OK) {
             break;
         }
