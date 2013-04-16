@@ -370,6 +370,7 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
         break;
 
     case AJ_SIGNAL_SESSION_JOINED:
+    case AJ_SIGNAL_NAME_ACQUIRED:
         // nothing to do here
         status = AJ_OK;
         break;
