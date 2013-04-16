@@ -71,6 +71,7 @@ env['aj_targ_srcs'] = [Glob('target/' + env['TARG'] + '/*.c')]
 env['aj_headers'] = [Glob('inc/*.h')]
 env['aj_srcs'] = [Glob('src/*.c')]
 env['aj_sw_crypto'] = [Glob('crypto/*.c')]
+env['aj_malloc'] = [Glob('malloc/*.c')]
 
 # Set-up the environment for Win/Linux
 if env['TARG'] == 'win32' or env['TARG'] == 'linux':
@@ -85,7 +86,7 @@ if env['TARG'] == 'win32' or env['TARG'] == 'linux':
 
 # Build objects for the target-specific sources and AllJoyn Thin Client sources
 if env['TARG'] == 'win32':
-    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'] + env['aj_sw_crypto'])
+    env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'] + env['aj_sw_crypto'] + env['aj_malloc'])
 else:
     if env['TARG'] == 'linux':
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'])
