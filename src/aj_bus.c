@@ -374,11 +374,6 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
         status = AJ_OK;
         break;
 
-    case AJ_SIGNAL_PROBE_ACK:
-        status = AJ_OK;
-        memset(&(msg->bus->linkWatcher), 0, sizeof(AJ_BusLinkWatcher));
-        break;
-
     default:
         if (msg->hdr->msgType == AJ_MSG_METHOD_CALL) {
             status = AJ_MarshalErrorMsg(msg, &reply, AJ_ErrRejected);
@@ -460,13 +455,4 @@ AJ_Status AJ_BusPropSet(AJ_Message* msg, AJ_BusPropSetCallback callback, void* c
     cb.context = context;
     cb.Set = callback;
     return PropAccess(msg, &cb, AJ_PROP_SET);
-}
-
-AJ_Status AJ_SetBusLinkTimeout(AJ_BusAttachment* bus, uint32_t timeout)
-{
-    if (!timeout) return AJ_ERR_FAILURE;
-    assert(bus);
-    timeout = (timeout > AJ_MIN_BUS_LINK_TIMEOUT) ? timeout : AJ_MIN_BUS_LINK_TIMEOUT;
-    bus->linkTimeout = timeout * 1000;
-    return AJ_OK;
 }

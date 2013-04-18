@@ -44,7 +44,8 @@ typedef enum {
     AJ_ERR_SIGNATURE    = 17, /**< Signature is not what was expected */
     AJ_ERR_DISALLOWED   = 18, /**< An operation was not allowed */
     AJ_ERR_FAILURE      = 19, /**< A failure has occurred */
-    AJ_ERR_RESTART      = 20  /**< The OEM event loop must restart */
+    AJ_ERR_RESTART      = 20, /**< The OEM event loop must restart */
+    AJ_ERR_LINK_TIMEOUT = 21  /**< The bus link is inactive too long */
 
 } AJ_Status;
 

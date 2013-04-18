@@ -18,8 +18,8 @@
  ******************************************************************************/
 
 #include <aj_target.h>
+#include <aj_link_timeout.h>
 #include <alljoyn.h>
-
 
 /*
  * Modify these variables to change the service's behavior
@@ -186,6 +186,9 @@ int AJ_Main(void)
         }
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
+        if (AJ_ERR_TIMEOUT == status && AJ_ERR_LINK_TIMEOUT == AJ_BusLinkStateProc(&bus)) {
+            status = AJ_ERR_READ;
+        }
         if (status != AJ_OK) {
             if (status == AJ_ERR_TIMEOUT) {
                 AppDoWork();
@@ -277,6 +280,9 @@ int AJ_Main(void)
                 status = AJ_BusHandleBusMessage(&msg);
                 break;
             }
+
+            // Any received packets indicates the link is active, so call to reinforce the bus link state
+            AJ_NotifyLinkActive();
         }
         /*
          * Unarshaled messages must be closed to free resources

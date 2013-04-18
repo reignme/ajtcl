@@ -41,18 +41,6 @@ typedef struct _AJ_Arg AJ_Arg;
  */
 typedef uint32_t (*AJ_AuthPwdFunc)(uint8_t* buffer, uint32_t bufLen);
 
-#define AJ_MIN_BUS_LINK_TIMEOUT  40    /** The minimum link timeout value for the bus link. No probe packets are sent during this period even if no activities on the link. The unit is second */
-#define AJ_BUS_LINK_PING_TIMEOUT 5     /** The time period in which the probe request packet should be acked. The unit is second */
-#define AJ_MAX_LINK_PING_PACKETS 3     /** The maximum number of allowed outstanding probe request packets unacked. */
-
-typedef struct _AJ_BusLinkWatcher {
-    uint8_t numOfPingTimedOut;    /**< Number of probe request packets already sent but unacked */
-    uint8_t linkTimerInited;      /**< If timer linkTimer is inited */
-    uint8_t pingTimerInited;      /**< If timer pingTimer is inited */
-    AJ_Time linkTimer;            /**< Timer for tracking activities over the link to the daemon bus */
-    AJ_Time pingTimer;            /**< Timer for tracking probe request packets */
-} AJ_BusLinkWatcher;
-
 /**
  * Type for a bus attachment
  */
@@ -61,8 +49,6 @@ typedef struct _AJ_BusAttachment {
     AJ_NetSocket sock;           /**< Abstracts a network socket */
     uint32_t serial;             /**< Next outgoing message serial number */
     AJ_AuthPwdFunc pwdCallback;  /**< Callback for obtaining passwords */
-    uint32_t linkTimeout;        /**< Timeout value for the link to the daemon bus */
-    AJ_BusLinkWatcher linkWatcher; /**< Data structure that maintains information for tracking the link to the daemon bus */
 } AJ_BusAttachment;
 
 /**
@@ -410,20 +396,5 @@ typedef AJ_Status (*AJ_BusPropSetCallback)(AJ_Message* replyMsg, uint32_t propId
  * @return  Return AJ_Status
  */
 AJ_Status AJ_BusPropSet(AJ_Message* msg, AJ_BusPropSetCallback callback, void* context);
-
-/**
- * Enable link timeout for the connection between the application and the daemon bus. If there are
- * no link activities during that period, at most 3 probe packets are sent to the daemon bus with
- * an interval of 5 seconds. If none of the probe packets are acknowledged by the daemon bus due
- * to any resons (eg., WIFI is off), the next call to AJ_UnmarshalMsg will return AJ_ERR_READ
- * instructing the application to re-connect to the daemon bus.
- *
- * @param timeout    The time unit is second. The minimum value is 40.
- *
- * @return  Return AJ_Status
- *          - AJ_OK if the bus link timeout is set successfully
- *          - AJ_ERR_FAILURE if timeout is 0
- */
-AJ_Status AJ_SetBusLinkTimeout(AJ_BusAttachment* bus, uint32_t timeout);
 
 #endif
