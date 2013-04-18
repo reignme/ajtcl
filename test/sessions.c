@@ -433,6 +433,23 @@ int AJ_Main()
                 }
                 break;
 
+            case AJ_REPLY_ID(AJ_METHOD_JOIN_SESSION):
+                {
+                    uint32_t replyCode;
+
+                    if (msg.hdr->msgType == AJ_MSG_ERROR) {
+                        status = AJ_ERR_FAILURE;
+                    } else {
+                        status = AJ_UnmarshalArgs(&msg, "uu", &replyCode, &g_sessionId);
+                        if (replyCode == AJ_JOINSESSION_REPLY_SUCCESS) {
+                            printf("Joined session session_id=%u\n", g_sessionId);
+                        } else {
+                            printf("Joine session failed\n");
+                        }
+                    }
+                }
+                break;
+
             case APP_CHAT_SIGNAL:
                 status = AppHandleChatSignal(&msg);
                 break;

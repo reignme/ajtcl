@@ -22,6 +22,15 @@
 #include "aj_status.h"
 #include "aj_bus.h"
 
+#define AJ_JOINSESSION_REPLY_SUCCESS              1   /**< JoinSession reply: Success */
+#define AJ_JOINSESSION_REPLY_NO_SESSION           2   /**< JoinSession reply: Session with given name does not exist */
+#define AJ_JOINSESSION_REPLY_UNREACHABLE          3   /**< JoinSession reply: Failed to find suitable transport */
+#define AJ_JOINSESSION_REPLY_CONNECT_FAILED       4   /**< JoinSession reply: Connect to advertised address */
+#define AJ_JOINSESSION_REPLY_REJECTED             5   /**< JoinSession reply: The session creator rejected the join req */
+#define AJ_JOINSESSION_REPLY_BAD_SESSION_OPTS     6   /**< JoinSession reply: Failed due to session option incompatibilities */
+#define AJ_JOINSESSION_REPLY_ALREADY_JOINED       7   /**< JoinSession reply: Caller has already joined this session */
+#define AJ_JOINSESSION_REPLY_FAILED              10   /**< JoinSession reply: Failed for unknown reason */
+
 /**
  * Helper function that connects to a bus initializes an AllJoyn service.
  *
