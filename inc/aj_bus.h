@@ -258,23 +258,6 @@ AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId);
 #define AJ_BUS_SIGNAL_ALLOW  0     /**< Allow signals */
 #define AJ_BUS_SIGNAL_DENY   1     /**< Deny signals */
 
-#if 0
-/**
- * Add a SIGNAL match rule. A rule must be added for every non-session signal that the application
- * is interested in receiving.
- *
- * @param bus           The bus attachment
- * @param signalName    The name of the signal.
- * @param interfaceName The name of the interface.
- * @param rule          Either AJ_BUS_SIGNAL_ALLOW or AJ_BUS_SIGNAL_DENY
- *
- * @return  Return AJ_Status
- *         - AJ_OK if the request was sent
- *         - An error status otherwise
- */
-AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* signalName, const char* interfaceName, uint8_t rule);
-#endif
-
 /**
  * Add a SIGNAL match rule. A rule must be added for every non-session signal that the application
  * is interested in receiving.
@@ -288,6 +271,21 @@ AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* signalName, con
  *         - An error status otherwise
  */
 AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uint8_t rule);
+
+/**
+ * Add a SIGNAL match rule. A rule must be added for every non-session signal that the application
+ * is interested in receiving.
+ *
+ * @param bus           The bus attachment
+ * @param signalName    The name of the signal.
+ * @param interfaceName The name of the interface.
+ * @param rule          Either AJ_BUS_SIGNAL_ALLOW or AJ_BUS_SIGNAL_DENY
+ *
+ * @return  Return AJ_Status
+ *         - AJ_OK if the request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusSetSignalRule2(AJ_BusAttachment* bus, const char* signalName, const char* interfaceName, uint8_t rule);
 
 /**
  * Invoke a built-in handler for standard bus messages. Signals passed to this function that are
