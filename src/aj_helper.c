@@ -18,17 +18,6 @@
 #include "alljoyn.h"
 
 #define UNMARSHAL_TIMEOUT (100 * 1000)
-
-
-#define JOINSESSION_REPLY_SUCCESS              1   /**< JoinSession reply: Success */
-#define JOINSESSION_REPLY_NO_SESSION           2   /**< JoinSession reply: Session with given name does not exist */
-#define JOINSESSION_REPLY_UNREACHABLE          3   /**< JoinSession reply: Failed to find suitable transport */
-#define JOINSESSION_REPLY_CONNECT_FAILED       4   /**< JoinSession reply: Connect to advertised address */
-#define JOINSESSION_REPLY_REJECTED             5   /**< JoinSession reply: The session creator rejected the join req */
-#define JOINSESSION_REPLY_BAD_SESSION_OPTS     6   /**< JoinSession reply: Failed due to session option incompatibilities */
-#define JOINSESSION_REPLY_ALREADY_JOINED       7   /**< JoinSession reply: Caller has already joined this session */
-#define JOINSESSION_REPLY_FAILED              10   /**< JoinSession reply: Failed for unknown reason */
-
 #define CONNECT_TIMEOUT   (60 * 1000)
 #define CONNECT_PAUSE     (10 * 1000)
 
@@ -244,7 +233,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
                     status = AJ_ERR_FAILURE;
                 } else {
                     status = AJ_UnmarshalArgs(&msg, "uu", &replyCode, sessionId);
-                    if (replyCode == JOINSESSION_REPLY_SUCCESS) {
+                    if (replyCode == AJ_JOINSESSION_REPLY_SUCCESS) {
                         clientStarted = TRUE;
                     } else {
                         status = AJ_ERR_FAILURE;
