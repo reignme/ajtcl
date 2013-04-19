@@ -324,7 +324,11 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
             status = SetStr(rsp, outStr, outLen);
         }
     }
-    if (status == AJ_OK) {
+
+    /* The Challenger does not send out any SASL message once the state is AJ_SASL_AUTHENTICATED
+       i.e after the BEGIN command is received. So we should not append the CRLF. This results
+       in unwanted bytes being put in the tx buffer which gets sent out to the Responder. */
+    if ((status == AJ_OK) && (context->state != AJ_SASL_AUTHENTICATED)) {
         status = AppendCRLF(outStr, outLen);
     }
     return status;
