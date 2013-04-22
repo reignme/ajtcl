@@ -45,7 +45,8 @@ typedef enum {
     AJ_ERR_DISALLOWED   = 18, /**< An operation was not allowed */
     AJ_ERR_FAILURE      = 19, /**< A failure has occurred */
     AJ_ERR_RESTART      = 20, /**< The OEM event loop must restart */
-    AJ_ERR_LINK_TIMEOUT = 21  /**< The bus link is inactive too long */
+    AJ_ERR_LINK_TIMEOUT = 21, /**< The bus link is inactive too long */
+    AJ_ERR_BAD_MSG_LEN  = 22  /**< Message length was to long or too short */
 
 } AJ_Status;
 

@@ -119,6 +119,8 @@ const char* AJ_StatusText(AJ_Status status)
         AJ_CASE(AJ_ERR_DISALLOWED);
         AJ_CASE(AJ_ERR_FAILURE);
         AJ_CASE(AJ_ERR_RESTART);
+        AJ_CASE(AJ_ERR_LINK_TIMEOUT);
+        AJ_CASE(AJ_ERR_BAD_MSG_LEN);
 
     default:
         return "<unknown>";
