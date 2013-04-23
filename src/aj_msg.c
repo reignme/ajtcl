@@ -1481,11 +1481,6 @@ AJ_Status AJ_DeliverMsgPartial(AJ_Message* msg, uint32_t bytesRemaining)
             return status;
         }
     }
-
-    if ((bytesRemaining + pad) > AJ_IO_BUF_SPACE(ioBuf)) {
-        return AJ_ERR_BAD_MSG_LEN;
-    }
-
     /*
      * Set the body length in the header buffer.
      */
