@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 #include <aj_target.h>
-#include <aj_debug.h>
 #include <aj_link_timeout.h>
 #include <alljoyn.h>
 
@@ -42,8 +41,6 @@ static const char* testInterface[] = {
     "?delayed_ping inStr<s delay<u outStr>s",
     "?time_ping <u <q >u >q",
     "!my_signal >a{ys}",
-    "?sum_of_array_elements inArray<ay outSum>t",
-    "?max_of_array_elements inArray<ay outMax>y",
     NULL
 };
 
@@ -79,8 +76,6 @@ static const AJ_Object AppObjects[] = {
 #define APP_DELAYED_PING    AJ_APP_MESSAGE_ID(0, 1, 1)
 #define APP_TIME_PING       AJ_APP_MESSAGE_ID(0, 1, 2)
 #define APP_MY_SIGNAL       AJ_APP_MESSAGE_ID(0, 1, 3)
-#define APP_SUM_OF_ARRAY_ELEMENTS       AJ_APP_MESSAGE_ID(0, 1, 4)
-#define APP_MAX_OF_ARRAY_ELEMENTS       AJ_APP_MESSAGE_ID(0, 1, 5)
 
 /*
  * Property identifiers for the properies this application implements
@@ -119,142 +114,6 @@ static AJ_Status AppHandlePing(AJ_Message* msg)
     AJ_MarshalArg(&reply, &arg);
     return AJ_DeliverMsg(&reply);
 }
-
-static AJ_Status AppHandleComputeSumOfArrayElements(AJ_Message* msg)
-{
-    AJ_Status status = AJ_ERR_FAILURE;
-
-    void* raw = NULL;
-    size_t bytes_unmarshaled = 0;
-
-    uint16_t i = 0; /* array index */
-    uint16_t num_elements_in_array = 0;
-    uint64_t sum_of_elements = 0;
-
-    /*
-     * AJ_UnmarshalRaw invalidates the header.
-     * Hence before doing anything, we need to pick-up the information
-     * we need to send the reply. So we need to create a copy of the Message
-     * with just enough information to be able to send the reply back.
-     * Note that we can't quite invoke MarshalMsg ourselves directly,
-     * as it has been declared static.
-     */
-    AJ_MsgHeader myHeaderCopy;
-    memset(&myHeaderCopy, 0, sizeof(myHeaderCopy));
-    memcpy(&myHeaderCopy, msg->hdr, sizeof(myHeaderCopy));
-
-    AJ_Message myMsgCopy;
-    memset(&myMsgCopy, 0, sizeof(myMsgCopy));
-    memcpy(&myMsgCopy, msg, sizeof(myMsgCopy));
-    myMsgCopy.hdr = &myHeaderCopy;
-
-    /* First, unmarshal the number of elements in the array */
-    status = AJ_UnmarshalRaw(msg, (const void**)&raw, sizeof(num_elements_in_array), &bytes_unmarshaled);
-    if (AJ_OK != status || sizeof(num_elements_in_array) != bytes_unmarshaled) {
-        AJ_Printf("ERROR: Problems unmarshaling the length of the array. Status is %s, raw is %p, actual bytes_unmarshaled is %zu (expected %zu).\n", AJ_StatusText(status), raw, bytes_unmarshaled, sizeof(num_elements_in_array));
-
-        status = (AJ_OK != status) ? status : AJ_ERR_FAILURE;
-    } else {
-        /*
-         * Processing further makes sense only if unmarshaling length
-         * was successful
-         */
-        num_elements_in_array = *((uint16_t*) raw);
-        AJ_Printf("\tDEBUG: The number of elements in array is %u.\n", num_elements_in_array);
-
-        for (i = 0; i < num_elements_in_array; i++) {
-            uint8_t element = 0;
-
-            raw = NULL;
-            bytes_unmarshaled = 0;
-            status = AJ_UnmarshalRaw(msg, (const void**)&raw, sizeof(element), &bytes_unmarshaled);
-            if (AJ_OK != status || sizeof(element) != bytes_unmarshaled) {
-                AJ_Printf("ERROR: Problems unmarshaling element at index: %d. Status is %s, raw is %p, actual bytes unmarshaled is %zu (expected %zu).\n", i, AJ_StatusText(status), raw, bytes_unmarshaled, sizeof(element));
-
-                status = (AJ_OK != status) ? status : AJ_ERR_FAILURE;
-                /* No point in continuing */
-                break;
-            } else {
-                element = *((uint8_t*) raw);
-
-                sum_of_elements += element;
-            }
-        }
-    }
-
-    /* The sum of elements is only valid if status is AJ_OK */
-    sum_of_elements = (AJ_OK == status) ? sum_of_elements : 0;
-
-    /* Send the method reply */
-    AJ_Message reply;
-    status = AJ_MarshalReplyMsg(&myMsgCopy, &reply);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: MarshalReplyMsg failed. Status is %s.\n", AJ_StatusText(status));
-        return status;
-    }
-
-    status = AJ_MarshalArgs(&reply, "t", sum_of_elements);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: MarshalArgs into reply failed. Status is %s.\n", AJ_StatusText(status));
-        return status;
-    }
-
-    status = AJ_DeliverMsg(&reply);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: DeliverMsg for reply failed. Status is %s.\n", AJ_StatusText(status));
-    }
-
-    return status;
-}
-
-static AJ_Status AppHandleComputeMaxOfArrayElements(AJ_Message* msg)
-{
-    AJ_Status status = AJ_ERR_FAILURE;
-    AJ_Arg byte_array;
-
-    uint16_t i = 0; /* Array index */
-    uint8_t max_value = 0;
-
-    status = AJ_UnmarshalArg(msg, &byte_array);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: Unable to unmarshal arg. Got status %s.\n", AJ_StatusText(status));
-        return status;
-    }
-
-    /* Verify that we received an array and of type byte */
-    if (AJ_ARG_BYTE != byte_array.typeId || AJ_ARRAY_FLAG != byte_array.flags) {
-        AJ_Printf("ERROR: Did not receive an array of bytes. Recevied type:%c flag:%u.\n", byte_array.typeId, byte_array.flags);
-        return AJ_ERR_FAILURE;
-    }
-
-    AJ_Printf("INFO: The number of elements in the array is %u.\n", byte_array.len);
-    uint8_t* array_start = (uint8_t*) byte_array.val.v_data;
-    for (i = 0; i < byte_array.len; i++) {
-        max_value = (max_value >= array_start[i]) ? max_value : array_start[i];
-    }
-
-    /* Send the method reply */
-    AJ_Message reply;
-    status = AJ_MarshalReplyMsg(msg, &reply);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: MarshalReplyMsg failed. Status is %s.\n", AJ_StatusText(status));
-        return status;
-    }
-
-    status = AJ_MarshalArgs(&reply, "y", max_value);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: MarshalArgs into reply failed. Status is %s.\n", AJ_StatusText(status));
-        return status;
-    }
-
-    status = AJ_DeliverMsg(&reply);
-    if (AJ_OK != status) {
-        AJ_Printf("ERROR: DeliverMsg for reply failed. Status is %s.\n", AJ_StatusText(status));
-    }
-
-    return status;
-}
-
 
 /*
  * Handles a property GET request so marshals the property value to return
@@ -366,14 +225,6 @@ int AJ_Main(void)
 
             case APP_MY_PING:
                 status = AppHandlePing(&msg);
-                break;
-
-            case APP_SUM_OF_ARRAY_ELEMENTS:
-                status = AppHandleComputeSumOfArrayElements(&msg);
-                break;
-
-            case APP_MAX_OF_ARRAY_ELEMENTS:
-                status = AppHandleComputeMaxOfArrayElements(&msg);
                 break;
 
             case APP_GET_PROP:
