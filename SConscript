@@ -18,7 +18,7 @@ import shutil
 vars = Variables()
 
 # Common build variables
-vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
+vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino', 'yield-linux')))
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(PathVariable('GTEST_DIR', 'The path to googletest sources', os.environ.get('GTEST_DIR'), PathVariable.PathIsDir))
@@ -43,7 +43,7 @@ if env['TARG'] == 'win32':
         env.Append(LINKFLAGS=['/opt:ref'])
         env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
         env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
-elif env['TARG'] == 'linux':
+elif env['TARG'] == 'linux' or env['TARG'] == 'yield-linux':
     env['libs'] = ['rt', 'crypto']
     env.Append(LINKFLAGS=[''])
     env.Append(CFLAGS=['-Wall',
@@ -74,7 +74,7 @@ env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 env['aj_malloc'] = [Glob('malloc/*.c')]
 
 # Set-up the environment for Win/Linux
-if env['TARG'] == 'win32' or env['TARG'] == 'linux':
+if env['TARG'] == 'win32' or env['TARG'] == 'linux' or env['TARG'] == 'yield-linux':
     # To compile, sources need access to include files
     env.Append(CPPPATH = [env['includes']])
 
@@ -84,11 +84,17 @@ if env['TARG'] == 'win32' or env['TARG'] == 'linux':
     # Win/Linux programs need their own 'main' function
     env.Append(CPPDEFINES = ['AJ_MAIN'])
 
+# Set-up the environment for using yield
+if env['TARG'] == 'yield-linux':
+    # use the right 'main' function to enable the yield behavior
+    env.Append(CPPDEFINES = ['AJ_YIELD'])
+
+
 # Build objects for the target-specific sources and AllJoyn Thin Client sources
 if env['TARG'] == 'win32':
     env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'] + env['aj_sw_crypto'] + env['aj_malloc'])
 else:
-    if env['TARG'] == 'linux':
+    if env['TARG'] == 'linux' or env['TARG'] == 'yield-linux':
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'])
 
 Export('env')
