@@ -74,21 +74,6 @@ static const AJ_Object AppObjects[] = {
 #define UNMARSHAL_TIMEOUT  (1000 * 5)
 #define METHOD_TIMEOUT     (100 * 10)
 
-static const char PWD[] = "ABCDEFGH";
-
-static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
-{
-    memcpy(buffer, PWD, sizeof(PWD));
-    return sizeof(PWD) - 1;
-}
-
-uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
-{
-    const char* myPwd = "123456";
-    strncpy((char*)buf, myPwd, bufLen);
-    return (uint32_t)strlen(myPwd);
-}
-
 void MakeMethodCall(AJ_BusAttachment* bus, uint32_t sessionId)
 {
     AJ_Status status;
@@ -122,8 +107,6 @@ int AJ_Main(void)
     AJ_PrintXML(AppObjects);
     AJ_RegisterObjects(NULL, AppObjects);
 
-    SetBusAuthPwdCallback(MyBusAuthPwdCB);
-
     while (!done) {
         AJ_Message msg;
 
@@ -139,9 +122,6 @@ int AJ_Main(void)
             if (status == AJ_OK) {
                 printf("StartClient returned %d, sessionId=%u.\n", status, sessionId);
                 connected = TRUE;
-
-                /* Register a callback for providing bus authentication password */
-                AJ_BusSetPasswordCallback(&bus, PasswordCallback);
 
                 MakeMethodCall(&bus, sessionId);
             } else {
