@@ -69,6 +69,14 @@ static const AJ_Object AppObjects[] = {
  */
 #define BASIC_SERVICE_CAT AJ_APP_MESSAGE_ID(0, 0, 1)
 
+static const char PWD[] = "ABCDEFGH";
+
+static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
+{
+    memcpy(buffer, PWD, sizeof(PWD));
+    return sizeof(PWD) - 1;
+}
+
 static AJ_Status AppHandleCat(AJ_Message* msg)
 {
 #define BUFFER_SIZE 256
@@ -95,6 +103,13 @@ static AJ_Status AppHandleCat(AJ_Message* msg)
 #undef BUFFER_SIZE
 }
 
+uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
+{
+    const char* myPwd = "123456";
+    strncpy((char*)buf, myPwd, bufLen);
+    return (uint32_t)strlen(myPwd);
+}
+
 /* All times are expressed in milliseconds. */
 #define CONNECT_TIMEOUT     (1000 * 60)
 #define UNMARSHAL_TIMEOUT   (1000 * 5)
@@ -115,6 +130,8 @@ int AJ_Main(void)
 
     AJ_RegisterObjects(AppObjects, NULL);
 
+    SetBusAuthPwdCallback(MyBusAuthPwdCB);
+
     while (TRUE) {
         AJ_Message msg;
 
@@ -133,6 +150,9 @@ int AJ_Main(void)
 
             printf("StartService returned %d, session_id=%u\n", status, sessionId);
             connected = TRUE;
+
+            /* Register a callback for providing bus authentication password */
+            AJ_BusSetPasswordCallback(&bus, PasswordCallback);
         }
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);

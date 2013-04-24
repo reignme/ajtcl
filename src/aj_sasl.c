@@ -272,7 +272,7 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
             /*
              * Data following an AUTH command is handled sames as DATA command
              */
-            if (*inStr) {
+            if ((*inStr) || (strcmp(context->mechanism->name, "ANONYMOUS") == 0)) {
                 cmd = CMD_DATA;
             } else {
                 break;
@@ -282,12 +282,16 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
 
     case AJ_SASL_WAIT_FOR_DATA:
         if (cmd == CMD_DATA) {
-            status = HexDecode(inStr);
+            if (strcmp(context->mechanism->name, "ANONYMOUS") != 0) {
+                status = HexDecode(inStr);
+            }
             if (status == AJ_OK) {
                 result = context->mechanism->Challenge(inStr, outStr, outLen);
                 if (result == AJ_AUTH_STATUS_SUCCESS) {
                     status = AJ_GUID_ToString(AJ_GetLocalGUID(), outStr, outLen);
-                    rsp = CMD_OK;
+                    if (status == AJ_OK) {
+                        status = PrependStr(CMD_OK, outStr, outLen, FALSE);
+                    }
                     context->state = AJ_SASL_WAIT_FOR_BEGIN;
                 } else if (result == AJ_AUTH_STATUS_CONTINUE) {
                     status = PrependStr(CMD_DATA, outStr, outLen, TRUE);
