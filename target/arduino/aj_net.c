@@ -274,12 +274,21 @@ AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     return status;
 }
 
-
+uint16_t AJ_EphemeralPort(void)
+{
+    // Return a random port number in the IANA-suggested range
+    return 49152 + random(65535 - 49152);
+}
 
 AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 {
     uint8_t ret = 0;
-    ret = g_clientUDP.begin(AJ_UDP_PORT);
+    //
+    // Arduino does not choose an ephemeral port if we enter 0 -- it happily
+    // uses 0 and then increments each time we bind, up through the well-known
+    // system ports.
+    //
+    ret = g_clientUDP.begin(AJ_EphemeralPort());
 
     if (ret != 1) {
         g_clientUDP.stop();

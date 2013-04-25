@@ -332,10 +332,10 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
                 continue;
             }
 
-            // bind the socket to the address
+            // bind the socket to the address with ephemeral port
             memset((char*) &sin, 0, sizeof(SOCKADDR_IN));
             sin.sin_family = AF_INET;
-            sin.sin_port = htons(AJ_UDP_PORT);
+            sin.sin_port = htons(0);
             sin.sin_addr.s_addr = inet_addr(buffer);
 
             ret = bind(sock, (struct sockaddr*) &sin, sizeof(sin));
