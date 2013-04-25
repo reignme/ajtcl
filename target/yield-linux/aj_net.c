@@ -356,10 +356,10 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
     }
 
     /*
-     * Bind our multicast port
+     * Bind ephemeral port
      */
     sin.sin_family = AF_INET;
-    sin.sin_port = htons(AJ_UDP_PORT);
+    sin.sin_port = htons(0);
     sin.sin_addr.s_addr = INADDR_ANY;
     ret = bind(mcastSock, (struct sockaddr*)&sin, sizeof(sin));
     if (ret < 0) {
