@@ -1,8 +1,9 @@
 /*
  * @file
  */
+
 /******************************************************************************
- * Copyright 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -16,6 +17,7 @@
  *    See the license for the specific language governing permissions and
  *    limitations under the license.
  ******************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>

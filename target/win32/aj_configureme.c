@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt

@@ -5,7 +5,7 @@
  * Implements the org.alljoyn.Bus.Peer object
  */
 /******************************************************************************
- * Copyright 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt

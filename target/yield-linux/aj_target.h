@@ -1,5 +1,8 @@
 #ifndef _AJ_TARGET_H
 #define _AJ_TARGET_H
+/**
+ * @file
+ */
 /******************************************************************************
  * Copyright 2013, Qualcomm Innovation Center, Inc.
  *

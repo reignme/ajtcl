@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
@@ -12,7 +12,7 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the license for the specific language governing permissions and
  *    limitations under the license.
- ******************************************************************************/
+ */
 package org.alljoyn.bus.samples;
 
 import org.alljoyn.bus.BusException;

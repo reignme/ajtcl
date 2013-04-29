@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 /******************************************************************************
  * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
@@ -13,6 +16,7 @@
  *    See the license for the specific language governing permissions and
  *    limitations under the license.
  ******************************************************************************/
+
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>
