@@ -43,6 +43,16 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
  */
 void AJ_Disconnect(AJ_BusAttachment* bus);
 
+/**
+ * Bus authentication password function prototype for requesting a
+ * password (to authenticate with the daemon) from the application.
+ *
+ * @param  buffer  The buffer to receive the password
+ * @param  bufLen  The size of the buffer
+ *
+ * @return  Returns the length of the password. If the length is zero,
+ *          this will be treated as a rejected password request.
+ */
 typedef uint32_t (*BusAuthPwdFunc)(uint8_t* buffer, uint32_t bufLen);
 
 /**

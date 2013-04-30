@@ -19,10 +19,10 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#define AJ_MAJOR_VERSION   3
-#define AJ_MINOR_VERSION   3
-#define AJ_RELEASE_VERSION 0
+#define AJ_MAJOR_VERSION   3    /**< major version */
+#define AJ_MINOR_VERSION   3    /**< minor version */
+#define AJ_RELEASE_VERSION 0    /**< release version */
 
-#define AJ_VERSION ((AJ_MAJOR_VERSION) << 24) | ((AJ_MINOR_VERSION) << 16) | (AJ_RELEASE_VERSION)
+#define AJ_VERSION ((AJ_MAJOR_VERSION) << 24) | ((AJ_MINOR_VERSION) << 16) | (AJ_RELEASE_VERSION)   /**< macro to generate the version from major, minor & release */
 
 #endif
