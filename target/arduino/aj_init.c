@@ -19,6 +19,7 @@
 
 #include "aj_target.h"
 #include "aj_init.h"
+#include "aj_nvram.h"
 
 static uint8_t initialized = FALSE;
 
@@ -26,5 +27,6 @@ void AJ_Initialize(void)
 {
     if (!initialized) {
         initialized = TRUE;
+        AJ_NVRAM_Init();
     }
 }

@@ -5,7 +5,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2013, Qualcomm Innovation Center, Inc.
+ * Copyright 2012, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -36,10 +36,27 @@ typedef struct _AJ_NV_FILE {
     uint16_t* inode;       /**< Point to a location in the NVRAM storage where the data set lives */
 } AJ_NV_FILE;
 
+/*
+ * Identifies an AJ NVRAM block
+ */
+#define AJ_NV_SENTINEL ('A' | ('J' << 8) | ('N' << 16) | ('V' << 24))
+#define DEFAULT_ENTRY_BUF_SIZE 64
+#define INVALID_ID 0
+#define INVALID_DATA 0xFFFF
+#define INVALID_DATA_BYTE 0xFF
+#define SENTINEL_OFFSET 4
+#define ENTRY_HEADER_SIZE 4
+#define WORD_ALIGN(x) ((x & 0x3) ? ((x >> 2) + 1) << 2 : x)
+
+/**
+ * Initialize NVRAM
+ */
+void AJ_NVRAM_Init();
+
 /**
  * Open a data set
  *
- * @param id  A unique id for a data set. The value must not be 0.
+ * @param id  A unique id for a data set. The value must not be 0. Note that id 1~16 are reserved for authentication credentials.
  * @param mode C string containing a data set access mode. It can be:
  *    "r"  : read: Open data set for input operations. The data set must exist.
  *    "w"  : write: Create an empty data set for output operations. If a data set with the same id already exists, its contents are discarded.

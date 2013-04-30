@@ -288,7 +288,9 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
             if (status == AJ_OK) {
                 result = context->mechanism->Challenge(inStr, outStr, outLen);
                 if (result == AJ_AUTH_STATUS_SUCCESS) {
-                    status = AJ_GUID_ToString(AJ_GetLocalGUID(), outStr, outLen);
+                    AJ_GUID localGuid;
+                    AJ_GetLocalGUID(&localGuid);
+                    status = AJ_GUID_ToString(&localGuid, outStr, outLen);
                     if (status == AJ_OK) {
                         status = PrependStr(CMD_OK, outStr, outLen, FALSE);
                     }
@@ -441,7 +443,9 @@ static AJ_Status Response(AJ_SASL_Context* context, char* inStr, char* outStr, u
 
     case AJ_SASL_WAIT_FOR_OK:
         if (cmd == CMD_OK) {
-            status = AJ_GUID_ToString(AJ_GetLocalGUID(), outStr, outLen);
+            AJ_GUID localGuid;
+            AJ_GetLocalGUID(&localGuid);
+            status = AJ_GUID_ToString(&localGuid, outStr, outLen);
             if (status == AJ_OK) {
                 status = PrependStr(CMD_BEGIN, outStr, outLen, FALSE);
             }

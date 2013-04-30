@@ -29,26 +29,12 @@
 #define AJ_MAX_PEER_GUIDS  12
 
 /**
- * Base address of credential
- */
-extern const uint32_t CREDS_BASE_ADDRESS;
-
-/**
  * Credentials for a remote peer
  */
 typedef struct _AJ_PeerCred {
     AJ_GUID guid;        /**< GUID for the peer */
     uint8_t secret[24];  /**< secret keying data */
 } AJ_PeerCred;
-
-/**
- * This needs to fit in 512 bytes
- */
-typedef struct _AJ_Credentials {
-    uint32_t sentinel;                     /**< Identifies a valid, initialized credentials block */
-    AJ_GUID guid;                          /**< GUID of the local peer */
-    AJ_PeerCred peers[AJ_MAX_PEER_GUIDS];  /**< Credentials of remote peers */
-} AJ_Credentials;
 
 /**
  * Write a peer credential to NVRAM
@@ -77,21 +63,24 @@ AJ_Status AJ_DeleteCredential(const AJ_GUID* peerGuid);
 void AJ_ClearCredentials(void);
 
 /**
- * Get the credentials for a specific remote peer
+ * Get the credentials for a specific remote peer from NVRAM
  *
  * @param peerGuid  The GUID for the remote peer.
+ * @param peerCred  Pointer to a bufffer that has enough space to store the credentials for a specific remote peer identified by a GUID
  *
- * @return  Returns a pointer to the credentials for a specific remote peer identified by a GUID or
- *          NULL if there are no credentials stored for this peer.
+ * @return  AJ_OK if the credentials for the specific remote peer exist and are copied into the buffer
+ *          AJ_ERR_FAILURE otherwise.
  */
-const AJ_PeerCred* AJ_GetRemoteCredential(const AJ_GUID* peerGuid);
+AJ_Status AJ_GetRemoteCredential(const AJ_GUID* peerGuid, AJ_PeerCred* peerCred);
 
 /**
  * Get the GUID for this peer. If this is the first time the GUID has been requested this function
  * will generate the GUID and store it in NVRAM
  *
- * @return  Returns a pointer to the GUID for the local peer.
+ * @param localGuid Pointer to a bufffer that has enough space to store the local GUID
+ *
+ * @return  AJ_OK if the local GUID is copied into the buffer.
  */
-const AJ_GUID* AJ_GetLocalGUID(void);
+AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid);
 
 #endif

@@ -307,8 +307,10 @@ AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept)
 static AJ_Status HandleGetMachineId(AJ_Message* msg, AJ_Message* reply)
 {
     char guidStr[33];
+    AJ_GUID localGuid;
     AJ_MarshalReplyMsg(msg, reply);
-    AJ_GUID_ToString(AJ_GetLocalGUID(), guidStr, sizeof(guidStr));
+    AJ_GetLocalGUID(&localGuid);
+    AJ_GUID_ToString(&localGuid, guidStr, sizeof(guidStr));
     return AJ_MarshalArgs(reply, "s", guidStr);
 }
 
