@@ -28,6 +28,7 @@
  * to any resons (eg., WIFI is off), AJ_BusLinkStateProc will return AJ_ERR_LINK_TIMEOUT
  * so that the application has to re-connect to the daemon bus.
  *
+ * @param bus        The bus attachment to which the app is connected to
  * @param timeout    The time unit is second. The minimum value is 40.
  *
  * @return  Return AJ_Status

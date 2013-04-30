@@ -145,9 +145,18 @@ void AJ_ClearConfig(uint32_t index);
  */
 void AJ_ClearAll();
 
-
+/**
+ * Write the configuration to NVRAM
+ *
+ * @param config A pointer to the configuration structure
+ */
 void AJ_WriteConfiguration(AJ_Configuration* config);
 
+/**
+ * Initialize a configuration in NVRAM
+ *
+ * @return  A pointer to the configuration structure
+ */
 AJ_Configuration* AJ_InitializeConfig();
 
 #endif /* _AJ_CONFIGUREME_H */

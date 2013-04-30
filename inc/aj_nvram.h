@@ -22,15 +22,18 @@
 
 #include "alljoyn.h"
 
+/**
+ * AllJoyn NVRAM file handle
+ */
 typedef struct _AJ_NV_FILE {
-    uint16_t id;           /* The unique id of a data set */
-    uint8_t mode;          /* The access mode of a data set */
-    uint8_t writeBack;     /* If need to write back to the storage */
-    uint8_t* buf;          /* A buffer for read/write operations to a data set */
-    uint16_t dataLen;      /* The number of data available in a data set */
-    uint16_t bufSize;      /* The buffer size for read/write operations to a data set */
-    uint16_t curPos;       /* The current position for read/write operations to a data set */
-    uint16_t* inode;       /* Point to a location in the NVRAM storage where the data set lives */
+    uint16_t id;           /**< The unique id of a data set */
+    uint8_t mode;          /**< The access mode of a data set */
+    uint8_t writeBack;     /**< If need to write back to the storage */
+    uint8_t* buf;          /**< A buffer for read/write operations to a data set */
+    uint16_t dataLen;      /**< The number of data available in a data set */
+    uint16_t bufSize;      /**< The buffer size for read/write operations to a data set */
+    uint16_t curPos;       /**< The current position for read/write operations to a data set */
+    uint16_t* inode;       /**< Point to a location in the NVRAM storage where the data set lives */
 } AJ_NV_FILE;
 
 /**
