@@ -1543,12 +1543,17 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg)
     msg->outer = arg->container;
 
     if (arg->typeId == AJ_ARG_ARRAY) {
+        uint32_t lenOffset = (uint32_t)((uint8_t*)arg->val.v_data - ioBuf->bufStart);
+        /*
+         * The length we marshal does not include the length field itself.
+         */
         arg->len = (uint16_t)(ioBuf->writePtr - (uint8_t*)arg->val.v_data) - 4;
         /*
          * If the array element is 8 byte aligned and the array is not empty check if there was
-         * padding after the length
+         * padding after the length. The length we marshal should not include the padding.
          */
-        if ((ALIGNMENT(*arg->sigPtr) == 8) && !((uint32_t)arg->val.v_data & 7) && arg->len) {
+
+        if ((ALIGNMENT(*arg->sigPtr) == 8) && !(lenOffset & 4) && arg->len) {
             arg->len -= 4;
         }
         /*
