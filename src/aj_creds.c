@@ -74,7 +74,7 @@ AJ_Status UpdatePeerCreds(AJ_PeerCred* peerCred, uint16_t id)
         status = AJ_ERR_FAILURE;
     } else {
         if (peerCred) {
-            if (sizeof(AJ_PeerCred) != AJ_NVRAM_Write((uint8_t*)peerCred, sizeof(AJ_PeerCred), handle)) {
+            if (sizeof(AJ_PeerCred) != AJ_NVRAM_Write(peerCred, sizeof(AJ_PeerCred), handle)) {
                 AJ_Printf("Error: fail to read %d bytes from data set with id = %d\n", sizeof(AJ_PeerCred), id);
                 status = AJ_ERR_FAILURE;
             }
@@ -123,7 +123,7 @@ AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
     if (AJ_NVRAM_Exist(AJ_LOCAL_GUID_NV_ID)) {
         handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "r");
         if (handle) {
-            size_t size = AJ_NVRAM_Read(&localGuid, sizeof(AJ_GUID), handle);
+            size_t size = AJ_NVRAM_Read(localGuid, sizeof(AJ_GUID), handle);
             AJ_ASSERT(size == sizeof(AJ_GUID));
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
@@ -132,7 +132,7 @@ AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
         AJ_RandBytes((uint8_t*)localGuid, sizeof(AJ_GUID));
         handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "w");
         if (handle) {
-            size_t size = AJ_NVRAM_Write((uint8_t*)localGuid, sizeof(AJ_GUID), handle);
+            size_t size = AJ_NVRAM_Write(localGuid, sizeof(AJ_GUID), handle);
             AJ_ASSERT(size == sizeof(AJ_GUID));
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
@@ -148,7 +148,7 @@ AJ_Status AJ_GetRemoteCredential(const AJ_GUID* peerGuid, AJ_PeerCred* peerCreds
     if (id > 0) {
         AJ_NV_FILE* handle = AJ_NVRAM_Open(id, "r");
         if (handle) {
-            size_t size = AJ_NVRAM_Read((uint8_t*)peerCreds, sizeof(AJ_PeerCred), handle);
+            size_t size = AJ_NVRAM_Read(peerCreds, sizeof(AJ_PeerCred), handle);
             AJ_ASSERT(size == sizeof(AJ_PeerCred));
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
