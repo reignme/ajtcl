@@ -126,9 +126,15 @@ static AJ_Arg struct2;
 class MutterTest : public testing::Test {
   public:
     virtual void SetUp() {
+        /* random offset for the buffer to force different alignments */
+        uint8_t random_offset = 0;
+        AJ_RandBytes(&random_offset, 1);
+        random_offset = random_offset % 8;
+        std::cout << "\tINFO: The random offset for this test is " << (unsigned int) random_offset << std::endl;
+
         testBus.sock.tx.direction = AJ_IO_BUF_TX;
-        testBus.sock.tx.bufSize = sizeof(txBuffer);
-        testBus.sock.tx.bufStart = txBuffer;
+        testBus.sock.tx.bufSize = sizeof(txBuffer) - random_offset;
+        testBus.sock.tx.bufStart = txBuffer + random_offset;
         testBus.sock.tx.readPtr = txBuffer;
         testBus.sock.tx.writePtr = txBuffer;
         testBus.sock.tx.send = TxFunc;
