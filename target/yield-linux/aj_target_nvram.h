@@ -23,7 +23,6 @@
 #include "alljoyn.h"
 
 #define AJ_NVRAM_SIZE 512
-uint8_t AJ_NVRAM_BASE_ADDRESS[AJ_NVRAM_SIZE];
 
 /**
  * Invalidate an entry (data set) in NVRAM by setting the id to be 0

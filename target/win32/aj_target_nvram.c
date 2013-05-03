@@ -20,6 +20,8 @@
 #include "aj_nvram.h"
 #include "aj_target_nvram.h"
 
+uint8_t AJ_NVRAM_BASE_ADDRESS[AJ_NVRAM_SIZE];
+
 void AJ_NVRAM_Init()
 {
     AJ_LoadNVFromFile();

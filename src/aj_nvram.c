@@ -20,6 +20,8 @@
 #include "aj_nvram.h"
 #include "aj_target_nvram.h"
 
+extern uint8_t* AJ_NVRAM_BASE_ADDRESS;
+
 #define AJ_NV_FILE_RD_ONLY         1
 #define AJ_NV_FILE_WR_ONLY         2
 #define AJ_NV_FILE_APPEND          3
@@ -263,7 +265,7 @@ size_t AJ_NVRAM_Write(void* ptr, size_t size, AJ_NV_FILE* handle)
 
     // If necessary, try to allocate a buffer of of bigger size * 1.5
     if (handle->curPos + size > handle->bufSize) {
-        uint8_t* newBuf = AJ_Malloc(handle->bufSize + (handle->bufSize >> 1));
+        uint8_t* newBuf = (uint8_t*)AJ_Malloc(handle->bufSize + (handle->bufSize >> 1));
         if (newBuf) {
             memcpy(newBuf, handle->buf, handle->dataLen);
             AJ_Free(handle->buf);
