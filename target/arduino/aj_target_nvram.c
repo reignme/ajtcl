@@ -26,17 +26,16 @@ uint8_t* AJ_NVRAM_BASE_ADDRESS;
 void AJ_NVRAM_Init()
 {
     AJ_NVRAM_BASE_ADDRESS = AJ_EMULATED_NVRAM;
-    AJ_LoadNVFromFile();
-    if (*((uint32_t*)AJ_NVRAM_BASE_ADDRESS) != AJ_NV_SENTINEL) {
+    static uint8_t inited = FALSE;
+    if (!inited) {
+        inited = TRUE;
         AJ_EraseNVRAM();
-        AJ_StoreNVToFile();
     }
 }
 
 void AJ_InvalidateNVEntry(uint16_t* inode)
 {
     *inode = INVALID_ID;
-    AJ_StoreNVToFile();
 }
 
 void AJ_AppendNVEntry(uint8_t* nvPtr, AJ_NV_FILE* handle)
@@ -44,46 +43,17 @@ void AJ_AppendNVEntry(uint8_t* nvPtr, AJ_NV_FILE* handle)
     *((uint32_t*)nvPtr) = handle->dataLen << 16 | handle->id;
     nvPtr += ENTRY_HEADER_SIZE;
     memcpy(nvPtr, handle->buf, handle->dataLen);
-    AJ_StoreNVToFile();
 }
 
 void AJ_EraseNVRAM()
 {
     memset((uint8_t*)AJ_NVRAM_BASE_ADDRESS, INVALID_DATA_BYTE, AJ_NVRAM_SIZE);
     *((uint32_t*)AJ_NVRAM_BASE_ADDRESS) = AJ_NV_SENTINEL;
-    AJ_StoreNVToFile();
 }
 
 void AJ_OverriteNVRAM(uint8_t* bufPtr, uint16_t bytes)
 {
     AJ_EraseNVRAM();
     memcpy(AJ_NVRAM_BASE_ADDRESS + SENTINEL_OFFSET, bufPtr, bytes);
-    AJ_StoreNVToFile();
 }
 
-AJ_Status AJ_LoadNVFromFile()
-{
-    FILE* f = fopen("ajlite.nvram", "r");
-    if (f == NULL) {
-        AJ_Printf("Error: LoadNVFromFile() failed\n");
-        return AJ_ERR_FAILURE;
-    }
-
-    memset(AJ_NVRAM_BASE_ADDRESS, INVALID_DATA_BYTE, AJ_NVRAM_SIZE);
-    fread(AJ_NVRAM_BASE_ADDRESS, AJ_NVRAM_SIZE, 1, f);
-    fclose(f);
-    return AJ_OK;
-}
-
-AJ_Status AJ_StoreNVToFile()
-{
-    FILE* f = fopen("ajlite.nvram", "w");
-    if (!f) {
-        AJ_Printf("Error: StoreNVToFile() failed\n");
-        return AJ_ERR_FAILURE;
-    }
-
-    fwrite(AJ_NVRAM_BASE_ADDRESS, AJ_NVRAM_SIZE, 1, f);
-    fclose(f);
-    return AJ_OK;
-}

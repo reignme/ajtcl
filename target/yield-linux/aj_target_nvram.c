@@ -20,10 +20,12 @@
 #include "aj_nvram.h"
 #include "aj_target_nvram.h"
 
-uint8_t AJ_NVRAM_BASE_ADDRESS[AJ_NVRAM_SIZE];
+uint8_t AJ_EMULATED_NVRAM[AJ_NVRAM_SIZE];
+uint8_t* AJ_NVRAM_BASE_ADDRESS;
 
 void AJ_NVRAM_Init()
 {
+    AJ_NVRAM_BASE_ADDRESS = AJ_EMULATED_NVRAM;
     AJ_LoadNVFromFile();
     if (*((uint32_t*)AJ_NVRAM_BASE_ADDRESS) != AJ_NV_SENTINEL) {
         AJ_EraseNVRAM();
