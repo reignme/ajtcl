@@ -54,7 +54,7 @@ void AJ_NVRAM_Layout_Print()
 /**
  * Compactize the NVRAM storage by removing invalid entries whose id is 0
  */
-AJ_Status AJ_CompactizeNVStorage();
+AJ_Status AJ_CompactNVStorage();
 
 /**
  * Find an entry in the NVRAM with the specific id
@@ -89,7 +89,7 @@ void AJ_StoreDataSet(AJ_NV_FILE* handle)
     ptr = (uint8_t*)AJ_FindNVEntry(INVALID_DATA);
     if (!ptr || ptr + ENTRY_HEADER_SIZE + handle->dataLen > (uint8_t*)AJ_NVRAM_END_ADDRESS) {
         AJ_Printf("Do storage compaction...\n");
-        AJ_CompactizeNVStorage();
+        AJ_CompactNVStorage();
 
         ptr = (uint8_t*)AJ_FindNVEntry(INVALID_DATA);
         if (!ptr || ptr + ENTRY_HEADER_SIZE + handle->dataLen > (uint8_t*)AJ_NVRAM_END_ADDRESS) {
@@ -102,7 +102,7 @@ void AJ_StoreDataSet(AJ_NV_FILE* handle)
 }
 
 // Compact the storage by removing invalid entries
-AJ_Status AJ_CompactizeNVStorage()
+AJ_Status AJ_CompactNVStorage()
 {
     uint16_t numOfValidData = 0;
     uint16_t len = 0;
