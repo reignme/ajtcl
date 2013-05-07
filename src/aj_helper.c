@@ -163,6 +163,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
 {
     AJ_Status status = AJ_OK;
     AJ_Time timer;
+    AJ_Time unmarshalTimer;
     uint8_t foundName = FALSE;
     uint8_t clientStarted = FALSE;
     uint8_t initial = TRUE;
@@ -203,16 +204,21 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
             return AJ_ERR_TIMEOUT;
         }
         status = AJ_UnmarshalMsg(bus, &msg, UNMARSHAL_TIMEOUT);
-        if (status != AJ_OK) {
+        /*
+         * TODO This is a temporary hack to work around buggy select imlpementations
+         */
+        AJ_InitTimer(&unmarshalTimer);
+        if (status == AJ_ERR_TIMEOUT && (AJ_GetElapsedTime(&unmarshalTimer, TRUE) < UNMARSHAL_TIMEOUT || !foundName)) {
             /*
              * Timeouts are expected until we find a name
              */
-            if ((status == AJ_ERR_TIMEOUT) && !foundName) {
-                status = AJ_OK;
-            }
+            status = AJ_OK;
             continue;
         }
 
+        if (status != AJ_OK) {
+            break;
+        }
         switch (msg.msgId) {
 
         case AJ_REPLY_ID(AJ_METHOD_FIND_NAME):
