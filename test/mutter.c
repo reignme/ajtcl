@@ -29,9 +29,102 @@ static size_t wireBytes = 0;
 static uint8_t txBuffer[1024];
 static uint8_t rxBuffer[1024];
 
+#ifdef AJ_YIELD
+
+#include <assert.h>
+#include <pthread.h>
+
+static uint8_t ioThreadRunningWrite = FALSE;
+static uint8_t ioThreadRunningRead = FALSE;
+static uint8_t ioThreadRunningSleep = FALSE;
+static pthread_t threadIdWrite;
+static pthread_t threadIdRead;
+static pthread_t threadIdSleep;
+
+
+#if defined _WIN32
+#define AJ_SLEEP_MSEC(x) Sleep((x))
+#elif defined __linux__
+#define AJ_SLEEP_MSEC(x) usleep((x)*1000)
+#endif
+
+void* AJ_ReadReady_Mutter(void* threadArg)
+{
+    AJ_Printf("R ");
+    AJ_SLEEP_MSEC(1);  // simulate a delay
+    AJ_Schedule(AJWAITEVENT_READ);
+    return 0;
+}
+
+void* AJ_WriteReady_Mutter(void* threadArg)
+{
+    AJ_Printf("W ");
+    AJ_SLEEP_MSEC(1);  // simulate a delay
+    AJ_Schedule(AJWAITEVENT_WRITE);
+    return 0;
+}
+
+void* AJ_TimeExpired_Mutter(void* threadArg)
+{
+    AJ_Printf("T %d\n", (uint32_t)threadArg);
+    AJ_SLEEP_MSEC((uint32_t)threadArg);
+    AJ_Schedule(AJWAITEVENT_TIMER);
+    return 0;
+}
+
+
+static AJ_Status AJ_sleepFunc(uint32_t timeout)
+{
+    /// spin up a thread here to set the timeEvent
+    int ret = 0;
+    if (!ioThreadRunningSleep) {
+        ret = pthread_create(&threadIdSleep, NULL, AJ_TimeExpired_Mutter, (void*)timeout);
+        if (ret != 0) {
+            printf("Error: fail to spin a thread for sleeping\n");
+        }
+        ioThreadRunningSleep = TRUE;
+    }
+
+    AJ_YieldUntil(AJWAITEVENT_TIMER);
+
+    /// wait for the thread to finish and then cleanup
+    void* exit_status;
+    if (ioThreadRunningSleep) {
+        pthread_join(threadIdSleep, &exit_status);
+        ioThreadRunningSleep = FALSE;
+    }
+
+    AJ_ClearEvents(AJWAITEVENT_TIMER); //reset the event once we have returned here.
+    return AJ_OK;
+}
+#endif
+
 static AJ_Status TxFunc(AJ_IOBuffer* buf)
 {
     size_t tx = AJ_IO_BUF_AVAIL(buf);;
+
+#ifdef AJ_YIELD
+    ///  spin a thread here to set the writeEvent
+    int ret = 0;
+    if (!ioThreadRunningWrite) {
+        ret = pthread_create(&threadIdWrite, NULL, AJ_WriteReady_Mutter, NULL);
+        if (ret != 0) {
+            printf("Error: fail to spin a thread for writing\n");
+        }
+        ioThreadRunningWrite = TRUE;
+    }
+
+    AJ_YieldUntil(AJWAITEVENT_WRITE);
+
+    /// wait for the thread to finish and then cleanup
+    void* exit_status;
+    if (ioThreadRunningWrite) {
+        pthread_join(threadIdWrite, &exit_status);
+        ioThreadRunningWrite = FALSE;
+    }
+
+    AJ_ClearEvents(AJWAITEVENT_WRITE | AJWAITEVENT_TIMER); //reset the event once we have returned here.
+#endif
 
     if ((wireBytes + tx) > sizeof(wireBuffer)) {
         return AJ_ERR_WRITE;
@@ -46,6 +139,29 @@ static AJ_Status TxFunc(AJ_IOBuffer* buf)
 AJ_Status RxFunc(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     size_t rx = AJ_IO_BUF_SPACE(buf);
+
+#ifdef AJ_YIELD
+    ///  spin a thread here to set the readEvent
+    int ret = 0;
+    if (!ioThreadRunningRead) {
+        ret = pthread_create(&threadIdRead, NULL, AJ_ReadReady_Mutter, (void*)timeout);
+        if (ret != 0) {
+            printf("Error: fail to spin a thread for reading\n");
+        }
+        ioThreadRunningRead = TRUE;
+    }
+
+    AJ_YieldUntil(AJWAITEVENT_READ | AJWAITEVENT_TIMER);
+
+    /// wait for the thread to finish and then cleanup
+    void* exit_status;
+    if (ioThreadRunningRead) {
+        pthread_join(threadIdRead, &exit_status);
+        ioThreadRunningRead = FALSE;
+    }
+
+    AJ_ClearEvents(AJWAITEVENT_READ | AJWAITEVENT_TIMER); //reset the event once we have returned here.
+#endif
 
     rx = min(len, rx);
     rx = min(wireBytes, rx);
@@ -74,7 +190,9 @@ static const char* testSignature[] = {
     "(vvvv)",
     "uqay",
     "a(uuuu)",
-    "a(sss)"
+    "a(sss)",
+    "ya{ss}",
+    "yyyyya{ys}"
 };
 
 typedef struct {
@@ -101,6 +219,10 @@ extern AJ_MutterHook MutterHook;
 
 static const char* Fruits[] = {
     "apple", "banana", "cherry", "durian", "elderberry", "fig", "grape"
+};
+
+static const char* Colors[] = {
+    "azure", "blue", "cyan", "dun", "ecru"
 };
 
 static const uint8_t Data8[] = { 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0, 0xA1, 0xB1, 0xC2, 0xD3 };
@@ -139,15 +261,15 @@ int AJ_Main()
     bus.sock.tx.direction = AJ_IO_BUF_TX;
     bus.sock.tx.bufSize = sizeof(txBuffer);
     bus.sock.tx.bufStart = txBuffer;
-    bus.sock.tx.readPtr = txBuffer;
-    bus.sock.tx.writePtr = txBuffer;
+    bus.sock.tx.readPtr = bus.sock.tx.bufStart;
+    bus.sock.tx.writePtr = bus.sock.tx.bufStart;
     bus.sock.tx.send = TxFunc;
 
     bus.sock.rx.direction = AJ_IO_BUF_RX;
     bus.sock.rx.bufSize = sizeof(rxBuffer);
     bus.sock.rx.bufStart = rxBuffer;
-    bus.sock.rx.readPtr = rxBuffer;
-    bus.sock.rx.writePtr = rxBuffer;
+    bus.sock.rx.readPtr = bus.sock.rx.bufStart;
+    bus.sock.rx.writePtr = bus.sock.rx.bufStart;
     bus.sock.rx.recv = RxFunc;
 
     /*
@@ -302,12 +424,45 @@ int AJ_Main()
             CHECK(AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY));
             CHECK(AJ_MarshalCloseContainer(&txMsg, &array1));
             break;
+
+        case 11:
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 127));
+            CHECK(AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY));
+            for (key = 0; key < ArraySize(Colors); ++key) {
+                AJ_Arg dict;
+                CHECK(AJ_MarshalContainer(&txMsg, &dict, AJ_ARG_DICT_ENTRY));
+                CHECK(AJ_MarshalArgs(&txMsg, "ss", Colors[key], Fruits[key]));
+                CHECK(AJ_MarshalCloseContainer(&txMsg, &dict));
+            }
+            if (status == AJ_OK) {
+                CHECK(AJ_MarshalCloseContainer(&txMsg, &array1));
+            }
+            break;
+
+        case 12:
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 0x11));
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 0x22));
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 0x33));
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 0x44));
+            CHECK(AJ_MarshalArgs(&txMsg, "y", 0x55));
+            CHECK(AJ_MarshalContainer(&txMsg, &array1, AJ_ARG_ARRAY));
+            for (key = 0; key < ArraySize(Colors); ++key) {
+                AJ_Arg dict;
+                CHECK(AJ_MarshalContainer(&txMsg, &dict, AJ_ARG_DICT_ENTRY));
+                CHECK(AJ_MarshalArgs(&txMsg, "ys", (uint8_t)key, Colors[key]));
+                CHECK(AJ_MarshalCloseContainer(&txMsg, &dict));
+            }
+            if (status == AJ_OK) {
+                CHECK(AJ_MarshalCloseContainer(&txMsg, &array1));
+            }
+            break;
         }
         if (status != AJ_OK) {
             AJ_Printf("Failed %d\n", i);
             break;
         }
 
+        AJ_Printf("deliver\n");
         AJ_DeliverMsg(&txMsg);
 
         status = AJ_UnmarshalMsg(&bus, &rxMsg, 0);
@@ -510,6 +665,49 @@ int AJ_Main()
                 CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
             }
             break;
+
+        case 11:
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (TRUE) {
+                AJ_Arg dict;
+                char* fruit;
+                char* color;
+                CHECK(AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY));
+                CHECK(AJ_UnmarshalArgs(&rxMsg, "ss", &color, &fruit));
+                AJ_Printf("Unmarshal[%s] = %s\n", color, fruit);
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &dict));
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            }
+            break;
+
+        case 12:
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "y", &y));
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &array1, AJ_ARG_ARRAY));
+            while (TRUE) {
+                AJ_Arg dict;
+                char* color;
+                CHECK(AJ_UnmarshalContainer(&rxMsg, &dict, AJ_ARG_DICT_ENTRY));
+                CHECK(AJ_UnmarshalArgs(&rxMsg, "ys", &y, &color));
+                AJ_Printf("Unmarshal[%d] = %s\n", y, color);
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &dict));
+            }
+            /*
+             * We expect AJ_ERR_NO_MORE
+             */
+            if (status == AJ_ERR_NO_MORE) {
+                CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
+            }
+            break;
         }
         if (status != AJ_OK) {
             AJ_Printf("Failed %d\n", i);
@@ -523,11 +721,46 @@ int AJ_Main()
         AJ_Printf("Marshal/Unmarshal unit test[%d] failed %d\n", i, status);
     }
 
-    return 0;
+#ifdef AJ_YIELD
+    // test the sleep function.
+    AJ_sleepFunc(1);
+    AJ_Printf("slept 1\n");
+    AJ_sleepFunc(5);
+    AJ_Printf("slept 5\n");
+
+    AJ_sleepFunc(1000);
+    AJ_Printf("slept 1000\n");
+
+    // instead of returning, trigger an exitEvent and yield out
+    AJ_Schedule(AJWAITEVENT_EXIT);
+    AJ_YieldUntil(AJWAITEVENT_EXIT);
+
+    while (1) {
+        assert("Ran past the yield point. Crash!");
+    }
+#endif
 }
+
+#ifdef AJ_YIELD
+extern AJ_MainRoutineType AJ_MainRoutine;
+
+int main()
+{
+    AJ_MainRoutine = AJ_Main;
+
+    while (1) {
+        AJ_Loop();
+        if (AJ_GetEventState(AJWAITEVENT_EXIT)) {
+            return(0); // got the signal, so exit the app.
+        }
+    }
+}
+#else
 #ifdef AJ_MAIN
 int main()
 {
     return AJ_Main();
 }
 #endif
+#endif
+

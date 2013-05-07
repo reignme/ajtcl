@@ -87,7 +87,6 @@ AJ_Status AppHandleCat(AJ_Message* msg)
 {
     AJ_Status status = AJ_OK;
     AJ_Message reply;
-    AJ_Arg arg;
     char* partA;
     char* partB;
     char* totalString;
@@ -95,7 +94,7 @@ AJ_Status AppHandleCat(AJ_Message* msg)
 
     AJ_UnmarshalArgs(msg, "ss", &partA, &partB);
 
-    totalString = (char*) malloc(strlen(partA) + strlen(partB));
+    totalString = (char*) AJ_Malloc(strlen(partA) + strlen(partB));
     strcpy(totalString, partA);
     strcat(totalString, partB);
 
@@ -103,7 +102,7 @@ AJ_Status AppHandleCat(AJ_Message* msg)
     AJ_MarshalArgs(&reply, "s", totalString);
 
     status = AJ_DeliverMsg(&reply);
-    free(totalString);
+    AJ_Free(totalString);
     return status;
 }
 

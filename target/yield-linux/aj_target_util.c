@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -17,11 +17,11 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include <windows.h>
-#include <process.h>
-#include <sys/timeb.h>
+#include <time.h>
+#include <unistd.h>
 #include <stdio.h>
-#include <assert.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 #include "aj_target.h"
 #include "aj_util.h"
@@ -33,23 +33,36 @@ AJ_Status AJ_SuspendWifi(uint32_t msec)
 
 void AJ_Sleep(uint32_t time)
 {
-    Sleep(time);
+    usleep(1000 * time);
 }
 
 uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative)
 {
     uint32_t elapsed;
-    struct _timeb now;
+    struct timespec now;
 
-    _ftime(&now);
+    clock_gettime(CLOCK_MONOTONIC, &now);
 
-    elapsed = (uint32_t)((1000 * (now.time - timer->seconds)) + (now.millitm - timer->milliseconds));
+    elapsed = (1000 * (now.tv_sec - timer->seconds)) + ((now.tv_nsec / 1000000) - timer->milliseconds);
     if (!cumulative) {
-        timer->seconds = (uint32_t)now.time;
-        timer->milliseconds = (uint32_t)now.millitm;
+        timer->seconds = now.tv_sec;
+        timer->milliseconds = now.tv_nsec / 1000000;
     }
     return elapsed;
 }
+
+void* AJ_Malloc(size_t sz)
+{
+    return malloc(sz);
+}
+
+void AJ_Free(void* mem)
+{
+    if (mem) {
+        free(mem);
+    }
+}
+
 /*
  * get a line of input from the the file pointer (most likely stdin).
  * This will capture the the num-1 characters or till a newline character is
@@ -62,7 +75,7 @@ uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative)
  * @return returns the same string as 'str' if there has been a read error a null
  *                 pointer will be returned and 'str' will remain unchanged.
  */
-char*AJ_GetLine(char*str, int num, FILE*fp)
+char*AJ_GetLine(char*str, size_t num, void*fp)
 {
     char*p = fgets(str, num, fp);
 
@@ -75,14 +88,12 @@ char*AJ_GetLine(char*str, int num, FILE*fp)
     return p;
 }
 
-static boolean ioThreadRunning = FALSE;
+static uint8_t ioThreadRunning = FALSE;
 static char cmdline[1024];
-static const uint32_t stacksize = 80 * 1024;
 static uint8_t consumed = TRUE;
-static HANDLE handle;
-static unsigned int threadId;
+static pthread_t threadId;
 
-unsigned __stdcall RunFunc(void* threadArg)
+void* RunFunc(void* threadArg)
 {
     while (ioThreadRunning) {
         if (consumed) {
@@ -96,11 +107,11 @@ unsigned __stdcall RunFunc(void* threadArg)
 
 uint8_t AJ_StartReadFromStdIn()
 {
+    int ret = 0;
     if (!ioThreadRunning) {
-        handle = _beginthreadex(NULL, stacksize, &RunFunc, NULL, 0, &threadId);
-        if (handle <= 0) {
-            printf("Fail to spin a thread for reading from stdin\n");
-            return FALSE;
+        ret = pthread_create(&threadId, NULL, RunFunc, NULL);
+        if (ret != 0) {
+            printf("Error: fail to spin a thread for reading from stdin\n");
         }
         ioThreadRunning = TRUE;
         return TRUE;
@@ -121,7 +132,9 @@ char* AJ_GetCmdLine(char* buf, size_t num)
 
 uint8_t AJ_StopReadFromStdIn()
 {
+    void* exit_status;
     if (ioThreadRunning) {
+        pthread_join(threadId, &exit_status);
         ioThreadRunning = FALSE;
         return TRUE;
     }

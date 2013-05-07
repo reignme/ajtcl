@@ -1,8 +1,10 @@
+#ifndef _AJ_TARGET_H
+#define _AJ_TARGET_H
 /**
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -17,16 +19,42 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include "aj_target.h"
-#include "aj_init.h"
-#include "aj_nvram.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
 
-static uint8_t initialized = FALSE;
 
-void AJ_Initialize(void)
-{
-    if (!initialized) {
-        initialized = TRUE;
-        AJ_NVRAM_Init();
-    }
-}
+#ifndef TRUE
+#define TRUE (1)
+#endif
+
+#ifndef FALSE
+#define FALSE (0)
+#endif
+
+#ifndef max
+#define max(x, y) ((x) > (y) ? (x) : (y))
+#endif
+
+#ifndef min
+#define min(x, y) ((x) < (y) ? (x) : (y))
+#endif
+
+#define HOST_IS_LITTLE_ENDIAN  TRUE
+#define HOST_IS_BIG_ENDIAN     FALSE
+
+#ifndef NDEBUG
+    #define AJ_Printf(fmat, ...) \
+    do { printf(fmat, ## __VA_ARGS__); } while (0)
+#else
+    #define AJ_Printf(fmat, ...)
+#endif
+
+#define AJ_ASSERT(x) assert(x)
+
+
+#include "aj_scheduler.h"
+#endif

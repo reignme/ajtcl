@@ -215,11 +215,28 @@ int AJ_Main(void)
     return status;
 }
 
+#ifdef AJ_YIELD
+extern AJ_MainRoutineType AJ_MainRoutine;
+
+int main()
+{
+    AJ_MainRoutine = AJ_Main;
+
+    // authFlag = AJ_FLAG_ENCRYPTED;
+    while (1) {
+        AJ_Loop();
+        if (AJ_GetEventState(AJWAITEVENT_EXIT)) {
+            return(0); // got the signal, so exit the app.
+        }
+    }
+}
+#else
 #ifdef AJ_MAIN
 int main()
 {
     // authFlag = AJ_FLAG_ENCRYPTED;
     return AJ_Main();
 }
+#endif
 #endif
 

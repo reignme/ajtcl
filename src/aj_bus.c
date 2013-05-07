@@ -239,8 +239,29 @@ AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId)
     return status;
 }
 
-#if 0
-AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* signalName, const char* interfaceName, uint8_t rule)
+AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uint8_t rule)
+{
+    AJ_Status status;
+    AJ_Message msg;
+    uint32_t msgId = (rule == AJ_BUS_SIGNAL_ALLOW) ? AJ_METHOD_ADD_MATCH : AJ_METHOD_REMOVE_MATCH;
+
+    status = AJ_MarshalMethodCall(bus, &msg, msgId, AJ_DBusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        uint32_t sz = 0;
+        uint8_t nul = 0;
+        sz = (uint32_t)strlen(ruleString);
+        status = AJ_DeliverMsgPartial(&msg, sz + 5);
+        AJ_MarshalRaw(&msg, &sz, 4);
+        AJ_MarshalRaw(&msg, ruleString, strlen(ruleString));
+        AJ_MarshalRaw(&msg, &nul, 1);
+    }
+    if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
+AJ_Status AJ_BusSetSignalRule2(AJ_BusAttachment* bus, const char* signalName, const char* interfaceName, uint8_t rule)
 {
     AJ_Status status;
     AJ_Message msg;
@@ -273,29 +294,6 @@ AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* signalName, con
     }
     return status;
 }
-#endif
-
-AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uint8_t rule)
-{
-    AJ_Status status;
-    AJ_Message msg;
-    uint32_t msgId = (rule == AJ_BUS_SIGNAL_ALLOW) ? AJ_METHOD_ADD_MATCH : AJ_METHOD_REMOVE_MATCH;
-
-    status = AJ_MarshalMethodCall(bus, &msg, msgId, AJ_DBusDestination, 0, 0, TIMEOUT);
-    if (status == AJ_OK) {
-        uint32_t sz = 0;
-        uint8_t nul = 0;
-        sz = (uint32_t)strlen(ruleString);
-        status = AJ_DeliverMsgPartial(&msg, sz + 5);
-        AJ_MarshalRaw(&msg, &sz, 4);
-        AJ_MarshalRaw(&msg, ruleString, strlen(ruleString));
-        AJ_MarshalRaw(&msg, &nul, 1);
-    }
-    if (status == AJ_OK) {
-        status = AJ_DeliverMsg(&msg);
-    }
-    return status;
-}
 
 AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept)
 {
@@ -309,8 +307,10 @@ AJ_Status AJ_BusReplyAcceptSession(AJ_Message* msg, uint32_t accept)
 static AJ_Status HandleGetMachineId(AJ_Message* msg, AJ_Message* reply)
 {
     char guidStr[33];
+    AJ_GUID localGuid;
     AJ_MarshalReplyMsg(msg, reply);
-    AJ_GUID_ToString(AJ_GetLocalGUID(), guidStr, sizeof(guidStr));
+    AJ_GetLocalGUID(&localGuid);
+    AJ_GUID_ToString(&localGuid, guidStr, sizeof(guidStr));
     return AJ_MarshalArgs(reply, "s", guidStr);
 }
 
@@ -370,6 +370,7 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
         break;
 
     case AJ_SIGNAL_SESSION_JOINED:
+    case AJ_SIGNAL_NAME_ACQUIRED:
         // nothing to do here
         status = AJ_OK;
         break;

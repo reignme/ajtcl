@@ -99,6 +99,7 @@ AJ_Status AJ_PeerHandleExchangeGUIDs(AJ_Message* msg, AJ_Message* reply)
     uint32_t version;
     char* str;
     AJ_GUID remoteGuid;
+    AJ_GUID localGuid;
 
     AJ_UnmarshalArgs(msg, "su", &str, &version);
     AJ_GUID_FromString(&remoteGuid, str);
@@ -108,7 +109,8 @@ AJ_Status AJ_PeerHandleExchangeGUIDs(AJ_Message* msg, AJ_Message* reply)
      */
     version = REQUIRED_AUTH_VERSION;
     AJ_MarshalReplyMsg(msg, reply);
-    AJ_GUID_ToString(AJ_GetLocalGUID(), guidStr, sizeof(guidStr));
+    AJ_GetLocalGUID(&localGuid);
+    AJ_GUID_ToString(&localGuid, guidStr, sizeof(guidStr));
     return AJ_MarshalArgs(reply, "su", guidStr, version);
 }
 
@@ -193,13 +195,13 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
     const uint8_t* data[4];
     uint8_t lens[4];
     const AJ_GUID* peerGuid = AJ_GUID_Find(peerName);
-    const AJ_PeerCred* cred = peerGuid ? AJ_GetRemoteCredential(peerGuid) : NULL;
-
-    if (!cred) {
+    AJ_PeerCred cred;
+    status = AJ_GetRemoteCredential(peerGuid, &cred);
+    if (AJ_OK != status) {
         return AJ_ERR_NO_MATCH;
     }
-    data[0] = cred->secret;
-    lens[0] = (uint32_t)sizeof(cred->secret);
+    data[0] = cred.secret;
+    lens[0] = (uint32_t)sizeof(cred.secret);
     data[1] = (uint8_t*)nonce1;
     lens[1] = (uint32_t)strlen(nonce1);
     data[2] = (uint8_t*)nonce2;
@@ -236,6 +238,7 @@ AJ_Status AJ_PeerHandleGenSessionKey(AJ_Message* msg, AJ_Message* reply)
     char* locGuid;
     char* nonce;
     AJ_GUID guid;
+    AJ_GUID localGuid;
     /*
      * For 12 bytes of verifier, we need at least 12 * 2 characters
      * to store its representation in hex (24 octets + 1 octet for \0).
@@ -253,7 +256,10 @@ AJ_Status AJ_PeerHandleGenSessionKey(AJ_Message* msg, AJ_Message* reply)
      * We expect arg[1] to be the local GUID
      */
     status = AJ_GUID_FromString(&guid, locGuid);
-    if ((status != AJ_OK) || (memcmp(&guid, AJ_GetLocalGUID(), sizeof(AJ_GUID)) != 0)) {
+    if (AJ_OK == status) {
+        status = AJ_GetLocalGUID(&localGuid);
+    }
+    if ((status != AJ_OK) || (memcmp(&guid, &localGuid, sizeof(AJ_GUID)) != 0)) {
         return AJ_MarshalErrorMsg(msg, reply, AJ_ErrRejected);
     }
     AJ_RandHex(authContext.nonce, sizeof(authContext.nonce), NONCE_LEN);
@@ -307,6 +313,7 @@ AJ_Status AJ_PeerAuthenticate(AJ_BusAttachment* bus, const char* peerName, AJ_Pe
 {
     AJ_Message msg;
     char guidStr[33];
+    AJ_GUID localGuid;
     uint32_t version = REQUIRED_AUTH_VERSION;
 
     /*
@@ -332,7 +339,8 @@ AJ_Status AJ_PeerAuthenticate(AJ_BusAttachment* bus, const char* peerName, AJ_Pe
      * Kick off autnetication with an ExchangeGUIDS method call
      */
     AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_EXCHANGE_GUIDS, peerName, 0, AJ_NO_FLAGS, CALL_TIMEOUT);
-    AJ_GUID_ToString(AJ_GetLocalGUID(), guidStr, sizeof(guidStr));
+    AJ_GetLocalGUID(&localGuid);
+    AJ_GUID_ToString(&localGuid, guidStr, sizeof(guidStr));
     AJ_MarshalArgs(&msg, "su", guidStr, version);
     return AJ_DeliverMsg(&msg);
 }
@@ -351,7 +359,9 @@ static AJ_Status GenSessionKey(AJ_Message* msg)
      */
     {
         char guidStr[33];
-        AJ_GUID_ToString(AJ_GetLocalGUID(), guidStr, sizeof(guidStr));
+        AJ_GUID localGuid;
+        AJ_GetLocalGUID(&localGuid);
+        AJ_GUID_ToString(&localGuid, guidStr, sizeof(guidStr));
         AJ_MarshalArgs(&call, "s", guidStr);
         AJ_GUID_ToString(authContext.peerGuid, guidStr, sizeof(guidStr));
         AJ_RandHex(authContext.nonce, sizeof(authContext.nonce), NONCE_LEN);

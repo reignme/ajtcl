@@ -21,11 +21,10 @@
 #include "aj_crypto.h"
 
 
-#define MAX_SCHEDULE_LEN 120
+#define MAX_SCHEDULE_LEN 48
 
 typedef struct {
     uint32_t fkey[MAX_SCHEDULE_LEN];
-    uint8_t fi[24];
 } AES_CTX;
 
 static AES_CTX aes_context;
@@ -166,7 +165,7 @@ static uint32_t SubBytes(uint32_t a)
 #define ROUNDS 10
 
 
-static void EncryptRounds(uint32_t*y, uint32_t*x, uint32_t*key)
+static void EncryptRounds(uint32_t* y, uint32_t* x, uint32_t* key)
 {
     int i;
     uint32_t x0 = x[0];
@@ -195,7 +194,7 @@ static void EncryptRounds(uint32_t*y, uint32_t*x, uint32_t*key)
 void AJ_AES_Enable(const uint8_t* key)
 {
     int i;
-    uint32_t*fkey = aes_context.fkey;
+    uint32_t* fkey = aes_context.fkey;
 
     Pack32(fkey, key);
     for (i = 0; i <= ROUNDS; ++i, fkey += 4) {

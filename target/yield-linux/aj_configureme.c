@@ -1,8 +1,5 @@
-/**
- * @file
- */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -17,16 +14,33 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include "aj_target.h"
-#include "aj_init.h"
-#include "aj_nvram.h"
+#include <aj_configureme.h>
+#include <aj_helper.h>
 
-static uint8_t initialized = FALSE;
 
-void AJ_Initialize(void)
+static AJ_Configuration Config;
+
+#define CONFIG_SENTINEL 0xAABBCCDD
+
+AJ_Configuration* AJ_InitializeConfig()
 {
-    if (!initialized) {
-        initialized = TRUE;
-        AJ_NVRAM_Init();
-    }
+    memset(&Config, 0, sizeof(AJ_Configuration));
+    Config.sentinel = CONFIG_SENTINEL;
+    return &Config;
+}
+
+void AJ_WriteConfiguration(AJ_Configuration* config)
+{
+    memcpy(&Config, config, sizeof(AJ_Configuration));
+}
+
+void AJ_ClearAll()
+{
+    memset(&Config, 0, sizeof(AJ_Configuration));
+}
+
+const AJ_Configuration* AJ_GetConfiguration()
+{
+    AJ_Configuration* config = &Config;
+    return (config->sentinel == CONFIG_SENTINEL ? config : NULL);
 }
