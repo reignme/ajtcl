@@ -21,6 +21,18 @@
  ******************************************************************************/
 #include "alljoyn.h"
 
+/*
+ * Identifies an AJ NVRAM block
+ */
+#define AJ_NV_SENTINEL ('A' | ('J' << 8) | ('N' << 16) | ('V' << 24))
+#define DEFAULT_ENTRY_BUF_SIZE 64
+#define INVALID_ID 0
+#define INVALID_DATA 0xFFFF
+#define INVALID_DATA_BYTE 0xFF
+#define SENTINEL_OFFSET 4
+#define ENTRY_HEADER_SIZE 4
+#define WORD_ALIGN(x) ((x & 0x3) ? ((x >> 2) + 1) << 2 : x)
+
 #define AJ_NVRAM_SIZE 512
 
 /**

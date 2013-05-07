@@ -22,6 +22,10 @@
 
 #include "alljoyn.h"
 
+#define AJ_NVRAM_ID_CREDS_MAX        0x0FFF   /**< Last NVRAM ID reserved for AllJoyn credentials management */
+#define AJ_NVARM_ID_RESERVED_MAX     0x7FFF   /**< Last NVRAM ID reserved for AllJoyn framework and services use */
+#define AJ_NVRAM_ID_FOR_APPS         0x8000   /**< First NVRAM ID available for application used */
+
 /**
  * AllJoyn NVRAM file handle
  */
@@ -36,18 +40,6 @@ typedef struct _AJ_NV_FILE {
     uint16_t* inode;       /**< Point to a location in the NVRAM storage where the data set lives */
 } AJ_NV_FILE;
 
-/*
- * Identifies an AJ NVRAM block
- */
-#define AJ_NV_SENTINEL ('A' | ('J' << 8) | ('N' << 16) | ('V' << 24))
-#define DEFAULT_ENTRY_BUF_SIZE 64
-#define INVALID_ID 0
-#define INVALID_DATA 0xFFFF
-#define INVALID_DATA_BYTE 0xFF
-#define SENTINEL_OFFSET 4
-#define ENTRY_HEADER_SIZE 4
-#define WORD_ALIGN(x) ((x & 0x3) ? ((x >> 2) + 1) << 2 : x)
-
 /**
  * Initialize NVRAM
  */
@@ -56,14 +48,11 @@ void AJ_NVRAM_Init();
 /**
  * Open a data set
  *
- * @param id  A unique id for a data set. The value must not be 0. Note that id 1~16 are reserved for authentication credentials.
+ * @param id  A unique id for a data set. The value must not be 0.
  * @param mode C string containing a data set access mode. It can be:
  *    "r"  : read: Open data set for input operations. The data set must exist.
  *    "w"  : write: Create an empty data set for output operations. If a data set with the same id already exists, its contents are discarded.
  *    "a"  : append: Open data set for output at the end of a data set. The data set is created if it does not exist.
- *    "r+" : read/update: Open a data set for update (both for input and output). The data set must exist.
- *    "w+" : write/update: Create an empty data set and open it for update (both for input and output). If a data set with the same id already exists its contents are discarded.
- *    "a+" : append/update: Open a data set for update (both for input and output) with all output operations writing data at the end of the data set. The data set is created if it does not exist.
  *
  * @return A handle that specifies the data set. NULL if the open operation fails.
  */
