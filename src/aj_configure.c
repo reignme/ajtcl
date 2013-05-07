@@ -20,7 +20,7 @@
 
 
 // general methods
-static const char* AllJoynConfigurationInterface[] = {
+static const char* const AllJoynConfigurationInterface[] = {
     "org.alljoyn.configure",
     "?Identify >s",
     "?MaxProfiles >u",
@@ -30,7 +30,7 @@ static const char* AllJoynConfigurationInterface[] = {
 };
 
 // WIFI-specific methods
-static const char* AllJoynWifiConfigurationInterface[] = {
+static const char* const AllJoynWifiConfigurationInterface[] = {
     "org.alljoyn.configure.wifi",
     "?SetProfile index<u ssid<s password<s auth<u encryption<u",
     "?GetProfile index<u ssid>s password>s auth>u encryption>u",

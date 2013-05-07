@@ -36,7 +36,7 @@ static const uint32_t NumPings = 10;
  */
 static uint8_t authFlag = 0;
 
-static const char* testInterface[] = {
+static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
     "?my_ping inStr<s outStr>s",
     "?delayed_ping inStr<s delay<u outStr>s",

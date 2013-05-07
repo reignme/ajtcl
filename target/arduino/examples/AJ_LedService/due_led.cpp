@@ -32,7 +32,7 @@ static const char DaemonServiceName[] = "org.alljoyn.BusNode.Led";
 static const uint16_t ServicePort = 24;
 
 
-static const char* testInterface[] = {
+static const char* const testInterface[] = {
     "org.alljoyn.sample.ledcontroller",
     "?Flash msec<u",
     "?On",

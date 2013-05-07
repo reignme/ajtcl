@@ -70,7 +70,7 @@ static const AJ_AuthMechanism authAnonymous = {
 /*
  * Authentication mechanisms in order of preference
  */
-static const AJ_AuthMechanism* mechList[] = { &AJ_AuthPin, &authAnonymous, NULL };
+static const AJ_AuthMechanism* const mechList[] = { &AJ_AuthPin, &authAnonymous, NULL };
 
 static AJ_Status SendHello(AJ_BusAttachment* bus)
 {

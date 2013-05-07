@@ -78,7 +78,7 @@ static AuthContext authContext;
 /*
  * Authentication mechanisms (currently on one)
  */
-static const AJ_AuthMechanism* authMechanisms[] = { &AJ_AuthPin, NULL };
+static const AJ_AuthMechanism* const authMechanisms[] = { &AJ_AuthPin, NULL };
 
 /*
  * Check that we are in an authentication with the peer

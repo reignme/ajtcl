@@ -38,7 +38,7 @@ static const char ServiceName[] = "org.alljoyn.bus.test.sessions";
 static const uint16_t ServicePort = 25;
 static uint32_t authenticate = TRUE;
 
-static const char* testInterface[] = {
+static const char* const testInterface[] = {
     "org.alljoyn.bus.test.sessions",
     "!Chat >s",
     NULL

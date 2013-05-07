@@ -32,7 +32,7 @@ static const uint16_t ServicePort = 25;
  *
  * See also .\inc\aj_introspect.h
  */
-static const char* sampleInterface[] = {
+static const char* const sampleInterface[] = {
     "org.alljoyn.Bus.sample",   /* The first entry is the interface name. */
     "?Dummy foo<i",             /* This is just a dummy entry at index 0 for illustration purposes. */
     "?Dummy2 fee<i",            /* This is just a dummy entry at index 1 for illustration purposes. */

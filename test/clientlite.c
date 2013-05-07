@@ -33,14 +33,14 @@ static const uint16_t ServicePort = 24;
  */
 static uint8_t authFlag = 0;
 
-static const char* testInterface[] = {
+static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
     "?my_ping inStr<s outStr>s",
     NULL
 };
 
 
-static const char* testValuesInterface[] = {
+static const char* const testValuesInterface[] = {
     "org.alljoyn.alljoyn_test.values",
     "@int_val=i",
     NULL

@@ -34,7 +34,7 @@ typedef struct {
     uint8_t authLen;     /* Length of the authentication field */
 } TEST_CASE;
 
-static TEST_CASE testVector[] = {
+static TEST_CASE const testVector[] = {
     {
         /* =============== RFC 6130 Packet Vector #1 ================== */
         "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF",

@@ -64,7 +64,7 @@
  *
    @code
 
-   static const char* ExampleInterface[] = {
+   static const char* const ExampleInterface[] = {
     "org.alljoyn.example",                  // The interface name
     "?StringPing inStr<s outStr>",          // A method called StringPing with an IN arg and OUT arg of type string
     "?Hello",                               // A method call with no arguments

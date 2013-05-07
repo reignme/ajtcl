@@ -61,7 +61,7 @@ void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len)
     }
 }
 
-static const char* msgType[] = { "INVALID", "CALL", "REPLY", "ERROR", "SIGNAL" };
+static const char* const msgType[] = { "INVALID", "CALL", "REPLY", "ERROR", "SIGNAL" };
 
 void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 {

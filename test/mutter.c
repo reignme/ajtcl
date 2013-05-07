@@ -179,7 +179,7 @@ AJ_Status RxFunc(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     }
 }
 
-static const char* testSignature[] = {
+static const char* const testSignature[] = {
     "a{us}",
     "u(usu(ii)qsq)yyy",
     "a(usay)",
@@ -217,11 +217,11 @@ extern AJ_MutterHook MutterHook;
 #endif
 
 
-static const char* Fruits[] = {
+static const char* const Fruits[] = {
     "apple", "banana", "cherry", "durian", "elderberry", "fig", "grape"
 };
 
-static const char* Colors[] = {
+static const char* const Colors[] = {
     "azure", "blue", "cyan", "dun", "ecru"
 };
 

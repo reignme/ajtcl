@@ -183,13 +183,13 @@ AJ_Status AJ_SaveWifiProfile(uint32_t index, char* ssid, char* password, uint32_
 static const char ServiceName[] = "org.alljoyn.configureme";
 static const uint16_t ServicePort = 24;
 
-static const char* initialWifiConfigInterface[] = {
+static const char* const initialWifiConfigInterface[] = {
     "org.alljoyn.quickjoyn.wifi",
     "?Save ssid<s password<s auth<u encryption<u",
     NULL
 };
 
-static const char* initialConfigInterface[] = {
+static const char* const initialConfigInterface[] = {
     "org.alljoyn.quickjoyn",
     "?SetPassword password<s",
     "?Identify >s",

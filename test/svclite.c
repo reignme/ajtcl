@@ -35,7 +35,7 @@ static const uint8_t ReflectSignal = FALSE;
  */
 static int32_t propVal = 123456;
 
-static const char* testInterface[] = {
+static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
     "?my_ping inStr<s outStr>s",
     "?delayed_ping inStr<s delay<u outStr>s",
@@ -45,7 +45,7 @@ static const char* testInterface[] = {
 };
 
 
-static const char* testValuesInterface[] = {
+static const char* const testValuesInterface[] = {
     "org.alljoyn.alljoyn_test.values",
     "@int_val=i",
     "@str_val=s",

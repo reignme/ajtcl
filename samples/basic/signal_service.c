@@ -43,7 +43,7 @@ static const uint16_t ServicePort = 25;
  *
  * See also .\inc\aj_introspect.h
  */
-static const char* sampleInterface[] = {
+static const char* const sampleInterface[] = {
     InterfaceName,              /* The first entry is the interface name. */
     "!nameChanged newName>s",   /* Signal at index 0 with an output string of the new name. */
     "@name=s",                  /* Read/write property of the name. */

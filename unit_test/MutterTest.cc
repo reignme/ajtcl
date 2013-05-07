@@ -102,11 +102,11 @@ static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
     return AJ_OK;
 }
 
-static const char* Fruits[] = {
+static const char* const Fruits[] = {
     "apple", "banana", "cherry", "durian", "elderberry", "fig", "grape"
 };
 
-static const char* Colors[] = {
+static const char* const Colors[] = {
     "azure", "blue", "cyan", "dun", "ecru"
 };
 
