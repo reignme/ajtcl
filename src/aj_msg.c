@@ -270,8 +270,8 @@ static AJ_Status EncryptMessage(AJ_Message* msg)
     uint8_t key[16];
     uint8_t nonce[5];
     uint8_t role = AJ_ROLE_KEY_UNDEFINED;
-    uint8_t mlen = MessageLen(msg);
-    uint8_t hlen = mlen - msg->hdr->bodyLen;
+    uint32_t mlen = MessageLen(msg);
+    uint32_t hlen = mlen - msg->hdr->bodyLen;
 
     /*
      * Check there is room to append the MAC
