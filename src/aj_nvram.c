@@ -223,7 +223,7 @@ AJ_NV_FILE* AJ_NVRAM_Open(uint16_t id, char* mode)
 
     entry = AJ_FindNVEntry(id);
     if (!entry && shouldExist) {
-        AJ_Printf("Error: access mode %d requires the data set to exist\n");
+        AJ_Printf("Error: access mode %s requires the data set to exist\n", mode);
         return NULL;
     }
 
