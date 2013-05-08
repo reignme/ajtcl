@@ -100,11 +100,11 @@ void TestNVRAM()
 
     handle = AJ_NVRAM_Open(id, "r");
     assert(handle);
-    printf("total bytes = %d\n", AJ_NVRAM_Size(handle));
+    printf("total bytes = %zu\n", AJ_NVRAM_Size(handle));
     for (i = 0; i < 10; i++) {
         int data;
         size_t read = AJ_NVRAM_Read(&data, sizeof(data), handle);
-        printf(" %d bytes read =  %d \n", read, data);
+        printf(" %zu bytes read =  %d \n", read, data);
     }
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
@@ -113,7 +113,7 @@ void TestNVRAM()
     assert(handle);
     for (i = 0; i < 10; i++) {
         size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %d bytes written\n", written);
+        printf(" %zu bytes written\n", written);
     }
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
@@ -122,7 +122,7 @@ void TestNVRAM()
     assert(handle);
     for (i = 1; i <= 2; i++) {
         size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %d bytes written\n", written);
+        printf(" %zu bytes written\n", written);
     }
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
@@ -131,7 +131,7 @@ void TestNVRAM()
     assert(handle);
     for (i = 0; i < 10; i++) {
         size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %d bytes written =  %d \n", written, i);
+        printf(" %zu bytes written =  %d \n", written, i);
     }
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
@@ -141,9 +141,9 @@ void TestNVRAM()
     {
         uint32_t data = 9;
         size_t written = AJ_NVRAM_Write(&data, 7, handle);
-        printf(" %d bytes written\n", written);
+        printf(" %zu bytes written\n", written);
     }
-    printf("The data set size = %d\n", AJ_NVRAM_Size(handle));
+    printf("The data set size = %zu\n", AJ_NVRAM_Size(handle));
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
 
@@ -152,7 +152,7 @@ void TestNVRAM()
         handle = AJ_NVRAM_Open(id, "a");
         assert(handle);
         written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %d bytes written =  %d \n", written, i);
+        printf(" %zu bytes written =  %d \n", written, i);
         AJ_NVRAM_Close(handle);
         AJ_NVRAM_Layout_Print();
     }
@@ -161,7 +161,7 @@ void TestNVRAM()
     for (i = 0; i < 20; i++) {
         int data;
         size_t read = AJ_NVRAM_Read(&data, sizeof(data), handle);
-        printf(" %d bytes read =  %d \n", read, data);
+        printf(" %zu bytes read =  %d \n", read, data);
     }
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
@@ -170,9 +170,9 @@ void TestNVRAM()
     assert(handle);
     for (i = 0; i < 10; i++) {
         size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %d bytes written\n", written);
+        printf(" %zu bytes written\n", written);
     }
-    printf("The data set size = %d\n", AJ_NVRAM_Size(handle));
+    printf("The data set size = %zu\n", AJ_NVRAM_Size(handle));
     AJ_NVRAM_Close(handle);
     AJ_NVRAM_Layout_Print();
 }

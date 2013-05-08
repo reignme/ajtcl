@@ -50,7 +50,7 @@ uint16_t FindCredsByGUID(const AJ_GUID* peerGuid)
             } else {
                 AJ_GUID guid;
                 if (sizeof(AJ_GUID) != AJ_NVRAM_Read(&guid, sizeof(AJ_GUID), handle)) {
-                    AJ_Printf("Error: fail to read %d bytes from data set with id = %d\n", sizeof(AJ_GUID), id);
+                    AJ_Printf("Error: fail to read %zu bytes from data set with id = %d\n", sizeof(AJ_GUID), id);
                     AJ_NVRAM_Close(handle);
                     continue;
                 }
@@ -75,7 +75,7 @@ AJ_Status UpdatePeerCreds(AJ_PeerCred* peerCred, uint16_t id)
     } else {
         if (peerCred) {
             if (sizeof(AJ_PeerCred) != AJ_NVRAM_Write(peerCred, sizeof(AJ_PeerCred), handle)) {
-                AJ_Printf("Error: fail to read %d bytes from data set with id = %d\n", sizeof(AJ_PeerCred), id);
+                AJ_Printf("Error: fail to read %zu bytes from data set with id = %d\n", sizeof(AJ_PeerCred), id);
                 status = AJ_ERR_FAILURE;
             }
         }

@@ -234,7 +234,15 @@ int AJ_Main(void)
             break;
 
         case AJ_ERR_RESTART:
-            printf("AJ_UnmarshalMsg() returned 'AJ_ERR_RESTART'.\n");
+            printf("AJ_UnmarshalMsg() returned 'The OEM event loop must restart'.\n");
+            break;
+
+        case AJ_ERR_LINK_TIMEOUT:
+            printf("AJ_UnmarshalMsg() returned 'The bus link is inactive too long'.\n");
+            break;
+
+        case AJ_ERR_DRIVER:
+            printf("AJ_UnmarshalMsg() returned 'An error communicating with a lower-layer driver'.\n");
             break;
         }
 
