@@ -263,14 +263,14 @@ size_t AJ_NVRAM_Write(void* ptr, size_t size, AJ_NV_FILE* handle)
         return -1;
     }
 
-    // If necessary, try to allocate a buffer of of bigger size * 1.5
     if (handle->curPos + size > handle->bufSize) {
-        uint8_t* newBuf = (uint8_t*)AJ_Malloc(handle->bufSize + (handle->bufSize >> 1));
+        size_t newSz = handle->curPos + size + 16; // allocate extra 16 bytes to avoid re-malloc two often
+        uint8_t* newBuf = (uint8_t*)AJ_Malloc(newSz);
         if (newBuf) {
             memcpy(newBuf, handle->buf, handle->dataLen);
             AJ_Free(handle->buf);
             handle->buf = newBuf;
-            handle->bufSize += handle->bufSize >> 1;
+            handle->bufSize = newSz;
         }
     }
 
