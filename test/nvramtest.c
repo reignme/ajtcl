@@ -85,14 +85,18 @@ void TestNVRAM()
         AJ_Printf("ID = %d exist = %d\n", (id + i), AJ_NVRAM_Exist(id + i));
     }
 
-    handle = AJ_NVRAM_Open(id, "w");
-    assert(handle);
-    for (i = 1; i <= 20; i++) {
-        size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
+    {
+        uint8_t data[80];
+        size_t written = 0;
+        handle = AJ_NVRAM_Open(id, "w");
+        assert(handle);
+        written = AJ_NVRAM_Write(data, sizeof(data), handle);
         printf(" %zu bytes written\n", written);
+        written = AJ_NVRAM_Write(&i, 4, handle);
+        printf(" %zu bytes written\n", written);
+        AJ_NVRAM_Close(handle);
+        AJ_NVRAM_Layout_Print();
     }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
 
     handle = AJ_NVRAM_Open(id, "r");
     assert(handle);
