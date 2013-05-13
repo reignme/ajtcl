@@ -317,6 +317,9 @@ static AJ_Status HandleGetMachineId(AJ_Message* msg, AJ_Message* reply)
 AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
 {
     AJ_Status status = AJ_OK;
+    char* name;
+    char* oldOwner;
+    char* newOwner;
     AJ_Message reply;
 
     switch (msg->msgId) {
@@ -372,6 +375,14 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
     case AJ_SIGNAL_SESSION_JOINED:
     case AJ_SIGNAL_NAME_ACQUIRED:
         // nothing to do here
+        status = AJ_OK;
+        break;
+
+    case AJ_SIGNAL_NAME_OWNER_CHANGED:
+        AJ_UnmarshalArgs(msg, "sss", &name, &oldOwner, &newOwner);
+        if (newOwner[0] == '\0') {
+            AJ_GUID_DeleteNameMapping(oldOwner);
+        }
         status = AJ_OK;
         break;
 
