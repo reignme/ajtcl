@@ -659,7 +659,7 @@ AJ_Status AJ_MarshalPropertyArgs(AJ_Message* msg, uint32_t propId)
 AJ_MutterHook MutterHook = NULL;
 #endif
 
-AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
+AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType, uint8_t* secure)
 {
     /*
      * Static buffer for holding the signature for the message currently being marshaled. Since this
@@ -669,7 +669,6 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
      * message argument list.
      */
     static char msgSignature[32];
-    uint8_t secure = FALSE;
     AJ_Status status = AJ_OK;
 
 #ifndef NDEBUG
@@ -682,7 +681,7 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          * The only thing to initialize for errors is the msgId
          */
         msg->msgId = AJ_REPLY_ID(msgId);
-        UnpackMsgId(msgId, NULL, NULL, NULL, &secure);
+        UnpackMsgId(msgId, NULL, NULL, NULL, secure);
     } else {
         const char* member;
         char direction = (msgType == AJ_MSG_METHOD_CALL) ? IN_ARG : OUT_ARG;
@@ -691,10 +690,10 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          */
         if (msgType == AJ_MSG_METHOD_RET) {
             msg->msgId = AJ_REPLY_ID(msgId);
-            UnpackMsgId(msgId, NULL, NULL, &member, &secure);
+            UnpackMsgId(msgId, NULL, NULL, &member, secure);
         } else {
             msg->msgId = msgId;
-            UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member, &secure);
+            UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member, secure);
             msg->member = member;
         }
         /*
@@ -705,9 +704,7 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
             msg->signature = msgSignature;
         }
     }
-    if (secure) {
-        msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
-    }
+
     return status;
 }
 

@@ -1203,12 +1203,13 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
     AJ_Status status = AJ_OK;
     AJ_IOBuffer* ioBuf = &msg->bus->sock.tx;
     uint8_t fieldId;
+    uint8_t secure = FALSE;
 
     /*
      * Use the msgId to lookup information in the object and interface descriptions to
      * initialize the message header fields.
      */
-    status = AJ_InitMessageFromMsgId(msg, msgId, msgType);
+    status = AJ_InitMessageFromMsgId(msg, msgId, msgType, &secure);
     if (status != AJ_OK) {
         return status;
     }
@@ -1222,6 +1223,10 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
     msg->hdr->endianess = HOST_ENDIANESS;
     msg->hdr->msgType = msgType;
     msg->hdr->flags = flags;
+    if (secure) {
+        msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
+    }
+
     /*
      * The wire-protocol calls this flag NO_AUTO_START we toggle the meaning in the API
      * so the default flags value can be zero.
