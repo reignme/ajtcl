@@ -119,6 +119,7 @@ AJ_Status AJ_StartService2(AJ_BusAttachment* bus,
                 status = AJ_ERR_FAILURE;
             } else {
                 serviceStarted = TRUE;
+                AJ_BusSetSignalRule2(bus, "NameOwnerChanged", "org.freedesktop.DBus", AJ_BUS_SIGNAL_ALLOW);
             }
             break;
 
@@ -255,6 +256,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
                     status = AJ_UnmarshalArgs(&msg, "uu", &replyCode, sessionId);
                     if (replyCode == AJ_JOINSESSION_REPLY_SUCCESS) {
                         clientStarted = TRUE;
+                        AJ_BusSetSignalRule2(bus, "NameOwnerChanged", "org.freedesktop.DBus", AJ_BUS_SIGNAL_ALLOW);
                     } else {
                         status = AJ_ERR_FAILURE;
                     }
