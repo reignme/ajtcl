@@ -97,7 +97,7 @@ static const char typeAttr[] = " type=\"";
 
 static const char nodeOpen[] = "<node";
 static const char nodeClose[] = "</node>\n";
-static const char isSecure[] = "  <annotation name=\"org.alljoyn.Bus.Secure\" value=\"true\"/>\n";
+static const char annotateSecure[] = "  <annotation name=\"org.alljoyn.Bus.Secure\" value=\"true\"/>\n";
 
 
 
@@ -138,9 +138,11 @@ static AJ_Status ExpandInterfaces(XMLWriterFunc XMLWriter, void* context, const 
     while (*iface) {
         const char* const* entries = *iface;
         if (entries[0][0] == SECURE) {
-            // if secure, skip the first char of the name
+            /*
+             * if secure, skip the first char (the $) of the name
+             */
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0] + 1, 0, FALSE);
-            XMLWriter(context, isSecure, 0);
+            XMLWriter(context, annotateSecure, 0);
         } else {
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0], 0, FALSE);
         }
@@ -572,7 +574,7 @@ static uint8_t CheckIndex(const void* ptr, uint8_t index, size_t stride)
 }
 #endif
 
-static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** iface, const char** member)
+static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** iface, const char** member, uint8_t* secure)
 {
     uint8_t oIndex = (msgId >> 24);
     uint8_t pIndex = (msgId >> 16);
@@ -600,11 +602,19 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
     if (objPath) {
         *objPath = obj->path;
     }
+    *secure = (**ifc == SECURE);
     if (iface) {
-        // go past '$' if encrypted
-        *iface = ifc[0] + (int) (ifc[0][0] == SECURE);
+        *iface = *ifc;
+        /*
+         * Skip past '$' if the interface was secure
+         */
+        if (*secure) {
+            *iface += 1;
+        }
     }
-    *member = ifc[mIndex] + 1;
+    if (member) {
+        *member = ifc[mIndex] + 1;
+    }
     return AJ_OK;
 }
 
@@ -613,10 +623,14 @@ AJ_Status AJ_MarshalPropertyArgs(AJ_Message* msg, uint32_t propId)
     AJ_Status status;
     const char* iface;
     const char* prop;
+    uint8_t secure;
     size_t pos;
     AJ_Arg arg;
 
-    UnpackMsgId(propId, NULL, &iface, &prop);
+    UnpackMsgId(propId, NULL, &iface, &prop, &secure);
+    if (secure) {
+        msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
+    }
     /*
      * Marshal interface name
      */
@@ -655,6 +669,7 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
      * message argument list.
      */
     static char msgSignature[32];
+    uint8_t secure = FALSE;
     AJ_Status status = AJ_OK;
 
 #ifndef NDEBUG
@@ -667,6 +682,7 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          * The only thing to initialize for errors is the msgId
          */
         msg->msgId = AJ_REPLY_ID(msgId);
+        UnpackMsgId(msgId, NULL, NULL, NULL, &secure);
     } else {
         const char* member;
         char direction = (msgType == AJ_MSG_METHOD_CALL) ? IN_ARG : OUT_ARG;
@@ -675,10 +691,10 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          */
         if (msgType == AJ_MSG_METHOD_RET) {
             msg->msgId = AJ_REPLY_ID(msgId);
-            UnpackMsgId(msgId, NULL, NULL, &member);
+            UnpackMsgId(msgId, NULL, NULL, &member, &secure);
         } else {
             msg->msgId = msgId;
-            UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member);
+            UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member, &secure);
             msg->member = member;
         }
         /*
@@ -689,18 +705,29 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
             msg->signature = msgSignature;
         }
     }
+    if (secure) {
+        msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
+    }
     return status;
 }
 
 static AJ_Status CheckReturnSignature(AJ_Message* msg, uint32_t msgId)
 {
     AJ_Status status = AJ_OK;
+    uint8_t secure = FALSE;
+    const char* member;
+
+    UnpackMsgId(msgId, NULL, NULL, &member, &secure);
+    /*
+     * Check that if the interface was flagged secure that them reply was encrypted
+     */
+    if (secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
+        return AJ_ERR_SECURITY;
+    }
     /*
      * Nothing to check for error messages
      */
     if (msg->hdr->msgType != AJ_MSG_ERROR) {
-        const char* member;
-        UnpackMsgId(msgId, NULL, NULL, &member);
         status = CheckSignature(member, msg);
     }
     if (status == AJ_OK) {
@@ -726,6 +753,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
     uint8_t pIndex = (msg->msgId >> 16);
     const AJ_Object* obj;
     char* iface;
+    uint8_t secure = FALSE;
     char* prop;
 
 #ifndef NDEBUG
@@ -747,6 +775,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
                 status = MatchProp(*desc, prop, msg->msgId & 0xFF, sig, len);
                 if (status != AJ_ERR_NO_MATCH) {
                     if (status == AJ_OK) {
+                        secure = (**desc == SECURE);
                         *propId = (oIndex << 24) | (pIndex << 16) | (iIndex << 8) | mIndex;
                         AJ_Printf("Identified property %x sig \"%s\"\n", *propId, sig);
                     }
@@ -755,6 +784,13 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
                 ++mIndex;
             }
         }
+    }
+    /*
+     * If the interface is secure check the message must be encrypted
+     */
+    if ((status == AJ_OK) && secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
+        status = AJ_ERR_SECURITY;
+        AJ_Printf("Security violation accessing property\n");
     }
     return status;
 }
