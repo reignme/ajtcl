@@ -44,7 +44,7 @@ if env['TARG'] == 'win32':
         env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
         env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
 elif env['TARG'] == 'linux' or env['TARG'] == 'yield-linux':
-    env['libs'] = ['rt', 'crypto']
+    env['libs'] = ['rt', 'crypto', 'pthread']
     env.Append(LINKFLAGS=[''])
     env.Append(CFLAGS=['-Wall',
                        '-pipe',
