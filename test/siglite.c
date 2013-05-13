@@ -32,9 +32,10 @@ static const uint32_t NumPings = 10;
 
 
 /*
- * Use AJ_FLAG_ENCRYPTED for authFlag to request app-to-app authentication
+ * The app should authenticate the peer if one or more interfaces are secure
+ * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
  */
-static uint8_t authFlag = 0;
+static uint8_t authPeer = FALSE;
 
 static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
@@ -106,7 +107,7 @@ static AJ_Status SendSignal(AJ_BusAttachment* bus, uint32_t sessionId)
     AJ_Message msg;
 
 
-    status = AJ_MarshalSignal(bus, &msg, PRX_MY_SIGNAL, ServiceName, sessionId, authFlag, 0);
+    status = AJ_MarshalSignal(bus, &msg, PRX_MY_SIGNAL, ServiceName, sessionId, 0, 0);
     if (status == AJ_OK) {
         AJ_Arg arg;
         status = AJ_MarshalContainer(&msg, &arg, AJ_ARG_ARRAY);
@@ -149,7 +150,7 @@ int AJ_Main(void)
                 printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
                 printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
                 connected = TRUE;
-                if (authFlag) {
+                if (authPeer) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
                     status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
                     if (status != AJ_OK) {
@@ -222,7 +223,6 @@ int main()
 {
     AJ_MainRoutine = AJ_Main;
 
-    // authFlag = AJ_FLAG_ENCRYPTED;
     while (1) {
         AJ_Loop();
         if (AJ_GetEventState(AJWAITEVENT_EXIT)) {
@@ -234,7 +234,6 @@ int main()
 #ifdef AJ_MAIN
 int main()
 {
-    // authFlag = AJ_FLAG_ENCRYPTED;
     return AJ_Main();
 }
 #endif

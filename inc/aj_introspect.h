@@ -204,7 +204,7 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply);
  *
  * @return          Return AJ_Status
  */
-AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType);
+AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType, uint8_t* secure);
 
 /**
  * Internal function to allocate a reply context for a method call message. Reply contexts are used

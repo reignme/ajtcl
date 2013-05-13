@@ -29,9 +29,10 @@ static const char ServiceName[] = "org.alljoyn.svclite";
 static const uint16_t ServicePort = 24;
 
 /*
- * Use AJ_FLAG_ENCRYPTED for authFlag to request app-to-app authentication
+ * The app should authenticate the peer if one or more interfaces are secure
+ * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
  */
-static uint8_t authFlag = 0;
+static uint8_t authPeer = FALSE;
 
 static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
@@ -101,7 +102,7 @@ AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned int num)
     AJ_Status status;
     AJ_Message msg;
 
-    status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, authFlag, METHOD_TIMEOUT);
+    status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, 0, METHOD_TIMEOUT);
     if (status == AJ_OK) {
         status = AJ_MarshalArgs(&msg, "s", PingString);
     }
@@ -116,7 +117,7 @@ AJ_Status SendGetProp(AJ_BusAttachment* bus, uint32_t sessionId)
     AJ_Status status;
     AJ_Message msg;
 
-    status = AJ_MarshalMethodCall(bus, &msg, PRX_GET_PROP, ServiceName, sessionId, authFlag, METHOD_TIMEOUT);
+    status = AJ_MarshalMethodCall(bus, &msg, PRX_GET_PROP, ServiceName, sessionId, 0, METHOD_TIMEOUT);
     if (status == AJ_OK) {
         AJ_MarshalPropertyArgs(&msg, PRX_GET_INT);
         status = AJ_DeliverMsg(&msg);
@@ -179,7 +180,7 @@ int AJ_Main(void)
                 AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
                 AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
                 connected = TRUE;
-                if (authFlag) {
+                if (authPeer) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
                     status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
                     if (status != AJ_OK) {
@@ -279,7 +280,6 @@ int main()
 {
     AJ_MainRoutine = AJ_Main;
 
-    // authFlag = AJ_FLAG_ENCRYPTED;
     while (1) {
         AJ_Loop();
         if (AJ_GetEventState(AJWAITEVENT_EXIT)) {
@@ -291,7 +291,6 @@ int main()
 #ifdef AJ_MAIN
 int main()
 {
-    // authFlag = AJ_FLAG_ENCRYPTED;
     return AJ_Main();
 }
 #endif

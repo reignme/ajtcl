@@ -35,6 +35,9 @@ static const uint8_t ReflectSignal = FALSE;
  */
 static int32_t propVal = 123456;
 
+/*
+ * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
+ */
 static const char* const testInterface[] = {
     "org.alljoyn.alljoyn_test",
     "?my_ping inStr<s outStr>s",
