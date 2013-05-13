@@ -147,12 +147,14 @@ static AJ_Message* currentMsg = NULL;
 
 static void InitArg(AJ_Arg* arg, uint8_t typeId, const void* val)
 {
-    arg->typeId = typeId;
-    arg->flags = 0;
-    arg->len = 0;
-    arg->val.v_data = (void*)val;
-    arg->sigPtr = NULL;
-    arg->container = NULL;
+    if (arg) {
+        arg->typeId = typeId;
+        arg->flags = 0;
+        arg->len = 0;
+        arg->val.v_data = (void*)val;
+        arg->sigPtr = NULL;
+        arg->container = NULL;
+    }
 }
 
 /*
@@ -324,7 +326,7 @@ AJ_Status AJ_DeliverMsg(AJ_Message* msg)
         }
     }
     if (status == AJ_OK) {
-//#pragma calls = AJ_Net_Send
+        //#pragma calls = AJ_Net_Send
         status = ioBuf->send(ioBuf);
     }
     memset(msg, 0, sizeof(AJ_Message));
@@ -351,7 +353,7 @@ static AJ_Status LoadBytes(AJ_IOBuffer* ioBuf, uint16_t numBytes, uint8_t pad)
         return AJ_ERR_RESOURCES;
     }
     while (AJ_IO_BUF_AVAIL(ioBuf) < numBytes) {
-//#pragma calls = AJ_Net_Recv
+        //#pragma calls = AJ_Net_Recv
         status = ioBuf->recv(ioBuf, numBytes - AJ_IO_BUF_AVAIL(ioBuf), UNMARSHAL_TIMEOUT);
         if (status != AJ_OK) {
             /*
@@ -389,7 +391,7 @@ static AJ_Status WriteBytes(AJ_Message* msg, const void* data, size_t numBytes, 
             if (msg->hdr) {
                 status = AJ_ERR_RESOURCES;
             } else {
-//#pragma calls = AJ_Net_Send
+                //#pragma calls = AJ_Net_Send
                 status = ioBuf->send(ioBuf);
             }
             if (status != AJ_OK) {
@@ -668,7 +670,7 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
      * Load the message header
      */
     while (AJ_IO_BUF_AVAIL(ioBuf) < sizeof(AJ_MsgHeader)) {
-//#pragma calls = AJ_Net_Recv
+        //#pragma calls = AJ_Net_Recv
         status = ioBuf->recv(ioBuf, sizeof(AJ_MsgHeader) - AJ_IO_BUF_AVAIL(ioBuf), timeout);
         if (status != AJ_OK) {
             /*
