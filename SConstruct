@@ -14,12 +14,7 @@
 
 import os
 
-vars = Variables()
-
 env = SConscript(['SConscript'])
-
-vars.Update(env)
-Help(vars.GenerateHelpText(env))
 
 # Add/remove projects from build
 env.SConscript('test/SConscript')

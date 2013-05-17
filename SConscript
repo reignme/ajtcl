@@ -26,6 +26,7 @@ vars.Add(EnumVariable('MSVC_VERSION', 'MSVC compiler version - Windows', '10.0',
 vars.Add(EnumVariable('WS', 'Whitespace Policy Checker', 'check', allowed_values=('check', 'detail', 'fix', 'off')))
 
 env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
+Help(vars.GenerateHelpText(env))
 
 # Define compile/link options only for win32/linux.
 # In case of target platforms, the compilation/linking does not take place
@@ -99,11 +100,10 @@ else:
 
 Export('env')
 
-if env['WS'] != 'off' and not env.GetOption('clean'):
+if env['WS'] != 'off' and not env.GetOption('clean') and not env.GetOption('help'):
     if not env.has_key('ALLJOYN_DIR'):
-       print "ALLJOYN_DIR not set"
-       if not GetOption('help'):
-           Exit()
+       print "ALLJOYN_DIR not set (it is needed when WS option is enabled)"
+       Exit()
 
     # Set the location of the uncrustify config file
     env['uncrustify_cfg'] = os.getcwd() + '/ajuncrustify.cfg'
