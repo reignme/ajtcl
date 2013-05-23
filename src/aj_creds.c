@@ -41,10 +41,10 @@ uint16_t FindCredsEmptySlot()
 uint16_t FindCredsByGUID(const AJ_GUID* peerGuid)
 {
     uint16_t id = AJ_REMOTE_CREDS_NV_ID_BEGIN;
-    AJ_NV_FILE* handle;
+    AJ_NV_DATASET* handle;
     for (; id < AJ_REMOTE_CREDS_NV_ID_END; id++) {
         if (AJ_NVRAM_Exist(id)) {
-            handle = AJ_NVRAM_Open(id, "r");
+            handle = AJ_NVRAM_Open(id, "r", 0);
             if (!handle) {
                 AJ_Printf("Error: fail to open data set with id = %d\n", id);
             } else {
@@ -68,7 +68,7 @@ uint16_t FindCredsByGUID(const AJ_GUID* peerGuid)
 AJ_Status UpdatePeerCreds(AJ_PeerCred* peerCred, uint16_t id)
 {
     AJ_Status status = AJ_OK;
-    AJ_NV_FILE* handle = AJ_NVRAM_Open(id, "w");
+    AJ_NV_DATASET* handle = AJ_NVRAM_Open(id, "w", sizeof(AJ_PeerCred));
     if (!handle) {
         AJ_Printf("Error: fail to open data set with id = %d\n", id);
         status = AJ_ERR_FAILURE;
@@ -93,35 +93,37 @@ AJ_Status AJ_StoreCredential(AJ_PeerCred* peerCred)
     uint16_t id = FindCredsByGUID(&peerCred->guid);
     if (!id) {
         id = FindCredsEmptySlot();
+        if (!id) {
+            AJ_ClearCredentials();
+            id = FindCredsEmptySlot();
+        }
     }
 
-    if (!id) {
-        AJ_ClearCredentials();
-        status = AJ_ERR_RESOURCES;
-    } else {
+    if (id) {
         status = UpdatePeerCreds(peerCred, id);
+    } else {
+        status = AJ_ERR_FAILURE;
+        AJ_Printf("AJ_StoreCredential() fails to write credential to NVRAM.\n");
     }
     return status;
 }
 
 AJ_Status AJ_DeleteCredential(const AJ_GUID* peerGuid)
 {
+    AJ_Status status = AJ_ERR_FAILURE;
     uint16_t id = FindCredsByGUID(peerGuid);
     if (id > 0) {
-        AJ_NV_FILE* handle = AJ_NVRAM_Open(id, "w");
-        if (handle) {
-            AJ_NVRAM_Close(handle);
-        }
+        status = AJ_NVRAM_Delete(id);
     }
-    return AJ_OK;
+    return status;
 }
 
 AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
 {
     AJ_Status status = AJ_ERR_FAILURE;
-    AJ_NV_FILE* handle;
+    AJ_NV_DATASET* handle;
     if (AJ_NVRAM_Exist(AJ_LOCAL_GUID_NV_ID)) {
-        handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "r");
+        handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "r", 0);
         if (handle) {
             AJ_ASSERT(sizeof(AJ_GUID) == AJ_NVRAM_Read(localGuid, sizeof(AJ_GUID), handle));
             AJ_NVRAM_Close(handle);
@@ -129,7 +131,7 @@ AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
         }
     } else {
         AJ_RandBytes((uint8_t*)localGuid, sizeof(AJ_GUID));
-        handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "w");
+        handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "w", sizeof(AJ_GUID));
         if (handle) {
             AJ_ASSERT(sizeof(AJ_GUID) == AJ_NVRAM_Write(localGuid, sizeof(AJ_GUID), handle));
             AJ_NVRAM_Close(handle);
@@ -144,7 +146,7 @@ AJ_Status AJ_GetRemoteCredential(const AJ_GUID* peerGuid, AJ_PeerCred* peerCreds
     AJ_Status status = AJ_ERR_FAILURE;
     uint16_t id = FindCredsByGUID(peerGuid);
     if (id > 0) {
-        AJ_NV_FILE* handle = AJ_NVRAM_Open(id, "r");
+        AJ_NV_DATASET* handle = AJ_NVRAM_Open(id, "r", 0);
         if (handle) {
             AJ_ASSERT(sizeof(AJ_PeerCred) == AJ_NVRAM_Read(peerCreds, sizeof(AJ_PeerCred), handle));
             AJ_NVRAM_Close(handle);
@@ -158,7 +160,6 @@ void AJ_ClearCredentials(void)
 {
     uint16_t id = AJ_REMOTE_CREDS_NV_ID_BEGIN;
     for (; id < AJ_REMOTE_CREDS_NV_ID_END; id++) {
-        AJ_NV_FILE* hanle = AJ_NVRAM_Open(id, "w");
-        AJ_NVRAM_Close(hanle);
+        AJ_NVRAM_Delete(id);
     }
 }

@@ -5,7 +5,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -27,18 +27,14 @@
 #define AJ_NVRAM_ID_FOR_APPS         0x8000   /**< First NVRAM ID available for application used */
 
 /**
- * AllJoyn NVRAM file handle
+ * AllJoyn NVRAM dataset handle
  */
-typedef struct _AJ_NV_FILE {
+typedef struct _AJ_NV_DATASET {
     uint16_t id;           /**< The unique id of a data set */
     uint8_t mode;          /**< The access mode of a data set */
-    uint8_t writeBack;     /**< If need to write back to the storage */
-    uint8_t* buf;          /**< A buffer for read/write operations to a data set */
-    uint16_t dataLen;      /**< The number of data available in a data set */
-    uint16_t bufSize;      /**< The buffer size for read/write operations to a data set */
-    uint16_t curPos;       /**< The current position for read/write operations to a data set */
-    uint16_t* inode;       /**< Point to a location in the NVRAM storage where the data set lives */
-} AJ_NV_FILE;
+    uint16_t curPos;       /**< The current read/write offset of a data set */
+    uint8_t* inode;        /**< Point to a location of the data set in the NVRAM */
+} AJ_NV_DATASET;
 
 /**
  * Initialize NVRAM
@@ -52,51 +48,44 @@ void AJ_NVRAM_Init();
  * @param mode C string containing a data set access mode. It can be:
  *    "r"  : read: Open data set for input operations. The data set must exist.
  *    "w"  : write: Create an empty data set for output operations. If a data set with the same id already exists, its contents are discarded.
- *    "a"  : append: Open data set for output at the end of a data set. The data set is created if it does not exist.
+ * @param capacity The reserved space size for the data set. Only used for "w" access mode.
  *
  * @return A handle that specifies the data set. NULL if the open operation fails.
  */
-AJ_NV_FILE* AJ_NVRAM_Open(uint16_t id, char* mode);
+AJ_NV_DATASET* AJ_NVRAM_Open(uint16_t id, char* mode, uint16_t capacity);
 
 /**
  * Write to the data set specified by a handle
  *
- * @param ptr Pointer to a block of memory with a size of at least size bytes to be written to NVRAM.
- * @param size Size, in bytes, to be written. size_t is an unsigned integral type.
- * @param handle Pointer to a AJ_NV_FILE object that specifies a data set.
+ * @param ptr   Pointer to a block of memory with a size of at least size bytes to be written to NVRAM.
+ * @param size  Size, in bytes, to be written.
+ * @param handle Pointer to an AJ_NV_DATASET object that specifies a data set.
  *
  * @return The number of byte of data written to the data set
+ *         -1 if the offset is out of the bound of the data set
  */
-size_t AJ_NVRAM_Write(void* ptr, size_t size, AJ_NV_FILE* handle);
+size_t AJ_NVRAM_Write(void* ptr, uint16_t size, AJ_NV_DATASET* handle);
 
 /**
  * Read from the data set specified by a handle
  *
- * @param ptr Pointer to a block of memory with a size of at least size bytes to be read from NVRAM.
- * @param size Size, in bytes, to be read. size_t is an unsigned integral type.
- * @param handle Pointer to a AJ_NV_FILE object that specifies a data set.
+ * @param ptr   Pointer to a block of memory with a size of at least size bytes to be read from NVRAM.
+ * @param size  Size, in bytes, to be read.
+ * @param handle Pointer to an AJ_NV_DATASET object that specifies a data set.
  *
- * @return The number of byte of data read from the data set if there are data available, otherwise -1(End-of-file).
+ * @return The number of byte of data read from the data set.
+ *         -1 if the offset is out of the bound of the data set
  */
-size_t AJ_NVRAM_Read(void* ptr, size_t size, AJ_NV_FILE* handle);
+size_t AJ_NVRAM_Read(void* ptr, uint16_t size, AJ_NV_DATASET* handle);
 
 /**
- * Commit changes to the data set specified by a handle to NVRAM storage and close the data set
+ * Close the data set and release the handle
  *
- * @param handle Pointer to a AJ_NV_FILE object that specifies a data set.
+ * @param handle Pointer to an AJ_NV_DATASET object that specifies a data set.
  *
  * @return AJ_ERR_INVALID if the handle is invalid, otherwise AJ_OK.
  */
-AJ_Status AJ_NVRAM_Close(AJ_NV_FILE* handle);
-
-/**
- * Get the data size of the data set specified by a handle
- *
- * @param handle Pointer to a AJ_NV_FILE object that specifies a data set.
- *
- * @return The number of byte of data available in the data set. -1 if the handle is NULL.
- */
-size_t AJ_NVRAM_Size(AJ_NV_FILE* handle);
+AJ_Status AJ_NVRAM_Close(AJ_NV_DATASET* handle);
 
 /**
  * Check if a data set with a unique id exists
@@ -107,6 +96,16 @@ size_t AJ_NVRAM_Size(AJ_NV_FILE* handle);
  *         0 if not.
  */
 uint8_t AJ_NVRAM_Exist(uint16_t id);
+
+/**
+ * Delete a data set specified by the id
+ *
+ * @param id A unique id for a data set.
+ *
+ * @return AJ_OK if the data set is deleted successfully
+ *         AJ_ERR_FAILURE if the data set does not exist.
+ */
+AJ_Status AJ_NVRAM_Delete(uint16_t id);
 
 #endif
 
