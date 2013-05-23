@@ -39,7 +39,7 @@ static uint32_t DefaultBusAuthPwdFunc(uint8_t* buffer, uint32_t bufLen)
 {
     const char* defaultPwd = "1234";
     strcpy((char*)buffer, defaultPwd);
-    return strlen(defaultPwd);
+    return (uint32_t)strlen(defaultPwd);
 }
 
 static BusAuthPwdFunc busAuthPwdFunc = DefaultBusAuthPwdFunc;
