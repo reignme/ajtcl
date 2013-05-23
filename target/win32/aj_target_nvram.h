@@ -25,51 +25,43 @@
  * Identifies an AJ NVRAM block
  */
 #define AJ_NV_SENTINEL ('A' | ('J' << 8) | ('N' << 16) | ('V' << 24))
-#define DEFAULT_ENTRY_BUF_SIZE 64
-#define INVALID_ID 0
-#define INVALID_DATA 0xFFFF
-#define INVALID_DATA_BYTE 0xFF
-#define SENTINEL_OFFSET 4
-#define ENTRY_HEADER_SIZE 4
+#define INVALID_ID (0)
+#define INVALID_DATA (0xFFFF)
+#define INVALID_DATA_BYTE (0xFF)
+#define SENTINEL_OFFSET (4)
 #define WORD_ALIGN(x) ((x & 0x3) ? ((x >> 2) + 1) << 2 : x)
-#define AJ_NVRAM_SIZE 512
+#define AJ_NVRAM_SIZE (2024)
+
+typedef struct _NV_EntryHeader {
+    uint16_t id;           /**< The unique id */
+    uint16_t capacity;     /**< The data set size */
+} NV_EntryHeader;
+
+#define ENTRY_HEADER_SIZE (sizeof(NV_EntryHeader))
+#define AJ_NVRAM_END_ADDRESS (AJ_NVRAM_BASE_ADDRESS + AJ_NVRAM_SIZE)
 
 /**
- * Invalidate an entry (data set) in NVRAM by setting the id to be 0
+ * Write a block of data to NVRAM
  *
- * @param inode  Address of an entry in the NVRAM
+ * @param dest  Pointer a location of NVRAM
+ * @param buf   Pointer to data to be written
+ * @param size  The number of bytes to be written
  */
-void AJ_InvalidateNVEntry(uint16_t* inode);
-
-/**
- * Append an entry (data set) to NVRAM
- *
- * @param nvPtr   The address to append the entry in NVRAM
- * @param handle  Handle that specified a data set
- */
-void AJ_AppendNVEntry(uint8_t* nvPtr, AJ_NV_FILE* handle);
+void _AJ_NV_Write(void* dest, void* buf, uint16_t size);
 
 /**
  * Erase the whole NVRAM sector and write the sentinel data
  */
-void AJ_EraseNVRAM();
-
-/**
- * Erase the NVRAM and update it with data in the memory buffer
- *
- * @param bufPtr Pointer to a buffer containing data for writing to the NVRAM
- * @param bytes  The number of bytes of data in the buffer
- */
-void AJ_OverriteNVRAM(uint8_t* bufPtr, uint16_t bytes);
+void _AJ_EraseNVRAM();
 
 /**
  * Load NVRAM data from a file
  */
-AJ_Status AJ_LoadNVFromFile();
+AJ_Status _AJ_LoadNVFromFile();
 
 /**
  * Write NVRAM data to a file for persistent storage
  */
-AJ_Status AJ_StoreNVToFile();
+AJ_Status _AJ_StoreNVToFile();
 
 #endif

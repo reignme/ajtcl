@@ -23,45 +23,32 @@
 uint8_t AJ_EMULATED_NVRAM[AJ_NVRAM_SIZE];
 uint8_t* AJ_NVRAM_BASE_ADDRESS;
 
+extern void AJ_NVRAM_Layout_Print();
+
 void AJ_NVRAM_Init()
 {
     AJ_NVRAM_BASE_ADDRESS = AJ_EMULATED_NVRAM;
-    AJ_LoadNVFromFile();
+    _AJ_LoadNVFromFile();
     if (*((uint32_t*)AJ_NVRAM_BASE_ADDRESS) != AJ_NV_SENTINEL) {
-        AJ_EraseNVRAM();
-        AJ_StoreNVToFile();
+        _AJ_EraseNVRAM();
+        _AJ_StoreNVToFile();
     }
 }
 
-void AJ_InvalidateNVEntry(uint16_t* inode)
+void _AJ_NV_Write(void* dest, void* buf, uint16_t size)
 {
-    *inode = INVALID_ID;
-    AJ_StoreNVToFile();
+    memcpy(dest, buf, size);
+    _AJ_StoreNVToFile();
 }
 
-void AJ_AppendNVEntry(uint8_t* nvPtr, AJ_NV_FILE* handle)
-{
-    *((uint32_t*)nvPtr) = handle->dataLen << 16 | handle->id;
-    nvPtr += ENTRY_HEADER_SIZE;
-    memcpy(nvPtr, handle->buf, handle->dataLen);
-    AJ_StoreNVToFile();
-}
-
-void AJ_EraseNVRAM()
+void _AJ_EraseNVRAM()
 {
     memset((uint8_t*)AJ_NVRAM_BASE_ADDRESS, INVALID_DATA_BYTE, AJ_NVRAM_SIZE);
     *((uint32_t*)AJ_NVRAM_BASE_ADDRESS) = AJ_NV_SENTINEL;
-    AJ_StoreNVToFile();
+    _AJ_StoreNVToFile();
 }
 
-void AJ_OverriteNVRAM(uint8_t* bufPtr, uint16_t bytes)
-{
-    AJ_EraseNVRAM();
-    memcpy(AJ_NVRAM_BASE_ADDRESS + SENTINEL_OFFSET, bufPtr, bytes);
-    AJ_StoreNVToFile();
-}
-
-AJ_Status AJ_LoadNVFromFile()
+AJ_Status _AJ_LoadNVFromFile()
 {
     FILE* f = fopen("ajlite.nvram", "r");
     if (f == NULL) {
@@ -75,7 +62,7 @@ AJ_Status AJ_LoadNVFromFile()
     return AJ_OK;
 }
 
-AJ_Status AJ_StoreNVToFile()
+AJ_Status _AJ_StoreNVToFile()
 {
     FILE* f = fopen("ajlite.nvram", "w");
     if (!f) {
@@ -85,5 +72,34 @@ AJ_Status AJ_StoreNVToFile()
 
     fwrite(AJ_NVRAM_BASE_ADDRESS, AJ_NVRAM_SIZE, 1, f);
     fclose(f);
+    return AJ_OK;
+}
+
+// Compact the storage by removing invalid entries
+AJ_Status _AJ_CompactNVStorage()
+{
+    uint16_t capacity = 0;
+    uint16_t id = 0;
+    uint16_t* data = (uint16_t*)(AJ_NVRAM_BASE_ADDRESS + SENTINEL_OFFSET);
+    uint8_t* writePtr = (uint8_t*)data;
+    uint16_t entrySize = 0;
+    uint16_t garbage = 0;
+    //AJ_NVRAM_Layout_Print();
+    while ((uint8_t*)data < (uint8_t*)AJ_NVRAM_END_ADDRESS && *data != INVALID_DATA) {
+        id = *data;
+        capacity = *(data + 1);
+        entrySize = ENTRY_HEADER_SIZE + capacity;
+        if (id != INVALID_ID) {
+            _AJ_NV_Write(writePtr, data, entrySize);
+            writePtr += entrySize;
+        } else {
+            garbage += entrySize;
+        }
+        data += entrySize >> 1;
+    }
+
+    memset(writePtr, INVALID_DATA_BYTE, garbage);
+    _AJ_StoreNVToFile();
+    //AJ_NVRAM_Layout_Print();
     return AJ_OK;
 }

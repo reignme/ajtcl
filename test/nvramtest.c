@@ -21,167 +21,153 @@
 #include <aj_creds.h>
 #include <aj_nvram.h>
 
-void TestNVRAM();
-void TestCreds();
+AJ_Status TestNVRAM();
+AJ_Status TestCreds();
 extern void AJ_NVRAM_Layout_Print();
 
-void TestCreds()
+AJ_Status TestCreds()
 {
     AJ_Status status = AJ_OK;
     AJ_GUID localGuid;
     AJ_GUID remoteGuid;
     char str[33];
     AJ_PeerCred peerCred;
-    AJ_PeerCred peerCred2;
+    AJ_PeerCred peerCredRead;
     int i = 0;
-    AJ_GetLocalGUID(&localGuid);
+    status = AJ_GetLocalGUID(&localGuid);
+    if (AJ_OK != status) {
+        goto TEST_CREDS_EXIT;
+    }
     AJ_GUID_FromString(&localGuid, str);
 
     AJ_NVRAM_Layout_Print();
-
     memset(&peerCred.guid, 1, sizeof(AJ_GUID));
-    memcpy(&remoteGuid, &peerCred.guid, sizeof(AJ_GUID));
+    memcpy(&remoteGuid, &peerCred.guid, sizeof(AJ_GUID)); // backup the GUID
     for (i = 0; i < 24; i++) {
         peerCred.secret[i] = i;
     }
     status = AJ_StoreCredential(&peerCred);
     if (AJ_OK != status) {
         AJ_Printf("AJ_StoreCredential failed = %d\n", status);
+        goto TEST_CREDS_EXIT;
     }
 
-    status = AJ_GetRemoteCredential(&remoteGuid, &peerCred2);
+    status = AJ_GetRemoteCredential(&remoteGuid, &peerCredRead);
     if (AJ_OK != status) {
         AJ_Printf("AJ_StoreCredential failed = %d\n", status);
+        goto TEST_CREDS_EXIT;
     }
 
-    if (0 != memcmp(&peerCred2, &peerCred, sizeof(AJ_PeerCred))) {
+    if (0 != memcmp(&peerCredRead, &peerCred, sizeof(AJ_PeerCred))) {
         AJ_Printf("The retrieved credential does not match\n");
+        status = AJ_ERR_FAILURE;
+        goto TEST_CREDS_EXIT;
     }
 
-    AJ_DeleteCredential(&remoteGuid);
+    status = AJ_DeleteCredential(&remoteGuid);
+    if (AJ_OK != status) {
+        AJ_Printf("AJ_DeleteCredential failed = %d\n", status);
+        goto TEST_CREDS_EXIT;
+    }
 
-    status = AJ_GetRemoteCredential(&remoteGuid, &peerCred2);
-    assert(status == AJ_ERR_FAILURE);
+    if (AJ_ERR_FAILURE == AJ_GetRemoteCredential(&remoteGuid, &peerCredRead)) {
+        status = AJ_OK;
+    } else {
+        status = AJ_ERR_FAILURE;
+        goto TEST_CREDS_EXIT;
+    }
     AJ_NVRAM_Layout_Print();
 
     status = AJ_StoreCredential(&peerCred);
     if (AJ_OK != status) {
         AJ_Printf("AJ_StoreCredential failed = %d\n", status);
+        goto TEST_CREDS_EXIT;
     }
+
     AJ_ClearCredentials();
-    status = AJ_GetRemoteCredential(&remoteGuid, &peerCred2);
-    assert(status == AJ_ERR_FAILURE);
+    if (AJ_ERR_FAILURE == AJ_GetRemoteCredential(&remoteGuid, &peerCredRead)) {
+        status = AJ_OK;
+    } else {
+        status = AJ_ERR_FAILURE;
+        goto TEST_CREDS_EXIT;
+    }
     AJ_NVRAM_Layout_Print();
+
+TEST_CREDS_EXIT:
+    return status;
 
 }
 
-void TestNVRAM()
+AJ_Status TestNVRAM()
 {
     uint16_t id = 16;
-    AJ_NV_FILE* handle = NULL;
+    AJ_NV_DATASET* handle = NULL;
     int i = 0;
+    size_t bytes = 0;
+    AJ_Status status = AJ_OK;
     AJ_NVRAM_Layout_Print();
-    for (i = 0; i < 3; i++) {
-        AJ_Printf("ID = %d exist = %d\n", (id + i), AJ_NVRAM_Exist(id + i));
-    }
 
     {
-        uint8_t data[80];
-        size_t written = 0;
-        handle = AJ_NVRAM_Open(id, "w");
+        handle = AJ_NVRAM_Open(id, "w", 40);
         assert(handle);
-        written = AJ_NVRAM_Write(data, sizeof(data), handle);
-        printf(" %zu bytes written\n", written);
-        written = AJ_NVRAM_Write(&i, 4, handle);
-        printf(" %zu bytes written\n", written);
+        for (i = 0; i < 10; i++) {
+            bytes = AJ_NVRAM_Write(&i, sizeof(i), handle);
+            if (bytes != sizeof(i)) {
+                status = AJ_ERR_FAILURE;
+                goto _TEST_NVRAM_EXIT;
+            }
+        }
         AJ_NVRAM_Close(handle);
+        AJ_NVRAM_Layout_Print();
+
+        handle = AJ_NVRAM_Open(id, "r", 0);
+        assert(handle);
+        for (i = 0; i < 10; i++) {
+            int data = 0;
+            bytes = AJ_NVRAM_Read(&data, sizeof(data), handle);
+            if (bytes != sizeof(data) || data != i) {
+                status = AJ_ERR_FAILURE;
+                goto _TEST_NVRAM_EXIT;
+            }
+        }
+    }
+
+    if (AJ_NVRAM_Exist(id + 1)) {
+        AJ_ASSERT(AJ_NVRAM_Delete(id + 1) == AJ_OK);
+    }
+
+    // Force storage compaction
+    for (i = 0; i < 12; i++) {
+        if (i == 6) {
+            handle = AJ_NVRAM_Open(id + 2, "w", 100);
+            assert(handle);
+            status = AJ_NVRAM_Close(handle);
+            if (AJ_OK != status) {
+                goto _TEST_NVRAM_EXIT;
+            }
+            continue;
+        }
+        handle = AJ_NVRAM_Open(id + 1, "w", 200);
+        assert(handle);
+        status = AJ_NVRAM_Close(handle);
+        if (AJ_OK != status) {
+            goto _TEST_NVRAM_EXIT;
+        }
         AJ_NVRAM_Layout_Print();
     }
 
-    handle = AJ_NVRAM_Open(id, "r");
-    assert(handle);
-    printf("total bytes = %zu\n", AJ_NVRAM_Size(handle));
-    for (i = 0; i < 10; i++) {
-        int data;
-        size_t read = AJ_NVRAM_Read(&data, sizeof(data), handle);
-        printf(" %zu bytes read =  %d \n", read, data);
-    }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    handle = AJ_NVRAM_Open(id, "w");
-    assert(handle);
-    for (i = 0; i < 10; i++) {
-        size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %zu bytes written\n", written);
-    }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    handle = AJ_NVRAM_Open(id + 1, "a+");
-    assert(handle);
-    for (i = 1; i <= 2; i++) {
-        size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %zu bytes written\n", written);
-    }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    handle = AJ_NVRAM_Open(id, "a");
-    assert(handle);
-    for (i = 0; i < 10; i++) {
-        size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %zu bytes written =  %d \n", written, i);
-    }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    handle = AJ_NVRAM_Open(id + 2, "w");
-    assert(handle);
-    {
-        uint32_t data = 9;
-        size_t written = AJ_NVRAM_Write(&data, 7, handle);
-        printf(" %zu bytes written\n", written);
-    }
-    printf("The data set size = %zu\n", AJ_NVRAM_Size(handle));
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    for (i = 0; i < 10; i++) {
-        size_t written = 0;
-        handle = AJ_NVRAM_Open(id, "a");
-        assert(handle);
-        written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %zu bytes written =  %d \n", written, i);
-        AJ_NVRAM_Close(handle);
-        AJ_NVRAM_Layout_Print();
-    }
-
-    handle = AJ_NVRAM_Open(id, "r+");
-    for (i = 0; i < 20; i++) {
-        int data;
-        size_t read = AJ_NVRAM_Read(&data, sizeof(data), handle);
-        printf(" %zu bytes read =  %d \n", read, data);
-    }
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
-
-    handle = AJ_NVRAM_Open(id, "w+");
-    assert(handle);
-    for (i = 0; i < 10; i++) {
-        size_t written = AJ_NVRAM_Write(&i, sizeof(i), handle);
-        printf(" %zu bytes written\n", written);
-    }
-    printf("The data set size = %zu\n", AJ_NVRAM_Size(handle));
-    AJ_NVRAM_Close(handle);
-    AJ_NVRAM_Layout_Print();
+_TEST_NVRAM_EXIT:
+    return status;
 }
 
 int AJ_Main()
 {
+    AJ_Status status = AJ_OK;
     AJ_Initialize();
-    TestNVRAM();
-    TestCreds();
+    status = TestNVRAM();
+    AJ_ASSERT(status == AJ_OK);
+    status = TestCreds();
+    AJ_ASSERT(status == AJ_OK);
     return 0;
 }
 
