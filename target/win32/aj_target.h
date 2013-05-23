@@ -65,4 +65,9 @@ typedef unsigned long long uint64_t;  /** 64-bit unsigned integer */
 
 #define AJ_ASSERT(x)  assert(x)
 
+/*
+ * AJ_Reboot() is a NOOP on this platform
+ */
+#define AJ_Reboot()
+
 #endif

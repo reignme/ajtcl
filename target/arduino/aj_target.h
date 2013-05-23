@@ -85,4 +85,9 @@ void ram_diag();
 
 #define AJ_ASSERT(x) assert(x)
 
+/*
+ * AJ_Reboot() is a NOOP on this platform
+ */
+#define AJ_Reboot()
+
 #endif
