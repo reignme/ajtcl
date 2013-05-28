@@ -186,8 +186,9 @@ OPEN_ERR_EXIT:
 size_t AJ_NVRAM_Write(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
 {
     uint16_t bytesWrite = 0;
+    uint8_t patchBytes = 0;
+    uint8_t* buf = (uint8_t*)ptr;
     NV_EntryHeader* header = (NV_EntryHeader*)handle->inode;
-    AJ_ASSERT((size & 0x3) == 0);
 
     if (!handle || handle->mode == AJ_NV_DATASET_RD_ONLY) {
         AJ_Printf("AJ_NVRAM_Write() error: The access mode does not allow write.\n");
@@ -200,19 +201,29 @@ size_t AJ_NVRAM_Write(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
 
     bytesWrite = header->capacity - handle->curPos;
     bytesWrite = (bytesWrite < size) ? bytesWrite : size;
+    if (bytesWrite > 0 && ((handle->curPos & 0x3) != 0)) {
+        uint8_t tmpBuf[4];
+        uint16_t alignedPos = handle->curPos & (~0x3);
+        patchBytes = 4 - handle->curPos & 0x3;
+        memcpy(tmpBuf, handle->inode + sizeof(NV_EntryHeader) + alignedPos, handle->curPos & 0x3);
+        memcpy(tmpBuf + (handle->curPos & 0x3), buf, patchBytes);
+        _AJ_NV_Write(handle->inode + sizeof(NV_EntryHeader) + alignedPos, tmpBuf, 4);
+        buf += patchBytes;
+        bytesWrite -= patchBytes;
+        handle->curPos += patchBytes;
+    }
+
     if (bytesWrite > 0) {
-        _AJ_NV_Write(handle->inode + sizeof(NV_EntryHeader) + handle->curPos, ptr, bytesWrite);
+        _AJ_NV_Write(handle->inode + sizeof(NV_EntryHeader) + handle->curPos, buf, bytesWrite);
         handle->curPos += bytesWrite;
     }
-    return bytesWrite;
+    return bytesWrite + patchBytes;
 }
 
 size_t AJ_NVRAM_Read(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
 {
     uint16_t bytesRead = 0;
     NV_EntryHeader* header = (NV_EntryHeader*)handle->inode;
-    AJ_ASSERT((size & 0x3) == 0);
-
     if (!handle || handle->mode == AJ_NV_DATASET_WR_ONLY) {
         AJ_Printf("AJ_NVRAM_Read() error: The access mode does not allow read.\n");
         return -1;
