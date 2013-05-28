@@ -108,7 +108,7 @@ AJ_Status TestNVRAM()
     AJ_NVRAM_Layout_Print();
 
     {
-        handle = AJ_NVRAM_Open(id, "w", 40);
+        handle = AJ_NVRAM_Open(id, "w", 40 + 5);
         assert(handle);
         for (i = 0; i < 10; i++) {
             bytes = AJ_NVRAM_Write(&i, sizeof(i), handle);
@@ -116,6 +116,21 @@ AJ_Status TestNVRAM()
                 status = AJ_ERR_FAILURE;
                 goto _TEST_NVRAM_EXIT;
             }
+        }
+        {
+            uint8_t buf[3] = { 11, 22, 33 };
+            uint8_t buf2[2] = { 44, 55 };
+            bytes = AJ_NVRAM_Write(buf, sizeof(buf), handle);
+            if (bytes != sizeof(buf)) {
+                status = AJ_ERR_FAILURE;
+                goto _TEST_NVRAM_EXIT;
+            }
+            bytes = AJ_NVRAM_Write(buf2, sizeof(buf2), handle);
+            if (bytes != sizeof(buf2)) {
+                status = AJ_ERR_FAILURE;
+                goto _TEST_NVRAM_EXIT;
+            }
+
         }
         AJ_NVRAM_Close(handle);
         AJ_NVRAM_Layout_Print();
@@ -130,6 +145,15 @@ AJ_Status TestNVRAM()
                 goto _TEST_NVRAM_EXIT;
             }
         }
+        for (i = 1; i < 6; i++) {
+            uint8_t data = 0;
+            AJ_NVRAM_Read(&data, 1, handle);
+            if (data != i * 11) {
+                status = AJ_ERR_FAILURE;
+                goto _TEST_NVRAM_EXIT;
+            }
+        }
+        AJ_NVRAM_Close(handle);
     }
 
     if (AJ_NVRAM_Exist(id + 1)) {
