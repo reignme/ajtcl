@@ -49,6 +49,13 @@ do
 	esac
 done
 
+if cygpath -wa . > /dev/null 2>&1
+then
+	# found Cygwin, which means Windows
+	: there is no alljoyn-daemon on Windows
+	start_daemon=false
+fi
+
 gtests=''
 if test "$OPTIND" -gt 0 -a "$OPTIND" -le $#
 then
@@ -97,21 +104,61 @@ fi
 gtest_bin=$( cd "$(dirname -- "$0")/.." > /dev/null && pwd )
 if test -z "$gtest_bin" -o "gtest_bin" = /
 then
-        : unknown error trap
-        exit 2
+	: unknown error trap
+	exit 2
 fi
 
 if cygpath -wa . > /dev/null 2>&1
 then
 	# found Cygwin, which means Windows
-	# alljoyn-daemon options are different
-	options='--no-bt --verbosity=5'
+	: there is no alljoyn-daemon on Windows
+	options=''
 	# gtest_bin needs to be Windows-style because we use pure Windows Python, not Cygwin Python
 	gtest_bin_p="$( cygpath -wa "$gtest_bin" )"
 	# MBUS-1589: sometimes Windows "home" does not work for keystore tests
 	export USERPROFILE="$( cygpath -wa . )"
 else
-	options='--internal --no-bt --verbosity=5'
+	: Generate the appropriate alljoyn-daemon config file.
+	# Generate a random dynamic port number - this will not work on Cygwin
+	readonly daemon_standard_port_number=$(( 49152 + ($(head -c 1 /dev/urandom| od -t u | head --lines=1 | awk '{print $2}') % 64) * 255 + $(head -c 1 /dev/urandom| od -t u | head --lines=1 | awk '{print $2}')))
+	readonly daemon_unix_local_transport="unix:abstract=alljoyn-$daemon_standard_port_number"
+	# Note: Unfortunately, there is no easy way to get an up-to-date config file
+	#       from anywhere. The config files in the source tree are either out-dated
+	#       or have the necessary lines commented out. So, we resort to generating
+	#       our own config file.
+	#       Also, we try to generate as restricted configuration as possible.
+	#       This is because the daemon is NOT under test.
+	readonly config_file_string="<!DOCTYPE busconfig PUBLIC \"-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN\"
+	 \"http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd\">
+	<busconfig>
+	  <!-- Our well-known bus type, do not change this -->
+	  <type>alljoyn</type>
+	  <listen>$daemon_unix_local_transport</listen>
+	  <listen>tcp:r4addr=0.0.0.0,r4port=$daemon_standard_port_number</listen>
+
+	  <limit auth_timeout=\"32768\"/>
+	  <limit max_incomplete_connections=\"16\"/>
+	  <limit max_completed_connections=\"64\"/>
+
+	  <property restrict_untrusted_clients=\"true\"/>
+	  <limit max_untrusted_clients=\"1\"/>
+
+	  <ip_name_service>
+	    <property interfaces=\"*\"/>
+	    <property disable_directed_broadcast=\"false\"/>
+	    <property enable_ipv4=\"true\"/>
+	    <property enable_ipv6=\"true\"/>
+	  </ip_name_service>
+
+	  <tcp>
+	    <property router_advertisement_prefix=\"org.alljoyn.BusNode.\"/>
+	  </tcp>
+
+	</busconfig>
+	"
+	printf "$config_file_string" > alljoyn-daemon.conf
+
+	options="--config-file=$PWD/alljoyn-daemon.conf --print-address"
 	gtest_bin_p="$gtest_bin"
 	# MBUS-1589: remove .alljoyn_keystore, if any
 	export HOME="$PWD"
@@ -179,6 +226,13 @@ do
 	# configfile for gtest $i
 	c="$( echo "$configfile" | sed -e 's,\*,'$i',g' )"
 
+	rm -f $c.t
+	if $start_daemon
+	then
+		cat $c > $c.t
+	else
+		echo '    BusAttachmentTest.*=No' | cat $c - > $c.t
+	fi
 	rm -f "$i.log"
 
 	sleep 5
@@ -186,7 +240,7 @@ do
 	: run $i
 
 	date
-	python -u test_harness.py -c $c -t $i -p "$gtest_bin_p" > "$i.log" 2>&1 < /dev/null || : exit status is $? / IGNORE IT
+	python -u test_harness.py -c $c.t -t $i -p "$gtest_bin_p" > "$i.log" 2>&1 < /dev/null || : exit status is $? / IGNORE IT
 	date
 	set +x
 	tail -1 "$i.log" | grep "exiting with status 0" || xit=1
