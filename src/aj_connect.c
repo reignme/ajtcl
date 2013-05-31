@@ -32,6 +32,11 @@
 #include "aj_std.h"
 #include "aj_auth.h"
 
+/*
+ * For testing on host  set this value to 1 to bypass the discovery and connect directly to port
+ * 9955 on daemon on local host.
+ */
+#define AJ_CONNECT_LOCALHOST  1
 
 static const char daemonService[] = "org.alljoyn.BusNode";
 
@@ -139,9 +144,9 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     if (!serviceName) {
         serviceName = daemonService;
     }
-#if 0
+#if AJ_CONNECT_LOCALHOST
     service.ipv4port = 9955;
-    service.ipv4 = 0x0100007F;
+    service.ipv4 = 0x0100007F; // 127.0.0.1
     service.addrTypes = AJ_ADDR_IPV4;
 #elif defined ARDUINO
     service.ipv4port = 9955;
