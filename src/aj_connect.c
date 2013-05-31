@@ -36,7 +36,7 @@
  * For testing on host  set this value to 1 to bypass the discovery and connect directly to port
  * 9955 on daemon on local host.
  */
-#define AJ_CONNECT_LOCALHOST  1
+#define AJ_CONNECT_LOCALHOST  0
 
 static const char daemonService[] = "org.alljoyn.BusNode";
 
