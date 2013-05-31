@@ -54,11 +54,13 @@ static const AJ_InterfaceDescription testInterfaces[] = {
     NULL
 };
 
+static const char testObj[] = "/org/alljoyn/alljoyn_test";
+
 /**
  * Objects implemented by the application
  */
-static const AJ_Object ProxyObjects[] = {
-    { "/org/alljoyn/alljoyn_test", testInterfaces },
+static AJ_Object ProxyObjects[] = {
+    { NULL, testInterfaces },    /* Object path will be specified later */
     { NULL }
 };
 
@@ -102,7 +104,14 @@ AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned int num)
     AJ_Status status;
     AJ_Message msg;
 
-    status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, 0, METHOD_TIMEOUT);
+    /*
+     * Since the object path on the proxy object entry was not set in the proxy object table above
+     * it must be set before marshalling the method call.
+     */
+    status = AJ_SetProxyObjectPath(&ProxyObjects, PRX_MY_PING, testObj);
+    if (status == AJ_OK) {
+        status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, 0, METHOD_TIMEOUT);
+    }
     if (status == AJ_OK) {
         status = AJ_MarshalArgs(&msg, "s", PingString);
     }

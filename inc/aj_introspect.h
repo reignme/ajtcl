@@ -207,6 +207,22 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply);
 AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgType, uint8_t* secure);
 
 /**
+ * Set or update the object path on a proxy object entry. This function makes is used for making
+ * method calls to remote objects when the object path is not known until runtime. Note the proxy
+ * object table cannot be declared as const in this case.
+ *
+ * @param proxyObjects  Pointer to the proxy object table (for validation purposes)
+ * @param msgId         The message identifier for the methods
+ * @param objPath       The object path to set. This value must remain valid while the method is
+ *                      being marshaled.
+ *
+ * @return  - AJ_OK if the object path was sucessfully set.
+ *          - AJ_ERR_OBJECT_PATH if the object path is NULL or invalid.
+ *          - AJ_ERR_NO_MATCH if the message id does not identify a proxy object method call.
+ */
+AJ_Status AJ_SetProxyObjectPath(AJ_Object* proxyObjects, uint32_t msgId, const char* objPath);
+
+/**
  * Internal function to allocate a reply context for a method call message. Reply contexts are used
  * to associate method replies with method calls. Depending on avaiable system resources the number
  * of reply contexts may be very limited, in some cases only one reply context.
@@ -244,7 +260,7 @@ uint8_t AJ_TimedOutMethodCall(AJ_Message* msg);
 void AJ_ReleaseReplyContext(AJ_Message* msg);
 
 /**
- * Debugging aid prints out the XML for an object
+ * Debugging aid prints out the XML for an object table
  */
 #ifdef NDEBUG
 #define AJ_PrintXML(obj)

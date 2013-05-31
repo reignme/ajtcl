@@ -627,7 +627,10 @@ AJ_Status AJ_MarshalPropertyArgs(AJ_Message* msg, uint32_t propId)
     size_t pos;
     AJ_Arg arg;
 
-    UnpackMsgId(propId, NULL, &iface, &prop, &secure);
+    status = UnpackMsgId(propId, NULL, &iface, &prop, &secure);
+    if (status != AJ_OK) {
+        return status;
+    }
     if (secure) {
         msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
     }
@@ -681,27 +684,37 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          * The only thing to initialize for errors is the msgId
          */
         msg->msgId = AJ_REPLY_ID(msgId);
-        UnpackMsgId(msgId, NULL, NULL, NULL, secure);
+        status = UnpackMsgId(msgId, NULL, NULL, NULL, secure);
     } else {
-        const char* member;
+        const char* member = NULL;
         char direction = (msgType == AJ_MSG_METHOD_CALL) ? IN_ARG : OUT_ARG;
         /*
          * The rest is just indexing into the object and interface descriptions.
          */
         if (msgType == AJ_MSG_METHOD_RET) {
             msg->msgId = AJ_REPLY_ID(msgId);
-            UnpackMsgId(msgId, NULL, NULL, &member, secure);
+            status = UnpackMsgId(msgId, NULL, NULL, &member, secure);
         } else {
             msg->msgId = msgId;
-            UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member, secure);
-            msg->member = member;
+            status = UnpackMsgId(msgId, &msg->objPath, &msg->iface, &member, secure);
+            if (status == AJ_OK) {
+                /*
+                 * Check we have something that looks like an object path
+                 */
+                if (!msg->objPath || *msg->objPath != '/') {
+                    status = AJ_ERR_OBJECT_PATH;
+                }
+                msg->member = member;
+            }
         }
         /*
          * Compose the signature from information in the member encoding.
          */
-        status = ComposeSignature(member, direction, msgSignature, sizeof(msgSignature));
         if (status == AJ_OK) {
-            msg->signature = msgSignature;
+            status = ComposeSignature(member, direction, msgSignature, sizeof(msgSignature));
+            if (status == AJ_OK) {
+                msg->signature = msgSignature;
+            }
         }
     }
 
@@ -710,11 +723,14 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
 
 static AJ_Status CheckReturnSignature(AJ_Message* msg, uint32_t msgId)
 {
-    AJ_Status status = AJ_OK;
+    AJ_Status status;
     uint8_t secure = FALSE;
     const char* member;
 
-    UnpackMsgId(msgId, NULL, NULL, &member, &secure);
+    status = UnpackMsgId(msgId, NULL, NULL, &member, &secure);
+    if (status != AJ_OK) {
+        return status;
+    }
     /*
      * Check that if the interface was flagged secure that them reply was encrypted
      */
@@ -843,8 +859,26 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
 
 void AJ_RegisterObjects(const AJ_Object* localObjects, const AJ_Object* proxyObjects)
 {
-    objectLists[1] = localObjects;
-    objectLists[2] = proxyObjects;
+    objectLists[AJ_APP_ID_FLAG] = localObjects;
+    objectLists[AJ_PRX_ID_FLAG] = proxyObjects;
+}
+
+AJ_Status AJ_SetProxyObjectPath(AJ_Object* proxyObjects, uint32_t msgId, const char* objPath)
+{
+    int i;
+    uint8_t oIndex = (msgId >> 24);
+    uint8_t pIndex = (msgId >> 16);
+
+    if ((oIndex != AJ_PRX_ID_FLAG) || (proxyObjects != objectLists[oIndex])) {
+        return AJ_ERR_UNKNOWN;
+    }
+    for (i = 0; i < pIndex; ++i) {
+        if (!proxyObjects[i].interfaces) {
+            return AJ_ERR_UNKNOWN;
+        }
+    }
+    proxyObjects[pIndex].path = objPath;
+    return AJ_OK;
 }
 
 AJ_Status AJ_AllocReplyContext(AJ_Message* msg, uint32_t timeout)

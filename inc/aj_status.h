@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012,2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -46,7 +46,8 @@ typedef enum {
     AJ_ERR_FAILURE      = 19, /**< A failure has occurred */
     AJ_ERR_RESTART      = 20, /**< The OEM event loop must restart */
     AJ_ERR_LINK_TIMEOUT = 21, /**< The bus link is inactive too long */
-    AJ_ERR_DRIVER       = 22  /**< An error communicating with a lower-layer driver */
+    AJ_ERR_DRIVER       = 22, /**< An error communicating with a lower-layer driver */
+    AJ_ERR_OBJECT_PATH  = 23  /**< Object path was not specified */
 
 } AJ_Status;
 
