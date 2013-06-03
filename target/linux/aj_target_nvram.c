@@ -41,6 +41,11 @@ void _AJ_NV_Write(void* dest, void* buf, uint16_t size)
     _AJ_StoreNVToFile();
 }
 
+void _AJ_NV_Read(void* src, void* buf, uint16_t size)
+{
+    memcpy(src, buf, size);
+}
+
 void _AJ_EraseNVRAM()
 {
     memset((uint8_t*)AJ_NVRAM_BASE_ADDRESS, INVALID_DATA_BYTE, AJ_NVRAM_SIZE);

@@ -50,6 +50,15 @@ typedef struct _NV_EntryHeader {
 void _AJ_NV_Write(void* dest, void* buf, uint16_t size);
 
 /**
+ * Read a block of data from NVRAM
+ *
+ * @param src   Pointer a location of NVRAM
+ * @param buf   Pointer to data to be written
+ * @param size  The number of bytes to be written
+ */
+void _AJ_NV_Read(void* src, void* buf, uint16_t size);
+
+/**
  * Erase the whole NVRAM sector and write the sentinel data
  */
 void _AJ_EraseNVRAM();

@@ -236,7 +236,7 @@ size_t AJ_NVRAM_Read(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
     bytesRead = header->capacity -  handle->curPos;
     bytesRead = (bytesRead < size) ? bytesRead : size;
     if (bytesRead > 0) {
-        memcpy(ptr, handle->inode + sizeof(NV_EntryHeader) +  handle->curPos, bytesRead);
+        _AJ_NV_Read(handle->inode + sizeof(NV_EntryHeader) +  handle->curPos, ptr, bytesRead);
         handle->curPos += bytesRead;
     }
     return bytesRead;
