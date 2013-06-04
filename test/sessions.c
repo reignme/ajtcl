@@ -66,7 +66,7 @@ static const AJ_Object AppObjects[] = {
  */
 void AppDoWork()
 {
-    printf("AppDoWork\n");
+    AJ_Printf("AppDoWork\n");
 }
 
 
@@ -96,7 +96,7 @@ AJ_Status AppSendChatSignal(AJ_BusAttachment* bus, uint32_t sessionId, const cha
     if (status == AJ_OK) {
         status = AJ_DeliverMsg(&msg);
     }
-    printf("TX chat: %s\n", chatString);
+    AJ_Printf("TX chat: %s\n", chatString);
     return status;
 }
 
@@ -106,7 +106,7 @@ AJ_Status AppHandleChatSignal(AJ_Message* msg)
     char* chatString;
 
     AJ_UnmarshalArgs(msg, "s", &chatString);
-    printf("RX chat from %s[%u]: %s\n", msg->sender, msg->sessionId, chatString);
+    AJ_Printf("RX chat from %s[%u]: %s\n", msg->sender, msg->sessionId, chatString);
     return status;
 }
 
@@ -150,7 +150,7 @@ int AJ_Main()
         // read a line
         if (AJ_GetCmdLine(buf, 1024) != NULL && strlen(buf) > 0) {
             char*command;
-            printf(">~~~%s\n", buf);
+            AJ_Printf(">~~~%s\n", buf);
             command = strtok(buf, " \r\n");
             if (0 == strcmp("startservice", command)) {
                 uint16_t port = 0;
@@ -184,14 +184,14 @@ int AJ_Main()
             } else if (0 == strcmp("find", command)) {
                 char* namePrefix = strtok(NULL, " \r\n");
                 if (!namePrefix) {
-                    printf("Usage: find <name_prefix>\n");
+                    AJ_Printf("Usage: find <name_prefix>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedName(&bus, namePrefix, AJ_BUS_START_FINDING);
             } else if (0 == strcmp("cancelfind", command)) {
                 char* namePrefix = strtok(NULL, " \r\n");
                 if (!namePrefix) {
-                    printf("Usage: cancelfind <name_prefix>\n");
+                    AJ_Printf("Usage: cancelfind <name_prefix>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedName(&bus, namePrefix, AJ_BUS_STOP_FINDING);
@@ -201,7 +201,7 @@ int AJ_Main()
                 char* token = strtok(NULL, " \r\n");
                 if (token) transport = (uint16_t)atoi(token);
                 if (!namePrefix || !transport) {
-                    printf("Usage: find2 <name_prefix> <transport>\n");
+                    AJ_Printf("Usage: find2 <name_prefix> <transport>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedNameByTransport(&bus, namePrefix, transport, AJ_BUS_START_FINDING);
@@ -211,21 +211,21 @@ int AJ_Main()
                 char* token = strtok(NULL, " \r\n");
                 if (token) transport = (uint16_t)atoi(token);
                 if (!namePrefix || !transport) {
-                    printf("Usage: cancelfind2 <name_prefix> <transport>\n");
+                    AJ_Printf("Usage: cancelfind2 <name_prefix> <transport>\n");
                     continue;
                 }
                 status = AJ_BusFindAdvertisedNameByTransport(&bus, namePrefix, transport, AJ_BUS_STOP_FINDING);
             } else if (0 == strcmp("requestname", command)) {
                 char* name = strtok(NULL, " \r\n");
                 if (!name) {
-                    printf("Usage: requestname <name>\n");
+                    AJ_Printf("Usage: requestname <name>\n");
                     continue;
                 }
                 status = AJ_BusRequestName(&bus, name, AJ_NAME_REQ_DO_NOT_QUEUE);
             } else if (0 == strcmp("releasename", command)) {
                 char* name = strtok(NULL, " \r\n");
                 if (!name) {
-                    printf("Usage: releasename <name>\n");
+                    AJ_Printf("Usage: releasename <name>\n");
                     continue;
                 }
                 status = AJ_BusReleaseName(&bus, name);
@@ -234,7 +234,7 @@ int AJ_Main()
                 char* token = NULL;
                 char* name = strtok(NULL, " \r\n");
                 if (!name) {
-                    printf("Usage: advertise <name> [transports]\n");
+                    AJ_Printf("Usage: advertise <name> [transports]\n");
                     continue;
                 }
                 token = strtok(NULL, " \r\n");
@@ -245,7 +245,7 @@ int AJ_Main()
                 char* token = NULL;
                 char* name = strtok(NULL, " \r\n");
                 if (!name) {
-                    printf("Usage: canceladvertise <name> [transports]\n");
+                    AJ_Printf("Usage: canceladvertise <name> [transports]\n");
                     continue;
                 }
 
@@ -258,7 +258,7 @@ int AJ_Main()
                 char* token = strtok(NULL, " \r\n");
                 if (token) port = (uint16_t)atoi(token);
                 if (port == 0) {
-                    printf("Usage: bind <port> [isMultipoint] [traffic] [proximity] [transports]\n");
+                    AJ_Printf("Usage: bind <port> [isMultipoint] [traffic] [proximity] [transports]\n");
                     continue;
                 }
                 token = strtok(NULL, " \r\n");
@@ -284,7 +284,7 @@ int AJ_Main()
                 if (token) port = (uint16_t) atoi(token);
 
                 if (port == 0) {
-                    printf("Usage: unbind <port>\n");
+                    AJ_Printf("Usage: unbind <port>\n");
                     continue;
                 }
                 status = AJ_BusUnbindSession(&bus, port);
@@ -296,7 +296,7 @@ int AJ_Main()
                 if (token) port = (uint16_t)atoi(token);
                 else port = 0;
                 if (!name || (port == 0)) {
-                    printf("Usage: join <name> <port> [isMultipoint] [traffic] [proximity] [transports]\n");
+                    AJ_Printf("Usage: join <name> <port> [isMultipoint] [traffic] [proximity] [transports]\n");
                     continue;
                 }
                 token = strtok(NULL, " \r\n");
@@ -319,21 +319,21 @@ int AJ_Main()
             } else if (0 == strcmp("leave", command)) {
                 uint32_t sessionId = (uint32_t)atoi(strtok(NULL, "\r\n"));
                 if (sessionId == 0) {
-                    printf("Usage: leave <sessionId>\n");
+                    AJ_Printf("Usage: leave <sessionId>\n");
                     continue;
                 }
                 status = AJ_BusLeaveSession(&bus, sessionId);
             } else if (0 == strcmp("addmatch", command)) {
                 char* ruleString = strtok(NULL, "\r\n");
                 if (!ruleString) {
-                    printf("Usage: addmatch <rule>\n");
+                    AJ_Printf("Usage: addmatch <rule>\n");
                     continue;
                 }
                 status = AJ_BusSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_ALLOW);
             } else if (0 == strcmp("removematch", command)) {
                 char* ruleString = strtok(NULL, "\r\n");
                 if (!ruleString) {
-                    printf("Usage: removematch <rule>\n");
+                    AJ_Printf("Usage: removematch <rule>\n");
                     continue;
                 }
                 status = AJ_BusSetSignalRule(&bus, ruleString, AJ_BUS_SIGNAL_DENY);
@@ -342,14 +342,14 @@ int AJ_Main()
                 char* token = strtok(NULL, " \r\n");
                 if (token) ttl = atoi(token);
                 if (ttl < 0) {
-                    printf("Usage: sendttl <ttl>\n");
+                    AJ_Printf("Usage: sendttl <ttl>\n");
                     continue;
                 }
                 sendTTL = ttl;
             } else if (0 == strcmp("schat", command)) {
                 char* chatMsg = strtok(NULL, "\r\n");
                 if (!chatMsg) {
-                    printf("Usage: schat <msg>\n");
+                    AJ_Printf("Usage: schat <msg>\n");
                     continue;
                 }
                 status = AppSendChatSignal(&bus, 0, chatMsg, ALLJOYN_FLAG_SESSIONLESS, sendTTL);
@@ -371,39 +371,39 @@ int AJ_Main()
                 char* token = strtok(NULL, " \r\n");
                 if (token) serialId = (uint32_t)atoi(token);
                 if (serialId == 0) {
-                    printf("Invalid serial number\n");
-                    printf("Usage: cancelsessionless <serialNum>\n");
+                    AJ_Printf("Invalid serial number\n");
+                    AJ_Printf("Usage: cancelsessionless <serialNum>\n");
                     continue;
                 }
                 status = AJ_BusCancelSessionless(&bus, serialId);
             } else if (0 == strcmp("exit", command)) {
                 break;
             } else if (0 == strcmp("help", command)) {
-                //printf("debug <module_name> <level>                                   - Set debug level for a module\n");
-                printf("startservice [name] [port] [isMultipoint] [traffic] [proximity] [transports] - Startservice\n");
-                printf("requestname <name>                                            - Request a well-known name\n");
-                printf("releasename <name>                                            - Release a well-known name\n");
-                printf("bind <port> [isMultipoint] [traffic] [proximity] [transports] - Bind a session port\n");
-                printf("unbind <port>                                                 - Unbind a session port\n");
-                printf("advertise <name> [transports]                                 - Advertise a name\n");
-                printf("canceladvertise <name> [transports]                           - Cancel an advertisement\n");
-                printf("find <name_prefix>                                            - Discover names that begin with prefix\n");
-                printf("find2 <name_prefix> <transport>                               - Discover names that begin with prefix by specific transports\n");
-                printf("cancelfind <name_prefix>                                      - Cancel discovering names that begins with prefix\n");
-                printf("cancelfind2 <name_prefix> <transport>                         - Cancel discovering names that begins with prefix by specific transports\n");
-                printf("join <name> <port> [isMultipoint] [traffic] [proximity] [transports] - Join a session\n");
-                printf("leave <sessionId>                                             - Leave a session\n");
-                printf("chat <sessionId> <msg>                                        - Send a message over a given session\n");
-                printf("schat <msg>                                                   - Send a sessionless message\n");
-                printf("cancelsessionless <serialNum>                                 - Cancel a sessionless message\n");
-                printf("addmatch <rule>                                               - Add a DBUS rule\n");
-                printf("removematch <rule>                                            - Remove a DBUS rule\n");
-                printf("sendttl <ttl>                                                 - Set default ttl (in ms) for all chat messages (0 = infinite)\n");
-                printf("exit                                                          - Exit this program\n");
-                printf("\n");
+                //AJ_Printf("debug <module_name> <level>                                   - Set debug level for a module\n");
+                AJ_Printf("startservice [name] [port] [isMultipoint] [traffic] [proximity] [transports] - Startservice\n");
+                AJ_Printf("requestname <name>                                            - Request a well-known name\n");
+                AJ_Printf("releasename <name>                                            - Release a well-known name\n");
+                AJ_Printf("bind <port> [isMultipoint] [traffic] [proximity] [transports] - Bind a session port\n");
+                AJ_Printf("unbind <port>                                                 - Unbind a session port\n");
+                AJ_Printf("advertise <name> [transports]                                 - Advertise a name\n");
+                AJ_Printf("canceladvertise <name> [transports]                           - Cancel an advertisement\n");
+                AJ_Printf("find <name_prefix>                                            - Discover names that begin with prefix\n");
+                AJ_Printf("find2 <name_prefix> <transport>                               - Discover names that begin with prefix by specific transports\n");
+                AJ_Printf("cancelfind <name_prefix>                                      - Cancel discovering names that begins with prefix\n");
+                AJ_Printf("cancelfind2 <name_prefix> <transport>                         - Cancel discovering names that begins with prefix by specific transports\n");
+                AJ_Printf("join <name> <port> [isMultipoint] [traffic] [proximity] [transports] - Join a session\n");
+                AJ_Printf("leave <sessionId>                                             - Leave a session\n");
+                AJ_Printf("chat <sessionId> <msg>                                        - Send a message over a given session\n");
+                AJ_Printf("schat <msg>                                                   - Send a sessionless message\n");
+                AJ_Printf("cancelsessionless <serialNum>                                 - Cancel a sessionless message\n");
+                AJ_Printf("addmatch <rule>                                               - Add a DBUS rule\n");
+                AJ_Printf("removematch <rule>                                            - Remove a DBUS rule\n");
+                AJ_Printf("sendttl <ttl>                                                 - Set default ttl (in ms) for all chat messages (0 = infinite)\n");
+                AJ_Printf("exit                                                          - Exit this program\n");
+                AJ_Printf("\n");
                 continue;
             } else {
-                printf("Unknown command: %s\n", command);
+                AJ_Printf("Unknown command: %s\n", command);
                 continue;
             }
         }
@@ -423,13 +423,13 @@ int AJ_Main()
                 {
                     uint16_t port;
                     char* joiner;
-                    printf("Accepting...\n");
+                    AJ_Printf("Accepting...\n");
                     AJ_UnmarshalArgs(&msg, "qus", &port, &g_sessionId, &joiner);
                     status = AJ_BusReplyAcceptSession(&msg, TRUE);
                     if (status == AJ_OK) {
-                        printf("Accepted session session_id=%u joiner=%s\n", g_sessionId, joiner);
+                        AJ_Printf("Accepted session session_id=%u joiner=%s\n", g_sessionId, joiner);
                     } else {
-                        printf("AJ_BusReplyAcceptSession: error %d\n", status);
+                        AJ_Printf("AJ_BusReplyAcceptSession: error %d\n", status);
                     }
                 }
                 break;
@@ -443,9 +443,9 @@ int AJ_Main()
                     } else {
                         status = AJ_UnmarshalArgs(&msg, "uu", &replyCode, &g_sessionId);
                         if (replyCode == AJ_JOINSESSION_REPLY_SUCCESS) {
-                            printf("Joined session session_id=%u\n", g_sessionId);
+                            AJ_Printf("Joined session session_id=%u\n", g_sessionId);
                         } else {
-                            printf("Joine session failed\n");
+                            AJ_Printf("Joine session failed\n");
                         }
                     }
                 }
@@ -475,8 +475,8 @@ int AJ_Main()
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
+            AJ_Printf("AllJoyn disconnect\n");
+            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*

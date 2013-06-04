@@ -147,20 +147,20 @@ int AJ_Main(void)
         if (!connected) {
             status = AJ_StartClient(&bus, NULL, CONNECT_TIMEOUT, ServiceName, ServicePort, &sessionId, NULL);
             if (status == AJ_OK) {
-                printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
-                printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
+                AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
+                AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
                 connected = TRUE;
                 if (authPeer) {
                     AJ_BusSetPasswordCallback(&bus, PasswordCallback);
                     status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
                     if (status != AJ_OK) {
-                        printf("AJ_BusAuthenticatePeer returned %d\n", status);
+                        AJ_Printf("AJ_BusAuthenticatePeer returned %d\n", status);
                     }
                 } else {
                     authStatus = AJ_OK;
                 }
             } else {
-                printf("StartClient returned %d\n", status);
+                AJ_Printf("StartClient returned %d\n", status);
                 break;
             }
         }
@@ -181,7 +181,7 @@ int AJ_Main(void)
 
         switch (msg.msgId) {
         case PRX_MY_SIGNAL:
-            printf("Received my_signal\n");
+            AJ_Printf("Received my_signal\n");
             status = AJ_OK;
             break;
 
@@ -205,13 +205,13 @@ int AJ_Main(void)
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
+            AJ_Printf("AllJoyn disconnect\n");
+            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             exit(0);
         }
     }
-    printf("clientlite EXIT %d\n", status);
+    AJ_Printf("clientlite EXIT %d\n", status);
 
     return status;
 }

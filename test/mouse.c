@@ -181,17 +181,17 @@ int AJ_Main(void)
 
             status = AJ_Connect(&bus, NULL, CONNECT_TIMEOUT);
             if (status != AJ_OK) {
-                printf("AllJoyn failed to connect sleeping for 15 seconds\n");
+                AJ_Printf("AllJoyn failed to connect sleeping for 15 seconds\n");
                 AJ_Sleep(15 * 1000);
                 continue;
             }
-            printf("AllJoyn connected\n");
+            AJ_Printf("AllJoyn connected\n");
             /*
              * Kick things off by binding a session port
              */
             status = AJ_BusBindSessionPort(&bus, ServicePort, NULL);
             if (status != AJ_OK) {
-                printf("Failed to send bind session port message\n");
+                AJ_Printf("Failed to send bind session port message\n");
                 break;
             }
             connected = TRUE;
@@ -250,7 +250,7 @@ int AJ_Main(void)
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
+            AJ_Printf("AllJoyn disconnect\n");
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*
@@ -259,7 +259,7 @@ int AJ_Main(void)
             AJ_Sleep(10 * 1000);
         }
     }
-    printf("svclite EXIT %d\n", status);
+    AJ_Printf("svclite EXIT %d\n", status);
 
     return status;
 }

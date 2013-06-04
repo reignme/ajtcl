@@ -47,16 +47,16 @@ int main(void)
 
             status = AJ_Encrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const uint8_t*) nonce, sizeof(nonce));
             if (status != AJ_OK) {
-                printf("Encryption failed (%d) for test #%zu\n", status, i);
+                AJ_Printf("Encryption failed (%d) for test #%zu\n", status, i);
                 goto ErrorExit;
             }
             status = AJ_Decrypt_CCM(key, msg, sizeof(msg), hdrLen, 12, (const uint8_t*) nonce, sizeof(nonce));
             if (status != AJ_OK) {
-                printf("Authentication failure (%d) for test #%zu\n", status, i);
+                AJ_Printf("Authentication failure (%d) for test #%zu\n", status, i);
                 goto ErrorExit;
             }
             if (memcmp(cmp, msg, sizeof(msg)) != 0) {
-                printf("Decrypt verification failure \n");
+                AJ_Printf("Decrypt verification failure \n");
                 goto ErrorExit;
             }
             nonce[0] += 1;
@@ -66,6 +66,6 @@ int main(void)
 
 ErrorExit:
 
-    printf("AES CCM unit test FAILED\n");
+    AJ_Printf("AES CCM unit test FAILED\n");
     return 1;
 }

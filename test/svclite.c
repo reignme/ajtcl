@@ -93,7 +93,7 @@ static void AppDoWork()
     /*
      * This function is called if there are no messages to unmarshal
      */
-    printf("do work\n");
+    AJ_AJ_Printf("do work\n");
 }
 
 static const char PWD[] = "ABCDEFGH";
@@ -176,8 +176,8 @@ int AJ_Main(void)
             if (status != AJ_OK) {
                 continue;
             }
-            printf("StartService returned AJ_OK\n");
-            printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
+            AJ_AJ_Printf("StartService returned AJ_OK\n");
+            AJ_AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
 
             connected = TRUE;
 
@@ -203,7 +203,7 @@ int AJ_Main(void)
 
             case AJ_REPLY_ID(AJ_METHOD_ADD_MATCH):
                 if (msg.hdr->msgType == AJ_MSG_ERROR) {
-                    printf("Failed to add match\n");
+                    AJ_Printf("Failed to add match\n");
                     status = AJ_ERR_FAILURE;
                 } else {
                     status = AJ_OK;
@@ -218,10 +218,10 @@ int AJ_Main(void)
 
                     if (port == ServicePort) {
                         status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                        printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+                        AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
                     } else {
                         status = AJ_BusReplyAcceptSession(&msg, FALSE);
-                        printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
+                        AJ_Printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
                     }
                 }
                 break;
@@ -237,9 +237,9 @@ int AJ_Main(void)
             case APP_SET_PROP:
                 status = AJ_BusPropSet(&msg, PropSetHandler, NULL);
                 if (status == AJ_OK) {
-                    printf("Property successfully set to %d.\n", propVal);
+                    AJ_Printf("Property successfully set to %d.\n", propVal);
                 } else {
-                    printf("Property set attempt unsuccessful. Status = 0x%04x.\n", status);
+                    AJ_Printf("Property set attempt unsuccessful. Status = 0x%04x.\n", status);
                 }
                 break;
 
@@ -264,7 +264,7 @@ int AJ_Main(void)
                 break;
 
             case APP_MY_SIGNAL:
-                printf("Received my_signal\n");
+                AJ_Printf("Received my_signal\n");
                 status = AJ_OK;
 
                 if (ReflectSignal) {
@@ -293,8 +293,8 @@ int AJ_Main(void)
         AJ_CloseMsg(&msg);
 
         if (status == AJ_ERR_READ) {
-            printf("AllJoyn disconnect\n");
-            printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
+            AJ_Printf("AllJoyn disconnect\n");
+            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
             connected = FALSE;
             /*
@@ -303,7 +303,7 @@ int AJ_Main(void)
             AJ_Sleep(10 * 1000);
         }
     }
-    printf("svclite EXIT %d\n", status);
+    AJ_Printf("svclite EXIT %d\n", status);
 
     return status;
 }

@@ -80,7 +80,7 @@ static AJ_Status AJ_sleepFunc(uint32_t timeout)
     if (!ioThreadRunningSleep) {
         ret = pthread_create(&threadIdSleep, NULL, AJ_TimeExpired_Mutter, (void*)timeout);
         if (ret != 0) {
-            printf("Error: fail to spin a thread for sleeping\n");
+            AJ_Printf("Error: fail to spin a thread for sleeping\n");
         }
         ioThreadRunningSleep = TRUE;
     }
@@ -109,7 +109,7 @@ static AJ_Status TxFunc(AJ_IOBuffer* buf)
     if (!ioThreadRunningWrite) {
         ret = pthread_create(&threadIdWrite, NULL, AJ_WriteReady_Mutter, NULL);
         if (ret != 0) {
-            printf("Error: fail to spin a thread for writing\n");
+            AJ_Printf("Error: fail to spin a thread for writing\n");
         }
         ioThreadRunningWrite = TRUE;
     }
@@ -146,7 +146,7 @@ AJ_Status RxFunc(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
     if (!ioThreadRunningRead) {
         ret = pthread_create(&threadIdRead, NULL, AJ_ReadReady_Mutter, (void*)timeout);
         if (ret != 0) {
-            printf("Error: fail to spin a thread for reading\n");
+            AJ_Printf("Error: fail to spin a thread for reading\n");
         }
         ioThreadRunningRead = TRUE;
     }
