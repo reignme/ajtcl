@@ -108,7 +108,7 @@ AJ_Status SendPing(AJ_BusAttachment* bus, uint32_t sessionId, unsigned int num)
      * Since the object path on the proxy object entry was not set in the proxy object table above
      * it must be set before marshalling the method call.
      */
-    status = AJ_SetProxyObjectPath(&ProxyObjects, PRX_MY_PING, testObj);
+    status = AJ_SetProxyObjectPath(ProxyObjects, PRX_MY_PING, testObj);
     if (status == AJ_OK) {
         status = AJ_MarshalMethodCall(bus, &msg, PRX_MY_PING, ServiceName, sessionId, 0, METHOD_TIMEOUT);
     }
