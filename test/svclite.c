@@ -93,7 +93,7 @@ static void AppDoWork()
     /*
      * This function is called if there are no messages to unmarshal
      */
-    AJ_AJ_Printf("do work\n");
+    AJ_Printf("do work\n");
 }
 
 static const char PWD[] = "ABCDEFGH";
@@ -176,8 +176,8 @@ int AJ_Main(void)
             if (status != AJ_OK) {
                 continue;
             }
-            AJ_AJ_Printf("StartService returned AJ_OK\n");
-            AJ_AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
+            AJ_Printf("StartService returned AJ_OK\n");
+            AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
 
             connected = TRUE;
 
