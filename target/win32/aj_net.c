@@ -304,7 +304,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
     for (; pinfo; pinfo = pinfo->Next) {
         IP_ADAPTER_UNICAST_ADDRESS* paddr;
 
-#if 0
+#if USE_WIFI_ONLY
         // we only care about WIFI adaptors that support multicast
         if (pinfo->IfType != IF_TYPE_IEEE80211) {
             continue;
