@@ -109,7 +109,7 @@ AJ_Status TestNVRAM()
 
     {
         handle = AJ_NVRAM_Open(id, "w", 40 + 5);
-        assert(handle);
+        AJ_ASSERT(handle);
         for (i = 0; i < 10; i++) {
             bytes = AJ_NVRAM_Write(&i, sizeof(i), handle);
             if (bytes != sizeof(i)) {
@@ -136,7 +136,7 @@ AJ_Status TestNVRAM()
         AJ_NVRAM_Layout_Print();
 
         handle = AJ_NVRAM_Open(id, "r", 0);
-        assert(handle);
+        AJ_ASSERT(handle);
         for (i = 0; i < 10; i++) {
             int data = 0;
             bytes = AJ_NVRAM_Read(&data, sizeof(data), handle);
@@ -164,7 +164,7 @@ AJ_Status TestNVRAM()
     for (i = 0; i < 12; i++) {
         if (i == 6) {
             handle = AJ_NVRAM_Open(id + 2, "w", 100);
-            assert(handle);
+            AJ_ASSERT(handle);
             status = AJ_NVRAM_Close(handle);
             if (AJ_OK != status) {
                 goto _TEST_NVRAM_EXIT;
@@ -172,7 +172,7 @@ AJ_Status TestNVRAM()
             continue;
         }
         handle = AJ_NVRAM_Open(id + 1, "w", 200);
-        assert(handle);
+        AJ_ASSERT(handle);
         status = AJ_NVRAM_Close(handle);
         if (AJ_OK != status) {
             goto _TEST_NVRAM_EXIT;
@@ -187,8 +187,11 @@ _TEST_NVRAM_EXIT:
 int AJ_Main()
 {
     AJ_Status status = AJ_OK;
+    AJ_Printf("AJ_Main 1\n");
     AJ_Initialize();
+    AJ_Printf("AJ_Main 2\n");
     status = TestNVRAM();
+    AJ_Printf("AJ_Main 3\n");
     AJ_ASSERT(status == AJ_OK);
     status = TestCreds();
     AJ_ASSERT(status == AJ_OK);

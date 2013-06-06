@@ -42,7 +42,7 @@ void _AJ_NV_Write(void* dest, void* buf, uint16_t size)
 
 void _AJ_NV_Read(void* src, void* buf, uint16_t size)
 {
-    memcpy(src, buf, size);
+    memcpy(buf, src, size);
 }
 
 void _AJ_EraseNVRAM()
