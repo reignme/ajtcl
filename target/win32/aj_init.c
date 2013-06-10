@@ -20,13 +20,17 @@
 #include "aj_target.h"
 #include "aj_init.h"
 #include "aj_nvram.h"
+#include "aj_guid.h"
 
 static uint8_t initialized = FALSE;
 
 void AJ_Initialize(void)
 {
     if (!initialized) {
+        AJ_GUID localGuid;
         initialized = TRUE;
         AJ_NVRAM_Init();
+
+        AJ_GetLocalGUID(&localGuid);
     }
 }
