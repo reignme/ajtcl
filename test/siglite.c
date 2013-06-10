@@ -18,13 +18,8 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include "alljoyn.h"
-#include "aj_debug.h"
-#include "aj_crypto.h"
+#include <aj_target.h>
+#include <alljoyn.h>
 
 static const char ServiceName[] = "org.alljoyn.svclite";
 static const uint16_t ServicePort = 24;
@@ -208,7 +203,7 @@ int AJ_Main(void)
             AJ_Printf("AllJoyn disconnect\n");
             AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
             AJ_Disconnect(&bus);
-            exit(0);
+            connected = FALSE;
         }
     }
     AJ_Printf("clientlite EXIT %d\n", status);
