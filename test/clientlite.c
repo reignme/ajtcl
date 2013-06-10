@@ -18,12 +18,8 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include <stdio.h>
-#include <assert.h>
-
-#include "alljoyn.h"
-#include "aj_debug.h"
-#include "aj_crypto.h"
+#include <aj_target.h>
+#include <alljoyn.h>
 
 static const char ServiceName[] = "org.alljoyn.svclite";
 static const uint16_t ServicePort = 24;
