@@ -436,6 +436,7 @@ AJ_Status AJ_CloseMsg(AJ_Message* msg)
             uint16_t sz = AJ_IO_BUF_AVAIL(ioBuf);
             sz = min(sz, msg->bodyBytes);
             if (!sz) {
+                AJ_IO_BUF_RESET(ioBuf);
                 sz = min(msg->bodyBytes, ioBuf->bufSize);
             }
             status = LoadBytes(ioBuf, sz, 0);
