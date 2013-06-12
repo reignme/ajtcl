@@ -26,11 +26,9 @@ extern "C" {
 static const char* serviceName = "org.alljoyn.thinclient.test.theoffice";
 static const uint16_t servicePort = 1984;
 
-// Given that SetUp and TearDown are done before each test,
-// we cannot wait too long for the connection to time out.
-// Further, the expectation is to find a daemon on 127.0.0.1:9955
-// and hence we should be able to connect to it within 125 milliseconds.
-static const uint8_t connectTimeout = 125;
+// The expectation is that there is a daemon running on the same machine.
+// Hence, we should be able to discover and connect to it within 1.5 seconds.
+static const uint8_t connectTimeout = 1500;
 
 // We expect to receive replies very quickly from the local daemon.
 static const uint16_t unmarshalTimeout = 250;
@@ -102,7 +100,7 @@ uint32_t RequestReleaseNameTestHelper(const uint32_t method, const char* name, c
     bool yetToReceiveReplyInterestedIn = true;
     AJ_Time timer;
     AJ_InitTimer(&timer);
-    const uint16_t loopTimeoutValue = 500; // thousand milliseconds
+    const uint16_t loopTimeoutValue = 500; // five hundred milliseconds
 
     while (yetToReceiveReplyInterestedIn && AJ_GetElapsedTime(&timer, TRUE) < loopTimeoutValue) {
         AJ_Message msg;
