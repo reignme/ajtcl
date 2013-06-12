@@ -28,7 +28,7 @@ static const uint16_t servicePort = 1984;
 
 // The expectation is that there is a daemon running on the same machine.
 // Hence, we should be able to discover and connect to it within 1.5 seconds.
-static const uint8_t connectTimeout = 1500;
+static const uint16_t connectTimeout = 1500;
 
 // We expect to receive replies very quickly from the local daemon.
 static const uint16_t unmarshalTimeout = 250;
