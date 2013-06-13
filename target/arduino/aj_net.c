@@ -61,7 +61,7 @@ static EthernetClient g_client;
 static EthernetUDP g_clientUDP;
 #endif
 
-AJ_Status Send(AJ_IOBuffer* buf)
+AJ_Status AJ_Net_Send(AJ_IOBuffer* buf)
 {
     uint32_t ret;
     uint32_t tx = AJ_IO_BUF_AVAIL(buf);
@@ -82,7 +82,7 @@ AJ_Status Send(AJ_IOBuffer* buf)
     return AJ_OK;
 }
 
-AJ_Status Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
+AJ_Status AJ_Net_Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     AJ_Status status = AJ_ERR_READ;
     uint32_t ret;
@@ -190,9 +190,9 @@ AJ_Status AJ_Net_Connect(AJ_NetSocket* netSock, uint16_t port, uint8_t addrType,
         return AJ_ERR_CONNECT;
     } else {
         AJ_IOBufInit(&netSock->rx, rxData, sizeof(rxData), AJ_IO_BUF_RX, (void*)&g_client);
-        netSock->rx.recv = Recv;
+        netSock->rx.recv = AJ_Net_Recv;
         AJ_IOBufInit(&netSock->tx, txData, sizeof(txData), AJ_IO_BUF_TX, (void*)&g_client);
-        netSock->tx.send = Send;
+        netSock->tx.send = AJ_Net_Send;
         return AJ_OK;
     }
     return AJ_ERR_CONNECT;
@@ -203,7 +203,7 @@ void AJ_Net_Disconnect(AJ_NetSocket* netSock)
     g_client.stop();
 }
 
-AJ_Status SendTo(AJ_IOBuffer* buf)
+AJ_Status AJ_Net_SendTo(AJ_IOBuffer* buf)
 {
     int ret;
     uint32_t tx = AJ_IO_BUF_AVAIL(buf);
@@ -240,7 +240,7 @@ AJ_Status SendTo(AJ_IOBuffer* buf)
     return AJ_OK;
 }
 
-AJ_Status RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
+AJ_Status AJ_Net_RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     AJ_Printf("RecvFrom ");
     AJ_Status status = AJ_OK;
@@ -295,9 +295,9 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
         return AJ_ERR_READ;
     } else {
         AJ_IOBufInit(&netSock->rx, rxData, sizeof(rxData), AJ_IO_BUF_RX, (void*)&g_clientUDP);
-        netSock->rx.recv = RecvFrom;
+        netSock->rx.recv = AJ_Net_RecvFrom;
         AJ_IOBufInit(&netSock->tx, txData, sizeof(txData), AJ_IO_BUF_TX, (void*)&g_clientUDP);
-        netSock->tx.send = SendTo;
+        netSock->tx.send = AJ_Net_SendTo;
     }
 
     return AJ_OK;
