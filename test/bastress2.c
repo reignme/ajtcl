@@ -17,10 +17,9 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include <stdint.h>
-#include <stddef.h>
+#include "aj_target.h"
+#include "alljoyn.h"
 
-#include <alljoyn.h>
 
 #define CONNECT_TIMEOUT    (1000ul * 200)
 #define UNMARSHAL_TIMEOUT  (1000ul * 5)
@@ -96,7 +95,7 @@ AJ_Status AppHandleCat(AJ_Message* msg)
 
     totalString = (char*) AJ_Malloc(strlen(partA) + strlen(partB));
     strcpy(totalString, partA);
-    strcat(totalString, partB);
+    strcpy(totalString+strlen(partA), partB);
 
     AJ_MarshalReplyMsg(msg, &reply);
     AJ_MarshalArgs(&reply, "s", totalString);
