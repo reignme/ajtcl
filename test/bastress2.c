@@ -95,7 +95,7 @@ AJ_Status AppHandleCat(AJ_Message* msg)
 
     totalString = (char*) AJ_Malloc(strlen(partA) + strlen(partB));
     strcpy(totalString, partA);
-    strcpy(totalString+strlen(partA), partB);
+    strcpy(totalString + strlen(partA), partB);
 
     AJ_MarshalReplyMsg(msg, &reply);
     AJ_MarshalArgs(&reply, "s", totalString);
