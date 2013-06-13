@@ -16,10 +16,7 @@
  *    See the license for the specific language governing permissions and
  *    limitations under the license.
  ******************************************************************************/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "aj_target.h"
 
 #include "alljoyn.h"
 #include "aj_crypto.h"
