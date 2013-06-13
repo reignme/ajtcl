@@ -49,7 +49,7 @@ static const char AJ_IPV6_MULTICAST_GROUP[] = "ff02::13a";
  */
 #define AJ_UDP_PORT 9956
 
-static AJ_Status AJ_Net_Send(AJ_IOBuffer* buf)
+AJ_Status AJ_Net_Send(AJ_IOBuffer* buf)
 {
     ssize_t ret;
     size_t tx = AJ_IO_BUF_AVAIL(buf);
@@ -72,7 +72,7 @@ static AJ_Status AJ_Net_Send(AJ_IOBuffer* buf)
     return AJ_OK;
 }
 
-static AJ_Status AJ_Net_Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
+AJ_Status AJ_Net_Recv(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     AJ_Status status = AJ_OK;
     size_t rx = AJ_IO_BUF_SPACE(buf);
@@ -161,7 +161,7 @@ void AJ_Net_Disconnect(AJ_NetSocket* netSock)
     }
 }
 
-static AJ_Status AJ_Net_SendTo(AJ_IOBuffer* buf)
+AJ_Status AJ_Net_SendTo(AJ_IOBuffer* buf)
 {
     ssize_t ret;
     size_t tx = AJ_IO_BUF_AVAIL(buf);
@@ -189,7 +189,7 @@ static AJ_Status AJ_Net_SendTo(AJ_IOBuffer* buf)
     return AJ_OK;
 }
 
-static AJ_Status AJ_Net_RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
+AJ_Status AJ_Net_RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     AJ_Status status;
     ssize_t ret;
