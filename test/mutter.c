@@ -202,6 +202,7 @@ typedef struct {
     uint32_t d;
 } TestStruct;
 
+#ifndef NDEBUG
 static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
 {
     msg->objPath = "/test/mutter";
@@ -212,7 +213,6 @@ static AJ_Status MsgInit(AJ_Message* msg, uint32_t msgId, uint8_t msgType)
     return AJ_OK;
 }
 
-#ifndef NDEBUG
 extern AJ_MutterHook MutterHook;
 #endif
 
