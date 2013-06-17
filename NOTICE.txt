@@ -32,7 +32,7 @@
    Attribution-ShareAlike 3.0 Unported License (the "CC BY-SA License");
    provided,
    that (i) any source code incorporated in this documentation is licensed
-            under the Apache License version 2.0 except as noted below under
+            under the AllJoyn BSD license except as noted below under
             Exceptions
    and (ii) THIS DOCUMENTATION AND ALL INFORMATION CONTAINED HEREIN ARE
             PROVIDED ON AN "AS-IS" BASIS WITHOUT WARRANTY OF ANY KIND.
