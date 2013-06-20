@@ -144,7 +144,7 @@ static AJ_Status PropSetHandler(AJ_Message* replyMsg, uint32_t propId, void* con
 
 uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
 {
-    const char* myPwd = "123456";
+    const char* myPwd = "1234";
     strncpy((char*)buf, myPwd, bufLen);
     return (uint32_t)strlen(myPwd);
 }
