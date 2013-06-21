@@ -32,7 +32,7 @@ static const char ServicePath[] = "/SecureService";
 static const uint16_t ServicePort = 42;
 
 static const char* const secureInterface[] = {
-    InterfaceName,
+    "$org.alljoyn.bus.samples.secure.SecureInterface",
     "?Ping inStr<s outStr>s",
     NULL
 };

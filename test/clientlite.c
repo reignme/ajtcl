@@ -28,17 +28,24 @@ static const uint16_t ServicePort = 24;
  * The app should authenticate the peer if one or more interfaces are secure
  * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
  */
-static uint8_t authPeer = FALSE;
 
 static const char* const testInterface[] = {
+#ifdef SECURE_INTERFACE
+    "$org.alljoyn.alljoyn_test",
+#else
     "org.alljoyn.alljoyn_test",
+#endif
     "?my_ping inStr<s outStr>s",
     NULL
 };
 
 
 static const char* const testValuesInterface[] = {
+#ifdef SECURE_INTERFACE
+    "$org.alljoyn.alljoyn_test.values",
+#else
     "org.alljoyn.alljoyn_test.values",
+#endif
     "@int_val=i",
     NULL
 };
@@ -185,15 +192,15 @@ int AJ_Main(void)
                 AJ_Printf("StartClient returned %d, sessionId=%u\n", status, sessionId);
                 AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
                 connected = TRUE;
-                if (authPeer) {
-                    AJ_BusSetPasswordCallback(&bus, PasswordCallback);
-                    status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
-                    if (status != AJ_OK) {
-                        AJ_Printf("AJ_BusAuthenticatePeer returned %d\n", status);
-                    }
-                } else {
-                    authStatus = AJ_OK;
+#ifdef SECURE_INTERFACE
+                AJ_BusSetPasswordCallback(&bus, PasswordCallback);
+                status = AJ_BusAuthenticatePeer(&bus, ServiceName, AuthCallback, &authStatus);
+                if (status != AJ_OK) {
+                    AJ_Printf("AJ_BusAuthenticatePeer returned %d\n", status);
                 }
+#else
+                authStatus = AJ_OK;
+#endif
             } else {
                 AJ_Printf("StartClient returned %d\n", status);
                 break;

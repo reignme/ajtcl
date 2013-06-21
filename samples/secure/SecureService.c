@@ -35,7 +35,7 @@ static const uint16_t ServicePort = 42;
  * See also .\inc\aj_introspect.h
  */
 static const char* const secureInterface[] = {
-    InterfaceName,
+    "$org.alljoyn.bus.samples.secure.SecureInterface",
     "?Ping inStr<s outStr>s",  /* Method at index 0. */
     NULL
 };

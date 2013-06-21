@@ -39,7 +39,11 @@ static int32_t propVal = 123456;
  * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
  */
 static const char* const testInterface[] = {
+#ifdef SECURE_INTERFACE
+    "$org.alljoyn.alljoyn_test",
+#else
     "org.alljoyn.alljoyn_test",
+#endif
     "?my_ping inStr<s outStr>s",
     "?delayed_ping inStr<s delay<u outStr>s",
     "?time_ping <u <q >u >q",
@@ -49,7 +53,11 @@ static const char* const testInterface[] = {
 
 
 static const char* const testValuesInterface[] = {
+#ifdef SECURE_INTERFACE
+    "$org.alljoyn.alljoyn_test.values",
+#else
     "org.alljoyn.alljoyn_test.values",
+#endif
     "@int_val=i",
     "@str_val=s",
     "@ro_val>s",
