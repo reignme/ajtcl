@@ -103,6 +103,7 @@ typedef struct _AJ_Object {
 #define AJ_BUS_ID_FLAG   0x00  /**< Built in bus object messages */
 #define AJ_APP_ID_FLAG   0x01  /**< Application object messages */
 #define AJ_PRX_ID_FLAG   0x02  /**< Proxy object messages */
+#define AJ_SVC_ID_FLAG   0x04  /**< Service object messages */
 #define AJ_REP_ID_FLAG   0x80  /**< Indicates a message is a reply message */
 
 /*
@@ -111,13 +112,14 @@ typedef struct _AJ_Object {
 #define AJ_BUS_MESSAGE_ID(p, i, m)  ((AJ_BUS_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from bus object */
 #define AJ_APP_MESSAGE_ID(p, i, m)  ((AJ_APP_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from application object */
 #define AJ_PRX_MESSAGE_ID(p, i, m)  ((AJ_PRX_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from proxy object */
-
+#define AJ_SVC_MESSAGE_ID(p, i, m)  ((AJ_SVC_ID_FLAG << 24) | (((uint32_t)(p)) << 16) | (((uint32_t)(i)) << 8) | (m))       /**< Encode a message id from service object */
 /*
  * Macros to encode a property id from the object path, interface, and member indices.
  */
 #define AJ_BUS_PROPERTY_ID(p, i, m) AJ_BUS_MESSAGE_ID(p, i, m)      /**< Encode a property id from bus object */
 #define AJ_APP_PROPERTY_ID(p, i, m) AJ_APP_MESSAGE_ID(p, i, m)      /**< Encode a property id from application object */
 #define AJ_PRX_PROPERTY_ID(p, i, m) AJ_PRX_MESSAGE_ID(p, i, m)      /**< Encode a property id from proxy object */
+#define AJ_SVC_PROPERTY_ID(p, i, m) AJ_SVC_MESSAGE_ID(p, i, m)      /**< Encode a property id from service object */
 
 /**
  * Macro to generate the reply message identifier from method call message. This is the message
