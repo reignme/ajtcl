@@ -260,6 +260,8 @@ static AJ_Status Challenge(AJ_SASL_Context* context, char* inStr, char* outStr, 
             context->mechanism = MatchMechanism(context, &inStr);
             if (!context->mechanism) {
                 result = AJ_AUTH_STATUS_RETRY;
+                status = Rejected(context, outStr, outLen);
+                break;
             } else {
                 status = context->mechanism->Init(AJ_AUTH_CHALLENGER, context->pwdFunc);
                 /*
