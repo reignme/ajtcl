@@ -28,24 +28,23 @@ static const uint16_t ServicePort = 24;
  * The app should authenticate the peer if one or more interfaces are secure
  * To define a secure interface, prepend '$' before the interface name, eg., "$org.alljoyn.alljoyn_test"
  */
+#ifdef SECURE_INTERFACE
+static const char testInterfaceName[] = "$org.alljoyn.alljoyn_test";
+static const char testValuesInterfaceName[] = "$org.alljoyn.alljoyn_test.values";
+#else
+static const char testInterfaceName[] = "org.alljoyn.alljoyn_test";
+static const char testValuesInterfaceName[] = "org.alljoyn.alljoyn_test.values";
+#endif
 
 static const char* const testInterface[] = {
-#ifdef SECURE_INTERFACE
-    "$org.alljoyn.alljoyn_test",
-#else
-    "org.alljoyn.alljoyn_test",
-#endif
+    testInterfaceName,
     "?my_ping inStr<s outStr>s",
     NULL
 };
 
 
 static const char* const testValuesInterface[] = {
-#ifdef SECURE_INTERFACE
-    "$org.alljoyn.alljoyn_test.values",
-#else
-    "org.alljoyn.alljoyn_test.values",
-#endif
+    testValuesInterfaceName,
     "@int_val=i",
     NULL
 };
@@ -90,11 +89,13 @@ static void AppDoWork(AJ_BusAttachment* bus, uint32_t sessionId)
 
 static const char PWD[] = "ABCDEFGH";
 
+#ifdef SECURE_INTERFACE
 static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
 {
     memcpy(buffer, PWD, sizeof(PWD));
     return sizeof(PWD) - 1;
 }
+#endif
 
 #define CONNECT_TIMEOUT    (1000 * 200)
 #define UNMARSHAL_TIMEOUT  (1000 * 5)

@@ -17,7 +17,6 @@
  *    limitations under the license.
  ******************************************************************************/
 
-#include <stdio.h>
 #include "alljoyn.h"
 #include "aj_util.h"
 #include "aj_debug.h"
@@ -739,6 +738,8 @@ int AJ_Main()
         assert("Ran past the yield point. Crash!");
     }
 #endif
+
+    return status;
 }
 
 #ifdef AJ_YIELD
