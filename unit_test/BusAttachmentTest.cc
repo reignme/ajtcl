@@ -173,12 +173,16 @@ TEST_F(BusAttachmentTest, RequestName)
     AJ_BusDestination;
 
     // Request a new name that is not taken
-    EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0)) <<
+    uint32_t disposition = RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0);
+    EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, disposition) <<
     "Unable to request a well-known name: " << serviceName;
 
-    // Request the same name again
-    EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER, RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0)) <<
-    "Did not get 'name already owner' while requesting an already requested name:" << serviceName;
+    if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER == disposition) {
+        // Request the same name again
+        EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_ALREADY_OWNER, RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0)) <<
+        "Did not get 'name already owner' while requesting an already requested name:" << serviceName;
+    }
+
 }
 
 static const uint32_t DBUS_RELEASE_NAME_REPLY_RELEASED = 1;
@@ -199,8 +203,13 @@ TEST_F(BusAttachmentTest, ReleaseName)
     AJ_BusDestination;
 
     // Request and Release a unique name
-    EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0)) <<
+    uint32_t disposition = RequestReleaseNameTestHelper(AJ_METHOD_REQUEST_NAME, serviceName, 0x0);
+    EXPECT_EQ(DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER, disposition) <<
     "Unable to request a well-known name: " << serviceName;
-    EXPECT_EQ(DBUS_RELEASE_NAME_REPLY_RELEASED, RequestReleaseNameTestHelper(AJ_METHOD_RELEASE_NAME, serviceName, 0x0)) <<
-    "Unable to release the well-known name: " << serviceName;
+
+    if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER == disposition) {
+        // release the name
+        EXPECT_EQ(DBUS_RELEASE_NAME_REPLY_RELEASED, RequestReleaseNameTestHelper(AJ_METHOD_RELEASE_NAME, serviceName, 0x0)) <<
+        "Unable to release the well-known name: " << serviceName;
+    }
 }
