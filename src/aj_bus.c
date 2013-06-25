@@ -380,7 +380,7 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
 
     case AJ_SIGNAL_NAME_OWNER_CHANGED:
         AJ_UnmarshalArgs(msg, "sss", &name, &oldOwner, &newOwner);
-        if (newOwner[0] == '\0') {
+        if (newOwner && oldOwner && newOwner[0] == '\0') {
             AJ_GUID_DeleteNameMapping(oldOwner);
         }
         status = AJ_OK;
