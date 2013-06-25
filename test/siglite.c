@@ -174,25 +174,27 @@ int AJ_Main(void)
             continue;
         }
 
-        switch (msg.msgId) {
-        case PRX_MY_SIGNAL:
-            AJ_Printf("Received my_signal\n");
-            status = AJ_OK;
-            break;
+        if (status == AJ_OK) {
+            switch (msg.msgId) {
+            case PRX_MY_SIGNAL:
+                AJ_Printf("Received my_signal\n");
+                status = AJ_OK;
+                break;
 
-        case AJ_SIGNAL_SESSION_LOST:
-            /*
-             * Force a disconnect
-             */
-            status = AJ_ERR_READ;
-            break;
+            case AJ_SIGNAL_SESSION_LOST:
+                /*
+                 * Force a disconnect
+                 */
+                status = AJ_ERR_READ;
+                break;
 
-        default:
-            /*
-             * Pass to the built-in handlers
-             */
-            status = AJ_BusHandleBusMessage(&msg);
-            break;
+            default:
+                /*
+                 * Pass to the built-in handlers
+                 */
+                status = AJ_BusHandleBusMessage(&msg);
+                break;
+            }
         }
         /*
          * Messages must be closed to free resources
