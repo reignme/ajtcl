@@ -52,7 +52,7 @@ static const AJ_InterfaceDescription testInterfaces[] = {
  * Objects implemented by the application
  */
 static const AJ_Object AppObjects[] = {
-    { "/org/alljoyn/alljoyn_test", testInterfaces },
+    { "/sample", testInterfaces },
     { NULL }
 };
 
@@ -144,9 +144,9 @@ int AJ_Main()
 
         case AJ_METHOD_ACCEPT_SESSION:
             {
-                AJ_Printf("Accepting...\n");
                 uint16_t port;
                 char* joiner;
+                AJ_Printf("Accepting...\n");
                 AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
                 status = AJ_BusReplyAcceptSession(&msg, TRUE);
                 if (status == AJ_OK) {
@@ -192,3 +192,10 @@ int AJ_Main()
 
     return 0;
 }
+
+#ifdef AJ_MAIN
+int main()
+{
+    return AJ_Main();
+}
+#endif

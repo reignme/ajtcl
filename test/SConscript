@@ -25,3 +25,4 @@ if env['TARG'] == 'win32' or env['TARG'] == 'linux' or env['TARG'] == 'yield-lin
     env.Program('siglite', ['siglite.c'] + env['aj_obj'])
     env.Program('sessions', ['sessions.c'] + env['aj_obj'])
     env.Program('nvramtest', ['nvramtest.c'] + env['aj_obj'])
+    env.Program('bastress2', ['bastress2.c'] + env['aj_obj'])
