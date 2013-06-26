@@ -136,43 +136,45 @@ int AJ_Main()
         if (status != AJ_OK) {
             if (status == AJ_ERR_TIMEOUT) {
                 AppDoWork();
+                continue;
             }
-            continue;
         }
 
-        switch (msg.msgId) {
+        if (status == AJ_OK) {
+            switch (msg.msgId) {
 
-        case AJ_METHOD_ACCEPT_SESSION:
-            {
-                uint16_t port;
-                char* joiner;
-                AJ_Printf("Accepting...\n");
-                AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
-                status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                if (status == AJ_OK) {
-                    AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
-                } else {
-                    AJ_Printf("AJ_BusReplyAcceptSession: error %d\n", status);
+            case AJ_METHOD_ACCEPT_SESSION:
+                {
+                    uint16_t port;
+                    char* joiner;
+                    AJ_Printf("Accepting...\n");
+                    AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
+                    status = AJ_BusReplyAcceptSession(&msg, TRUE);
+                    if (status == AJ_OK) {
+                        AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+                    } else {
+                        AJ_Printf("AJ_BusReplyAcceptSession: error %d\n", status);
+                    }
                 }
+                break;
+
+            case APP_MY_CAT:
+                status = AppHandleCat(&msg);
+                break;
+
+            case AJ_SIGNAL_SESSION_LOST:
+                /*
+                 * don't force a disconnect, be ready to accept another session
+                 */
+                break;
+
+            default:
+                /*
+                 * Pass to the built-in handlers
+                 */
+                status = AJ_BusHandleBusMessage(&msg);
+                break;
             }
-            break;
-
-        case APP_MY_CAT:
-            status = AppHandleCat(&msg);
-            break;
-
-        case AJ_SIGNAL_SESSION_LOST:
-            /*
-             * don't force a disconnect, be ready to accept another session
-             */
-            break;
-
-        default:
-            /*
-             * Pass to the built-in handlers
-             */
-            status = AJ_BusHandleBusMessage(&msg);
-            break;
         }
         /*
          * Messages must be closed to free resources
