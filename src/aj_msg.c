@@ -1427,6 +1427,8 @@ AJ_Status AJ_MarshalArgs(AJ_Message* msg, const char* sig, ...)
 
     va_start(argp, sig);
     while (*sig) {
+        uint8_t u8;
+        uint16_t u16;
         uint32_t u32;
         uint64_t u64;
         uint8_t typeId = (uint8_t)*sig++;
@@ -1439,9 +1441,15 @@ AJ_Status AJ_MarshalArgs(AJ_Message* msg, const char* sig, ...)
             if (SizeOfType(typeId) == 8) {
                 u64 = va_arg(argp, uint64_t);
                 val = &u64;
-            } else {
+            } else if (SizeOfType(typeId) == 4) {
                 u32 = va_arg(argp, uint32_t);
                 val = &u32;
+            } else if (SizeOfType(typeId) == 2) {
+                u16 = (uint16_t)va_arg(argp, uint32_t);
+                val = &u16;
+            } else {
+                u8 = (uint8_t)va_arg(argp, uint32_t);
+                val = &u8;
             }
         } else {
             val = va_arg(argp, char*);

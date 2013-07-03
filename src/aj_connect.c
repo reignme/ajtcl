@@ -146,7 +146,12 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     }
 #if AJ_CONNECT_LOCALHOST
     service.ipv4port = 9955;
+#if HOST_IS_LITTLE_ENDIAN
     service.ipv4 = 0x0100007F; // 127.0.0.1
+#endif
+#if HOST_IS_BIG_ENDIAN
+    service.ipv4 = 0x7f000001; // 127.0.0.1
+#endif
     service.addrTypes = AJ_ADDR_IPV4;
 #elif defined ARDUINO
     service.ipv4port = 9955;
