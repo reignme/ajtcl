@@ -20,6 +20,6 @@ Import('env')
 # Only build the following samples for the TARG operating system.
 # The samples/examples for target platforms are handled by
 # the target specific directory (viz. target/arduino).
-if env['TARG'] == 'win32' or env['TARG'] == 'linux':
+if env['TARG'] in [ 'win32', 'linux', 'linux-be' ]:
     env.SConscript(['basic/SConscript'])
     env.SConscript(['secure/SConscript'])
