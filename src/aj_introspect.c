@@ -246,6 +246,12 @@ static AJ_Status GenXML(XMLWriterFunc XMLWriter, void* context, const AJ_Object*
     AJ_Status status;
     const AJ_Object* list = objList;
 
+    /*
+     * Ignore objects that are hidden or disabled
+     */
+    if (obj->flags & (AJ_OBJ_FLAG_HIDDEN | AJ_OBJ_FLAG_DISABLED)) {
+        return AJ_OK;
+    }
     XMLWriteTag(XMLWriter, context, nodeOpen, nameAttr, obj->path, 0, FALSE);
     if (obj->flags & AJ_OBJ_FLAG_SECURE) {
         XMLWriter(context, annotateSecure, 0);
@@ -730,7 +736,13 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
          * The only thing to initialize for errors is the msgId
          */
         msg->msgId = AJ_REPLY_ID(msgId);
-        status = UnpackMsgId(msgId, NULL, NULL, NULL, secure);
+        /*
+         * Get the secure flag if we have a valid message id this will ensure that the error
+         * response is encrypted if that is what is expected.
+         */
+        if (msg->msgId != AJ_INVALID_MSG_ID) {
+            status = UnpackMsgId(msgId, NULL, NULL, NULL, secure);
+        }
     } else {
         const char* member = NULL;
         char direction = (msgType == AJ_MSG_METHOD_CALL) ? IN_ARG : OUT_ARG;
