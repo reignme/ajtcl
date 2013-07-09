@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012,2013 Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -66,7 +66,9 @@ typedef void (*XMLWriterFunc)(void* context, const char* str, uint32_t len);
 #define METHOD     MEMBER_TYPE('?')  /* ((0x3F >> 4) - 2) == 1 */
 #define PROPERTY   MEMBER_TYPE('@')  /* ((0x40 >> 4) - 2) == 2 */
 
-#define SECURE '$'
+#define SECURE_TRUE '$' /* Security is required for an interface that start with a '$' character */
+#define SECURITY_NA '#' /* Security is never required for an interface that starts with a '#' character */
+
 
 static const char* const MemberOpen[] = {
     "  <signal",
@@ -97,8 +99,9 @@ static const char typeAttr[] = " type=\"";
 
 static const char nodeOpen[] = "<node";
 static const char nodeClose[] = "</node>\n";
-static const char annotateSecure[] = "  <annotation name=\"org.alljoyn.Bus.Secure\" value=\"true\"/>\n";
-
+static const char annotateSecure[] = "  <annotation name=\"org.alljoyn.Bus.Secure\" value=\"";
+static const char secureTrue[] = "true\"/>\n";
+static const char secureNA[] = "n/a\"/>\n";
 
 
 static char ExpandAttribute(XMLWriterFunc XMLWriter, void* context, const char** str, const char* pre, const char* post)
@@ -137,12 +140,14 @@ static AJ_Status ExpandInterfaces(XMLWriterFunc XMLWriter, void* context, const 
     }
     while (*iface) {
         const char* const* entries = *iface;
-        if (entries[0][0] == SECURE) {
+        char flag = entries[0][0];
+        if ((flag == SECURE_TRUE) || (flag == SECURITY_NA)) {
             /*
              * if secure, skip the first char (the $) of the name
              */
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0] + 1, 0, FALSE);
             XMLWriter(context, annotateSecure, 0);
+            XMLWriter(context, (flag == SECURE_TRUE) ? secureTrue : secureNA, 0);
         } else {
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0], 0, FALSE);
         }
@@ -242,15 +247,12 @@ static AJ_Status GenXML(XMLWriterFunc XMLWriter, void* context, const AJ_Object*
     const AJ_Object* list = objList;
 
     XMLWriteTag(XMLWriter, context, nodeOpen, nameAttr, obj->path, 0, FALSE);
+    if (obj->flags & AJ_OBJ_FLAG_SECURE) {
+        XMLWriter(context, annotateSecure, 0);
+        XMLWriter(context, secureTrue, 0);
+    }
     status = ExpandInterfaces(XMLWriter, context, obj->interfaces);
     if (status == AJ_OK) {
-        AJ_InterfaceDescription ifs[2];
-        /*
-         * Automatically add the introspection interface
-         */
-        ifs[0] = AJ_IntrospectionIface;
-        ifs[1] = NULL;
-        ExpandInterfaces(XMLWriter, context, ifs);
         /*
          * Check if the object has any child nodes
          */
@@ -341,8 +343,9 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
     /*
      * Find out which object we are introspecting. There are two possibilities:
      *
-     * - The request has a complete object path to one of the application objects
-     * - The request has a path to a parent object of one ore more application objects
+     * - The request has a complete object path to one of the application objects.
+     * - The request has a path to a parent object of one or more application objects where the
+     *   parent itself is just a place-holder in the object hierarchy.
      */
     for (; obj->path != NULL; ++obj) {
         if (strcmp(msg->objPath, obj->path) == 0) {
@@ -361,7 +364,10 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         parent.interfaces = NULL;
         obj = &parent;
     }
-    if (obj->path) {
+    /*
+     * Skip objects that are hidden or disabled
+     */
+    if (obj->path && !(obj->flags & (AJ_OBJ_FLAG_HIDDEN | AJ_OBJ_FLAG_DISABLED))) {
         /*
          * First pass computes the size of the XML string
          */
@@ -407,6 +413,33 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         AJ_MarshalErrorMsg(msg, reply, AJ_ErrServiceUnknown);
     }
     return status;
+}
+
+/*
+ * Security applies if the interface is secure or if the object or it's parent object is flagged as
+ * secure and the security is not N/A for the interface.
+ */
+static uint32_t SecurityApplies(const char* ifc, const AJ_Object* obj, const AJ_Object* objList)
+{
+    if (*ifc == SECURE_TRUE) {
+        return TRUE;
+    }
+    if (*ifc == SECURITY_NA) {
+        return FALSE;
+    }
+    if (obj->flags & AJ_OBJ_FLAG_SECURE) {
+        return TRUE;
+    }
+    /*
+     * Check that obj is not a child of a secure parent object
+     */
+    while (objList->path) {
+        if ((objList->flags & AJ_OBJ_FLAG_SECURE) && ChildPath(objList->path, obj->path, NULL)) {
+            return TRUE;
+        }
+        ++objList;
+    }
+    return FALSE;
 }
 
 /*
@@ -511,8 +544,16 @@ static AJ_InterfaceDescription FindInterface(const AJ_InterfaceDescription* inte
             AJ_InterfaceDescription desc = *interfaces++;
             const char* intfName = *desc;
 
-            if (desc && (strcmp(intfName + (int) (*intfName == SECURE), iface) == 0)) {
-                return desc;
+            if (desc) {
+                /*
+                 * Skip security specifier when comparing the interface name
+                 */
+                if ((*intfName == SECURE_TRUE) || (*intfName == SECURITY_NA)) {
+                    ++intfName;
+                }
+                if (strcmp(intfName, iface) == 0) {
+                    return desc;
+                }
             }
             *index += 1;
         }
@@ -522,19 +563,23 @@ static AJ_InterfaceDescription FindInterface(const AJ_InterfaceDescription* inte
 
 static AJ_Status LookupMessageId(const AJ_Object* list, AJ_Message* msg, uint8_t* secure)
 {
+    const AJ_Object* obj = list;
     uint8_t pIndex = 0;
-    if (list) {
-        while (list->path) {
+    if (obj) {
+        while (obj->path) {
             /*
              * Match the object path. The wildcard entry is for interfaces that are automatically
              * defined for all objects; specifically to support the introspection and ping methods.
              */
-            if ((list->path[0] == '*') || (strcmp(list->path, msg->objPath) == 0)) {
+            if (!(obj->flags & AJ_OBJ_FLAG_DISABLED) && ((obj->path[0] == '*') || (strcmp(obj->path, msg->objPath) == 0))) {
                 uint8_t iIndex;
-                AJ_InterfaceDescription desc = FindInterface(list->interfaces, msg->iface, &iIndex);
+                AJ_InterfaceDescription desc = FindInterface(obj->interfaces, msg->iface, &iIndex);
                 if (desc) {
                     uint8_t mIndex = 0;
-                    *secure = (uint8_t)(**desc == SECURE);
+                    *secure = SecurityApplies(*desc, obj, list);
+                    /*
+                     * Skip the interface name and iterate over the members of the interface
+                     */
                     while (*(++desc)) {
                         if (MatchMember(*desc, msg)) {
                             AJ_Status status = CheckSignature(*desc, msg);
@@ -548,7 +593,7 @@ static AJ_Status LookupMessageId(const AJ_Object* list, AJ_Message* msg, uint8_t
                 }
             }
             ++pIndex;
-            ++list;
+            ++obj;
         }
     }
     return AJ_ERR_NO_MATCH;
@@ -602,14 +647,15 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
     if (objPath) {
         *objPath = obj->path;
     }
-    *secure = (**ifc == SECURE);
+    *secure = SecurityApplies(*ifc, obj, objectLists[oIndex]);
     if (iface) {
-        *iface = *ifc;
         /*
-         * Skip past '$' if the interface was secure
+         * Skip over security specifier if there is one
          */
-        if (*secure) {
-            *iface += 1;
+        if ((ifc[0][0] == SECURE_TRUE) || (ifc[0][0] == SECURITY_NA)) {
+            *iface = *ifc + 1;
+        } else {
+            *iface = *ifc;
         }
     }
     if (member) {
@@ -732,7 +778,7 @@ static AJ_Status CheckReturnSignature(AJ_Message* msg, uint32_t msgId)
         return status;
     }
     /*
-     * Check that if the interface was flagged secure that them reply was encrypted
+     * Check that if the interface was flagged secure that the reply was encrypted
      */
     if (secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
         return AJ_ERR_SECURITY;
@@ -788,7 +834,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
                 status = MatchProp(*desc, prop, msg->msgId & 0xFF, sig, len);
                 if (status != AJ_ERR_NO_MATCH) {
                     if (status == AJ_OK) {
-                        secure = (**desc == SECURE);
+                        secure = SecurityApplies(*desc, obj, objectLists[oIndex]);
                         *propId = (oIndex << 24) | (pIndex << 16) | (iIndex << 8) | mIndex;
                         AJ_Printf("Identified property %x sig \"%s\"\n", *propId, sig);
                     }
@@ -832,16 +878,16 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
                 break;
             }
         }
-        if (status == AJ_OK && secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
+        if ((status == AJ_OK) && secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
             status = AJ_ERR_SECURITY;
         }
-        if ((status != AJ_OK) && (msg->hdr->msgType == AJ_MSG_METHOD_CALL)) {
-            /*
-             * Generate an error response for an invalid method call rather than reporting an
-             * invalid message id to the application.
-             */
+        /*
+         * Generate an error response for an invalid method call rather than reporting an invalid
+         * message id to the application.
+         */
+        if ((status != AJ_OK) && (msg->hdr->msgType == AJ_MSG_METHOD_CALL) && !(msg->hdr->flags & AJ_FLAG_NO_REPLY_EXPECTED)) {
             AJ_Message reply;
-            AJ_MarshalErrorMsg(msg, &reply, AJ_ErrServiceUnknown);
+            AJ_MarshalStatusMsg(msg, &reply, status);
             status = AJ_DeliverMsg(&reply);
         }
     } else {

@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012,2013 Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -32,7 +32,7 @@ static const char DBusObjectPath[] = "/org/freedesktop/DBus";
 static const char DBusInterface[] = "org.freedesktop.DBus";
 static const char DBusPeerInterface[] = "org.freedesktop.DBus.Peer";
 static const char DBusPropsInterface[] = "org.freedesktop.DBus.Properties";
-static const char DBusIntrospectableInterface[] = "org.freedesktop.DBus.Introspectable";
+static const char DBusIntrospectableInterface[] = "#org.freedesktop.DBus.Introspectable";
 
 static const char BusObjectPath[] = "/org/alljoyn/Bus";
 static const char BusInterface[] = "org.alljoyn.Bus";

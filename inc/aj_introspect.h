@@ -34,17 +34,25 @@
  * this representation special characters encode information about the members, whitespace is
  * significant.
  *
+ * If the first character of the interface name is a '$' character this indicates that the interface
+ * is secure and only authenticated peers can make method calls and received signals defined in the
+ * interface.  If the first character of the interface name is a '#' character this indicates that
+ * security is not applicable to this interface even if the interface is implemented by an otherwise
+ * secure object. The '$' and '#' characters are merely signifiers and are not part of the interface
+ * name.
+ *
  * The first character of a member string identifies the type of member:
  *
  * A '?' character indicates the member is a METHOD
  * A '!' character indicates the member is a SIGNAL
  * A '@' character indicates the member is a PROPERTY
  *
- * Characters following the member type character up to the end of the string or to the first space
- * character are the member names. If the member is a METHOD or SIGNAL the remaining characters
- * encode the argument names, direction (IN or OUT) and the argument type as a standard AllJoyn
- * signature string. For SIGNALS for correctness the direction should be specified as OUT but it
- * really doensn't matter as the direction is ignored.
+ * The type character is a signifier, it is not part of the member name. Characters following the
+ * member type character up to the end of the string or to the first space character comprise the
+ * member names. If the member is a METHOD or SIGNAL the remaining characters encode the argument
+ * names, direction (IN or OUT) and the argument type as a standard AllJoyn signature string. For
+ * SIGNALS for correctness the direction should be specified as OUT but it really doesn't matter as
+ * the direction is ignored.
  *
  * Arguments are separated by a single space character. Argument names are optional and if present are
  * all characters between the space character and the directions character. All characters after the
@@ -55,10 +63,10 @@
  * A '<' character indicates the argument is an IN parameter.
  *
  * If the member is a PROPERTY the member name is terminated by an access rights character which is
- * immediately followed by the property type signature. The access rights for a property are READ_ONLY, WRITE_ONLY
- * and READ_WRITE. The access rights are specified as follows:
+ * immediately followed by the property type signature. The access rights for a property are
+ * READ_ONLY, WRITE_ONLY and READ_WRITE. The access rights are specified as follows:
  *
- * A '>' character indicates the argument is READ_ONLY   (i.e. an OUT parameter)
+ * A '>' character indicates the argument is READ_ONLY  (i.e. an OUT parameter)
  * A '<' character indicates the argument is WRITE_ONLY (i.e. an IN parameter)
  * A '=' character indicates the argument is READ/WRITE
  *
@@ -88,12 +96,18 @@
  */
 typedef const char* const* AJ_InterfaceDescription;
 
+
+#define AJ_OBJ_FLAG_SECURE    0x01  /**< If set this bit indicates that an object is secure */
+#define AJ_OBJ_FLAG_HIDDEN    0x02  /**< If set this bit indicates this is object is not announced */
+#define AJ_OBJ_FLAG_DISABLED  0x04  /**< If set this bit indicates that method calls cannot be made to the object at this time */
+
 /**
  * Type for an AllJoyn object description
  */
 typedef struct _AJ_Object {
     const char* path;                               /**< object path */
     const AJ_InterfaceDescription* interfaces;      /**< interface descriptor */
+    uint8_t flags;                                  /**< flags for the object */
 } AJ_Object;
 
 

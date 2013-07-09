@@ -448,7 +448,7 @@ static AJ_Status PropAccess(AJ_Message* msg, PropCallback* cb, uint8_t op)
         }
     }
     if (status != AJ_OK) {
-        AJ_MarshalErrorMsg(msg, &reply, (status == AJ_ERR_NO_MATCH) ? AJ_ErrServiceUnknown : AJ_ErrRejected);
+        AJ_MarshalStatusMsg(msg, &reply, status);
     }
     return AJ_DeliverMsg(&reply);
 }

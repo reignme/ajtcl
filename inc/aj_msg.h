@@ -356,6 +356,19 @@ AJ_Status AJ_MarshalReplyMsg(const AJ_Message* methodCall, AJ_Message* reply);
 AJ_Status AJ_MarshalErrorMsg(const AJ_Message* methodCall, AJ_Message* reply, const char* error);
 
 /**
+ * Initialize and marshal a message that is a error response to a method call. This is a wrapper
+ * function around AJ_MarshalErrorMsg that chooses an appropriate error message depending on the
+ * AJ_Status value passed in.
+ *
+ * @param methodCall  The method call message that was received
+ * @param reply       The reply to be initialized
+ * @param status      The status code for the error
+ *
+ * @return   Return AJ_Status
+ */
+AJ_Status AJ_MarshalStatusMsg(const AJ_Message* methodCall, AJ_Message* reply, AJ_Status status);
+
+/**
  * Delivers a marshalled message to the network.
  *
  * @param msg     The message to deliver.

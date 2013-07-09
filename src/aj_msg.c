@@ -1652,3 +1652,29 @@ AJ_Status AJ_MarshalErrorMsg(const AJ_Message* methodCall, AJ_Message* reply, co
     reply->error = error;
     return MarshalMsg(reply, AJ_MSG_ERROR, methodCall->msgId, methodCall->hdr->flags & AJ_FLAG_ENCRYPTED);
 }
+
+
+AJ_Status AJ_MarshalStatusMsg(const AJ_Message* methodCall, AJ_Message* reply, AJ_Status status)
+{
+    switch (status) {
+    case AJ_ERR_NO_MATCH:
+        status = AJ_MarshalErrorMsg(methodCall, reply, AJ_ErrServiceUnknown);
+        break;
+
+    case  AJ_ERR_SECURITY:
+        status = AJ_MarshalErrorMsg(methodCall, reply, AJ_ErrSecurityViolation);
+        /*
+         * We get a security violation error so if we encrypt the error message the receiver
+         * won't be able to decrypt it. We can fix this by clearing the header flags.
+         */
+        if (status == AJ_OK) {
+            reply->hdr->flags = 0;
+        }
+        break;
+
+    default:
+        status = AJ_MarshalErrorMsg(methodCall, reply, AJ_ErrRejected);
+        break;
+    }
+    return status;
+}
