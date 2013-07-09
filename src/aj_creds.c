@@ -125,7 +125,9 @@ AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
     if (AJ_NVRAM_Exist(AJ_LOCAL_GUID_NV_ID)) {
         handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "r", 0);
         if (handle) {
-            AJ_ASSERT(sizeof(AJ_GUID) == AJ_NVRAM_Read(localGuid, sizeof(AJ_GUID), handle));
+            size_t size;
+            size = AJ_NVRAM_Read(localGuid, sizeof(AJ_GUID), handle);
+            AJ_ASSERT(sizeof(AJ_GUID) == size);
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
         }
@@ -133,7 +135,9 @@ AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid)
         AJ_RandBytes((uint8_t*)localGuid, sizeof(AJ_GUID));
         handle = AJ_NVRAM_Open(AJ_LOCAL_GUID_NV_ID, "w", sizeof(AJ_GUID));
         if (handle) {
-            AJ_ASSERT(sizeof(AJ_GUID) == AJ_NVRAM_Write(localGuid, sizeof(AJ_GUID), handle));
+            size_t size;
+            size = AJ_NVRAM_Write(localGuid, sizeof(AJ_GUID), handle);
+            AJ_ASSERT(sizeof(AJ_GUID) == size);
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
         }
@@ -148,7 +152,9 @@ AJ_Status AJ_GetRemoteCredential(const AJ_GUID* peerGuid, AJ_PeerCred* peerCreds
     if (id > 0) {
         AJ_NV_DATASET* handle = AJ_NVRAM_Open(id, "r", 0);
         if (handle) {
-            AJ_ASSERT(sizeof(AJ_PeerCred) == AJ_NVRAM_Read(peerCreds, sizeof(AJ_PeerCred), handle));
+            size_t size;
+            size = AJ_NVRAM_Read(peerCreds, sizeof(AJ_PeerCred), handle);
+            AJ_ASSERT(sizeof(AJ_PeerCred) == size);
             AJ_NVRAM_Close(handle);
             status = AJ_OK;
         }
