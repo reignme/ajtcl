@@ -152,11 +152,9 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
             status = AJ_ERR_READ;
         }
 
-        if (status != AJ_OK) {
-            if (status == AJ_ERR_TIMEOUT) {
-                // go back around and handle the expired timers
-                continue;
-            }
+        if (status == AJ_ERR_TIMEOUT) {
+            // go back around and handle the expired timers
+            continue;
         }
 
         if (status == AJ_OK) {
