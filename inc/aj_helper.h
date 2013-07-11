@@ -32,6 +32,106 @@
 #define AJ_JOINSESSION_REPLY_FAILED              10   /**< JoinSession reply: Failed for unknown reason */
 
 /**
+ * Callback function prototype for a callback function to handle a method or signal
+ *
+ * @param msg   The message received
+ * @param reply The method reply (NULL if msg is a signal or method reply)
+ *
+ * @return  Return AJ_Status
+ *          - AJ_OK if the message was correctly decoded (and a reply sent in the case of a method call)
+ *          - An error status if something went wrong decoding the message
+ */
+typedef AJ_Status (*MessageHandler)(AJ_Message* msg, AJ_Message* reply);
+
+/**
+ * Callback function prototype for a callback function to handle new sessions
+ *
+ * @param msg  The message received
+ *
+ * @return  Return uint8_t
+ *          - TRUE if the service should allow the session
+ *          - FALSE if the service should *NOT* allow the session
+ */
+typedef uint8_t (*AcceptSessionHandler)(AJ_Message* msg);
+
+/**
+ *  Type to describe a mapping of message id to message handler.
+ */
+typedef struct {
+    uint32_t msgid;
+    MessageHandler handler;
+} MessageHandlerEntry;
+
+/**
+ *  Type to describe a mapping of property get/set message id
+ *  to get/set handler with context pointer
+ */
+typedef struct {
+    uint32_t msgid;
+    AJ_BusPropGetCallback callback;
+    void* context;
+} PropHandlerEntry;
+
+/**
+ *  Type to describe the AllJoyn service configuration
+ */
+typedef struct {
+    const char* daemonName;         /**< Name of a specific daemon service to connect to, NULL for the default name. */
+    uint32_t connect_timeout;       /**< How long to spend attempting to connect to the bus */
+    uint8_t connected;              /**< Whether the bus attachment is already connected to the daemon bus */
+    uint16_t session_port;          /**< The port to bind */
+    const char* service_name;       /**< The name being requested */
+    uint32_t flags;                 /**< An OR of the name request flags */
+    const AJ_SessionOpts* opts;     /**< The session option setting. */
+
+    AJ_AuthPwdFunc password_callback;   /**< The auth password callback */
+    uint32_t link_timeout;              /**< The daemon connection's link timeout */
+
+    AcceptSessionHandler acceptor;      /**< The AcceptSession callback */
+
+    const MessageHandlerEntry* message_handlers;    /**< An array of message handlers */
+    const PropHandlerEntry* prop_handlers;          /**< An array of property get/set handlers */
+} AllJoynConfiguration;
+
+/**
+ * Helper function that connects to a bus initializes an AllJoyn service.
+ *
+ * @param bus       The bus attachment
+ * @param config    The AllJoyn configuration object
+ *
+ * @return AJ_OK if service was successfully run to completion.
+ */
+AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* config);
+
+/**
+ * Callback function prototype for a timer function callback
+ *
+ * @param context   The context pointer passed in to AJ_SetTimer
+ */
+typedef void (*TimeoutHandler)(void* context);
+
+/**
+ *  Start a timer
+ *
+ * @param relative_time The time (relative to now) when the timer should first go off
+ * @param handler       The callback to execute after <relative_time> milliseconds
+ * @param context       The context pointer that will be passed into the handler
+ * @param repeat        If nonzero, repeat this timer every <repeat> msec
+ *
+ * @return The id of the new timer, which can be used to cancel it later
+ *          0 if timer was not set.
+ */
+uint32_t AJ_SetTimer(uint32_t relative_time, TimeoutHandler handler, void* context, uint32_t repeat);
+
+/**
+ *  Cancel the timer specified
+ *
+ * @param id    The id of the timer to cancel (returned by AJ_SetTimer)
+ */
+void AJ_CancelTimer(uint32_t id);
+
+
+/**
  * Helper function that connects to a bus initializes an AllJoyn service.
  *
  * @param bus          The bus attachment

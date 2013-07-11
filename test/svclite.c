@@ -81,8 +81,8 @@ static const AJ_Object AppObjects[] = {
 /*
  * Message identifiers for the method calls this application implements
  */
-#define APP_GET_PROP  AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_GET)
-#define APP_SET_PROP  AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_SET)
+#define APP_GET_PROP        AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_GET)
+#define APP_SET_PROP        AJ_APP_MESSAGE_ID(0, 0, AJ_PROP_SET)
 #define APP_MY_PING         AJ_APP_MESSAGE_ID(0, 1, 0)
 #define APP_DELAYED_PING    AJ_APP_MESSAGE_ID(0, 1, 1)
 #define APP_TIME_PING       AJ_APP_MESSAGE_ID(0, 1, 2)
@@ -96,7 +96,7 @@ static const AJ_Object AppObjects[] = {
 /*
  * Let the application do some work
  */
-static void AppDoWork()
+static void AppDoWork(void* context)
 {
     /*
      * This function is called if there are no messages to unmarshal
@@ -112,18 +112,98 @@ static uint32_t PasswordCallback(uint8_t* buffer, uint32_t bufLen)
     return sizeof(PWD) - 1;
 }
 
-static AJ_Status AppHandlePing(AJ_Message* msg)
+/**
+ * This is our method handler.  Its reply will be sent by the caller
+ */
+static AJ_Status AppHandlePing(AJ_Message* msg, AJ_Message* reply)
 {
-    AJ_Message reply;
     AJ_Arg arg;
 
     AJ_UnmarshalArg(msg, &arg);
-    AJ_MarshalReplyMsg(msg, &reply);
     /*
      * Just return the arg we received
      */
-    AJ_MarshalArg(&reply, &arg);
-    return AJ_DeliverMsg(&reply);
+    return AJ_MarshalArg(reply, &arg);
+}
+
+/**
+ *  AppHandleMySignal, SessionLost and SessionJoined are incoming signals.
+ *  As such, the second parameter (reply) will be NULL and shouldn't be used.
+ */
+static AJ_Status AppHandleMySignal(AJ_Message* msg, AJ_Message* reply)
+{
+    AJ_Status status = AJ_OK;
+    AJ_Printf("Received my_signal\n");
+
+    if (ReflectSignal) {
+        AJ_Message out;
+        AJ_MarshalSignal(msg->bus, &out, APP_MY_SIGNAL, msg->destination, msg->sessionId, 0, 0);
+        AJ_MarshalArgs(&out, "a{ys}", 0, NULL);
+        AJ_DeliverMsg(&out);
+        AJ_CloseMsg(&out);
+    }
+
+    return status;
+}
+
+#define CB_TIMEOUT (1 * 1000)
+
+static uint32_t timer_id = 0;
+
+static AJ_Status SessionLost(AJ_Message* msg, AJ_Message* reply)
+{
+    AJ_Status status = AJ_OK;
+    AJ_Printf("Session Lost\n");
+
+    if (timer_id) {
+        AJ_CancelTimer(timer_id);
+        timer_id = 0;
+    }
+
+    if (CancelAdvertiseName) {
+        status = AJ_BusAdvertiseName(msg->bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
+    }
+    return status;
+}
+
+static AJ_Status SessionJoined(AJ_Message* msg, AJ_Message* reply)
+{
+    AJ_Status status = AJ_OK;
+
+    if (timer_id) {
+        AJ_CancelTimer(timer_id);
+    }
+
+    timer_id = AJ_SetTimer(CB_TIMEOUT, &AppDoWork, NULL, CB_TIMEOUT);
+    AJ_Printf("Session Joined\n");
+
+    if (CancelAdvertiseName) {
+        status = AJ_BusAdvertiseName(msg->bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
+    }
+    return status;
+}
+
+
+
+
+
+static uint8_t AcceptSession(AJ_Message* msg)
+{
+    uint8_t accepted;
+    uint16_t port;
+    uint32_t sessionId;
+    char* joiner;
+    AJ_UnmarshalArgs(msg, "qus", &port, &sessionId, &joiner);
+
+    if (port == ServicePort) {
+        accepted = TRUE;
+        AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+    } else {
+        accepted = FALSE;
+        AJ_Printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
+    }
+
+    return accepted;
 }
 
 /*
@@ -150,6 +230,25 @@ static AJ_Status PropSetHandler(AJ_Message* replyMsg, uint32_t propId, void* con
     }
 }
 
+
+
+// a table of message handlers
+static const MessageHandlerEntry Handlers[] = {
+    { APP_MY_PING, &AppHandlePing },
+    { APP_MY_SIGNAL, &AppHandleMySignal },
+    { AJ_SIGNAL_SESSION_LOST, &SessionLost },
+    { AJ_SIGNAL_SESSION_JOINED, &SessionJoined },
+    { NULL }
+};
+
+// need a list because {Set,Get}Property could appear in multiple bus objects
+static const PropHandlerEntry PropHandlers[] = {
+    { APP_SET_PROP, PropSetHandler, NULL },
+    { APP_GET_PROP, PropGetHandler, NULL },
+    { NULL }
+};
+
+
 uint32_t MyBusAuthPwdCB(uint8_t* buf, uint32_t bufLen)
 {
     const char* myPwd = "1234";
@@ -164,8 +263,23 @@ int AJ_Main(void)
 {
     AJ_Status status = AJ_OK;
     AJ_BusAttachment bus;
-    uint8_t connected = FALSE;
-    uint32_t sessionId = 0;
+
+    AllJoynConfiguration config;
+    config.daemonName = NULL;
+    config.connect_timeout = CONNECT_TIMEOUT;
+    config.connected = FALSE;
+    config.session_port = ServicePort;
+    config.service_name = ServiceName;
+    config.flags = AJ_NAME_REQ_DO_NOT_QUEUE;
+    config.opts = NULL;
+
+    config.password_callback = &PasswordCallback;
+    config.link_timeout = 60;
+    config.message_handlers = Handlers;
+    config.prop_handlers = PropHandlers;
+
+    config.acceptor = &AcceptSession;
+
 
     /*
      * One time initialization before calling any other AllJoyn APIs
@@ -176,143 +290,10 @@ int AJ_Main(void)
     AJ_RegisterObjects(AppObjects, NULL);
 
     SetBusAuthPwdCallback(MyBusAuthPwdCB);
-    while (TRUE) {
-        AJ_Message msg;
 
-        if (!connected) {
-            status = AJ_StartService(&bus, NULL, CONNECT_TIMEOUT, ServicePort, ServiceName, AJ_NAME_REQ_DO_NOT_QUEUE, NULL);
-            if (status != AJ_OK) {
-                continue;
-            }
-            AJ_Printf("StartService returned AJ_OK\n");
-            AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(&bus));
-
-            connected = TRUE;
-
-            /* Register a callback for providing bus authentication password */
-            AJ_BusSetPasswordCallback(&bus, PasswordCallback);
-
-            /* Configure timeout for the link to the daemon bus */
-            AJ_SetBusLinkTimeout(&bus, 60); // 60 seconds
-        }
-
-        status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
-        if (AJ_ERR_TIMEOUT == status && AJ_ERR_LINK_TIMEOUT == AJ_BusLinkStateProc(&bus)) {
-            status = AJ_ERR_READ;
-        }
-        if (status != AJ_OK) {
-            if (status == AJ_ERR_TIMEOUT) {
-                AppDoWork();
-                continue;
-            }
-        }
-        if (status == AJ_OK) {
-            switch (msg.msgId) {
-
-            case AJ_REPLY_ID(AJ_METHOD_ADD_MATCH):
-                if (msg.hdr->msgType == AJ_MSG_ERROR) {
-                    AJ_Printf("Failed to add match\n");
-                    status = AJ_ERR_FAILURE;
-                } else {
-                    status = AJ_OK;
-                }
-                break;
-
-            case AJ_METHOD_ACCEPT_SESSION:
-                {
-                    uint16_t port;
-                    char* joiner;
-                    AJ_UnmarshalArgs(&msg, "qus", &port, &sessionId, &joiner);
-
-                    if (port == ServicePort) {
-                        status = AJ_BusReplyAcceptSession(&msg, TRUE);
-                        AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
-                    } else {
-                        status = AJ_BusReplyAcceptSession(&msg, FALSE);
-                        AJ_Printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
-                    }
-                }
-                break;
-
-            case APP_MY_PING:
-                status = AppHandlePing(&msg);
-                break;
-
-            case APP_GET_PROP:
-                status = AJ_BusPropGet(&msg, PropGetHandler, NULL);
-                break;
-
-            case APP_SET_PROP:
-                status = AJ_BusPropSet(&msg, PropSetHandler, NULL);
-                if (status == AJ_OK) {
-                    AJ_Printf("Property successfully set to %d.\n", propVal);
-                } else {
-                    AJ_Printf("Property set attempt unsuccessful. Status = 0x%04x.\n", status);
-                }
-                break;
-
-            case AJ_SIGNAL_SESSION_LOST:
-                if (CancelAdvertiseName) {
-                    status = AJ_BusAdvertiseName(&bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
-                }
-                break;
-
-            case AJ_SIGNAL_SESSION_JOINED:
-                if (CancelAdvertiseName) {
-                    status = AJ_BusAdvertiseName(&bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_STOP_ADVERTISING);
-                }
-                break;
-
-
-            case AJ_REPLY_ID(AJ_METHOD_CANCEL_ADVERTISE):
-            case AJ_REPLY_ID(AJ_METHOD_ADVERTISE_NAME):
-                if (msg.hdr->msgType == AJ_MSG_ERROR) {
-                    status = AJ_ERR_FAILURE;
-                }
-                break;
-
-            case APP_MY_SIGNAL:
-                AJ_Printf("Received my_signal\n");
-                status = AJ_OK;
-
-                if (ReflectSignal) {
-                    AJ_Message out;
-                    AJ_MarshalSignal(&bus, &out, APP_MY_SIGNAL, msg.destination, msg.sessionId, 0, 0);
-                    AJ_MarshalArgs(&out, "a{ys}", 0, NULL);
-                    AJ_DeliverMsg(&out);
-                    AJ_CloseMsg(&out);
-                }
-                break;
-
-            default:
-                /*
-                 * Pass to the built-in bus message handlers
-                 */
-                status = AJ_BusHandleBusMessage(&msg);
-                break;
-            }
-
-            // Any received packets indicates the link is active, so call to reinforce the bus link state
-            AJ_NotifyLinkActive();
-        }
-        /*
-         * Unarshaled messages must be closed to free resources
-         */
-        AJ_CloseMsg(&msg);
-
-        if (status == AJ_ERR_READ) {
-            AJ_Printf("AllJoyn disconnect\n");
-            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(&bus));
-            AJ_Disconnect(&bus);
-            connected = FALSE;
-            /*
-             * Sleep a little while before trying to reconnect
-             */
-            AJ_Sleep(10 * 1000);
-        }
-    }
+    // magical function that does *everything* !!!
+    status = AJ_RunAllJoynService(&bus, &config);
     AJ_Printf("svclite EXIT %d\n", status);
-
     return status;
 }
 

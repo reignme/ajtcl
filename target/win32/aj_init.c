@@ -21,6 +21,7 @@
 #include "aj_init.h"
 #include "aj_nvram.h"
 #include "aj_guid.h"
+#include "aj_creds.h"
 
 static uint8_t initialized = FALSE;
 

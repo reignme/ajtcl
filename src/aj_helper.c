@@ -17,9 +17,232 @@
 #include "aj_helper.h"
 #include "alljoyn.h"
 
+#include "aj_link_timeout.h"
+
 #define UNMARSHAL_TIMEOUT (100 * 1000)
 #define CONNECT_TIMEOUT   (60 * 1000)
 #define CONNECT_PAUSE     (10 * 1000)
+
+
+#define MAX_TIMERS 4
+
+/**
+ *  Type to describe pending timers
+ */
+typedef struct {
+    TimeoutHandler handler; /**< The callback handler */
+    void* context;          /**< A context pointer passed in by the user */
+    uint32_t abs_time;      /**< The absolute time when this timer will fire */
+    uint32_t repeat;        /**< The amount of time between timer events */
+} Timer;
+
+static Timer Timers[MAX_TIMERS] = {
+    { NULL }
+};
+
+static Timer* GetNextTimeout()
+{
+    Timer* next = NULL;
+    uint32_t lowest = (uint32_t) -1;
+    uint32_t i;
+
+    // find the timer with the lowest timeout value
+    for (i = 0; i < MAX_TIMERS; ++i) {
+        Timer* timer = Timers + i;
+        if (timer->abs_time != 0 && timer->abs_time < lowest) {
+            next = timer;
+        }
+    }
+
+    return next;
+}
+
+static void RunExpiredTimers(uint32_t now)
+{
+    uint32_t i = 0;
+
+    for (; i < MAX_TIMERS; ++i) {
+        Timer* timer = Timers + i;
+        if (timer->handler != NULL && timer->abs_time <= now) {
+            (timer->handler)(timer->context);
+
+            if (timer->repeat) {
+                timer->abs_time += timer->repeat;
+            } else {
+                memset(timer, 0, sizeof(Timer));
+            }
+        }
+    }
+}
+
+uint32_t AJ_SetTimer(uint32_t relative_time, TimeoutHandler handler, void* context, uint32_t repeat)
+{
+    uint32_t i;
+    for (i = 0; i < MAX_TIMERS; ++i) {
+        Timer* timer = Timers + i;
+        // need to find an available timer slot
+        if (timer->handler == NULL) {
+            AJ_Time start = {0, 0};
+            uint32_t now = AJ_GetElapsedTime(&start, FALSE);
+            timer->handler = handler;
+            timer->context = context;
+            timer->repeat = repeat;
+            timer->abs_time = now + relative_time;
+            return i + 1;
+        }
+    }
+
+    // available slot not found!
+    return 0;
+}
+
+void AJ_CancelTimer(uint32_t id)
+{
+    Timer* timer = Timers + (id - 1);
+    AJ_ASSERT(id > 0 && id <= MAX_TIMERS);
+    memset(timer, 0, sizeof(Timer));
+}
+
+
+AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* config)
+{
+    uint8_t connected = FALSE;
+    AJ_Status status = AJ_OK;
+
+    while (TRUE) {
+        AJ_Time start = {0, 0};
+        AJ_Message msg;
+        uint32_t now;
+        // get the next timeout
+        Timer* timer = GetNextTimeout();
+        // wait forever
+        uint32_t timeout = (uint32_t) -1;
+
+        if (!connected) {
+            status = AJ_StartService2(
+                bus,
+                config->daemonName, config->connect_timeout, config->connected,
+                config->session_port, config->service_name, config->flags, config->opts);
+            if (status != AJ_OK) {
+                continue;
+            }
+            AJ_Printf("StartService returned AJ_OK\n");
+            AJ_Printf("Connected to Daemon:%s\n", AJ_GetUniqueName(bus));
+
+            connected = TRUE;
+
+            /* Register a callback for providing bus authentication password */
+            AJ_BusSetPasswordCallback(bus, config->password_callback);
+
+            /* Configure timeout for the link to the daemon bus */
+            AJ_SetBusLinkTimeout(bus, config->link_timeout);
+        }
+
+        // absolute time in milliseconds
+        now = AJ_GetElapsedTime(&start, FALSE);
+        RunExpiredTimers(now);
+
+        if (timer != NULL) {
+            // if no timers running, wait forever
+            timeout = timer->abs_time - now;
+        }
+
+        status = AJ_UnmarshalMsg(bus, &msg, timeout);
+        if (AJ_ERR_TIMEOUT == status && AJ_ERR_LINK_TIMEOUT == AJ_BusLinkStateProc(bus)) {
+            status = AJ_ERR_READ;
+        }
+
+        if (status != AJ_OK) {
+            if (status == AJ_ERR_TIMEOUT) {
+                // go back around and handle the expired timers
+                continue;
+            }
+        }
+
+        if (status == AJ_OK) {
+            uint8_t handled = FALSE;
+            const MessageHandlerEntry* message_entry = config->message_handlers;
+            const PropHandlerEntry* prop_entry = config->prop_handlers;
+
+            // check the user's handlers first.  ANY message that AllJoyn can handle is override-able.
+            while (handled != TRUE && message_entry->msgid != 0) {
+                if (message_entry->msgid == msg.msgId) {
+                    if (msg.hdr->msgType == AJ_MSG_METHOD_CALL) {
+                        // build a method reply
+                        AJ_Message reply;
+                        status = AJ_MarshalReplyMsg(&msg, &reply);
+
+                        if (status == AJ_OK) {
+                            status = (message_entry->handler)(&msg, &reply);
+                        }
+
+                        if (status == AJ_OK) {
+                            status = AJ_DeliverMsg(&reply);
+                        }
+                    } else {
+                        // call the handler!
+                        status = (message_entry->handler)(&msg, NULL);
+                    }
+
+                    handled = TRUE;
+                }
+
+                ++message_entry;
+            }
+
+            // we need to check whether this is a property getter or setter.
+            // these are stored in an array because multiple getters and setters can exist if running more than one bus object
+            while (handled != TRUE && prop_entry->msgid != 0) {
+                if (prop_entry->msgid == msg.msgId) {
+                    // extract the method from the ID; GetProperty or SetProperty
+                    uint32_t method = prop_entry->msgid & 0x000000FF;
+                    if (method == AJ_PROP_GET) {
+                        status = AJ_BusPropGet(&msg, prop_entry->callback, prop_entry->context);
+                    } else if (method == AJ_PROP_SET) {
+                        status = AJ_BusPropSet(&msg, prop_entry->callback, prop_entry->context);
+                    } else {
+                        // this should never happen!!!
+                        AJ_ASSERT(!"Invalid property method");
+                    }
+
+					handled = TRUE;
+                }
+
+                ++prop_entry;
+            }
+
+            // handler not found!
+            if (handled == FALSE) {
+                if (msg.msgId == AJ_METHOD_ACCEPT_SESSION) {
+                    uint8_t accepted = (config->acceptor)(&msg);
+                    status = AJ_BusReplyAcceptSession(&msg, accepted);
+                } else {
+                    status = AJ_BusHandleBusMessage(&msg);
+                }
+            }
+
+            // Any received packets indicates the link is active, so call to reinforce the bus link state
+            AJ_NotifyLinkActive();
+        }
+        /*
+         * Unarshaled messages must be closed to free resources
+         */
+        AJ_CloseMsg(&msg);
+
+        if (status == AJ_ERR_READ) {
+            AJ_Printf("AllJoyn disconnect\n");
+            AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(bus));
+            AJ_Disconnect(bus);
+            connected = FALSE;
+            /*
+             * Sleep a little while before trying to reconnect
+             */
+            AJ_Sleep(10 * 1000);
+        }
+    }
+    return AJ_OK;
+}
+
 
 AJ_Status AJ_StartService(AJ_BusAttachment* bus,
                           const char* daemonName,

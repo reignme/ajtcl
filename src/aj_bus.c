@@ -392,6 +392,14 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
         status = AJ_OK;
         break;
 
+    case AJ_REPLY_ID(AJ_METHOD_ADD_MATCH):
+    case AJ_REPLY_ID(AJ_METHOD_CANCEL_ADVERTISE):
+    case AJ_REPLY_ID(AJ_METHOD_ADVERTISE_NAME):
+        if (msg->hdr->msgType == AJ_MSG_ERROR) {
+            status = AJ_ERR_FAILURE;
+        }
+        break;
+
     case AJ_SIGNAL_NAME_OWNER_CHANGED:
         AJ_UnmarshalArgs(msg, "sss", &name, &oldOwner, &newOwner);
         if (newOwner && oldOwner && newOwner[0] == '\0') {
