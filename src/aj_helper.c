@@ -82,7 +82,7 @@ uint32_t AJ_SetTimer(uint32_t relative_time, TimeoutHandler handler, void* conte
         Timer* timer = Timers + i;
         // need to find an available timer slot
         if (timer->handler == NULL) {
-            AJ_Time start = {0, 0};
+            AJ_Time start = { 0, 0 };
             uint32_t now = AJ_GetElapsedTime(&start, FALSE);
             timer->handler = handler;
             timer->context = context;
@@ -110,7 +110,7 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
     AJ_Status status = AJ_OK;
 
     while (TRUE) {
-        AJ_Time start = {0, 0};
+        AJ_Time start = { 0, 0 };
         AJ_Message msg;
         uint32_t now;
         // get the next timeout
@@ -205,7 +205,7 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
                         AJ_ASSERT(!"Invalid property method");
                     }
 
-					handled = TRUE;
+                    handled = TRUE;
                 }
 
                 ++prop_entry;
