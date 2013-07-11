@@ -49,21 +49,22 @@
 /*
  * Members of /org/alljoyn/Bus interface org.alljoyn.Bus
  */
-#define AJ_SIGNAL_SESSION_LOST         AJ_BUS_MESSAGE_ID(1, 0, 0)    /**< signal for session lost */
-#define AJ_SIGNAL_FOUND_ADV_NAME       AJ_BUS_MESSAGE_ID(1, 0, 1)    /**< signal for found advertising name */
-#define AJ_SIGNAL_LOST_ADV_NAME        AJ_BUS_MESSAGE_ID(1, 0, 2)    /**< signal for lost advertising name */
-#define AJ_SIGNAL_MP_SESSION_CHANGED   AJ_BUS_MESSAGE_ID(1, 0, 3)    /**< signal for mp session changed */
-#define AJ_METHOD_ADVERTISE_NAME       AJ_BUS_MESSAGE_ID(1, 0, 4)    /**< method for advertise name */
-#define AJ_METHOD_CANCEL_ADVERTISE     AJ_BUS_MESSAGE_ID(1, 0, 5)    /**< method for cancel advertise */
-#define AJ_METHOD_FIND_NAME            AJ_BUS_MESSAGE_ID(1, 0, 6)    /**< method for find name */
-#define AJ_METHOD_CANCEL_FIND_NAME     AJ_BUS_MESSAGE_ID(1, 0, 7)    /**< method for cancel find name */
-#define AJ_METHOD_BIND_SESSION_PORT    AJ_BUS_MESSAGE_ID(1, 0, 8)    /**< method for bind session port */
-#define AJ_METHOD_UNBIND_SESSION       AJ_BUS_MESSAGE_ID(1, 0, 9)    /**< method for unbind session */
-#define AJ_METHOD_JOIN_SESSION         AJ_BUS_MESSAGE_ID(1, 0, 10)   /**< method for join session */
-#define AJ_METHOD_LEAVE_SESSION        AJ_BUS_MESSAGE_ID(1, 0, 11)   /**< method for leave session */
-#define AJ_METHOD_CANCEL_SESSIONLESS   AJ_BUS_MESSAGE_ID(1, 0, 12)   /**< method for cancel sessionless */
-#define AJ_METHOD_FIND_NAME_BY_TRANSPORT   AJ_BUS_MESSAGE_ID(1, 0, 13)          /**< method for find name by specific transports */
-#define AJ_METHOD_CANCEL_FIND_NAME_BY_TRANSPORT   AJ_BUS_MESSAGE_ID(1, 0, 14)   /**< method for cancel find name by specific transports */
+#define AJ_SIGNAL_SESSION_LOST                  AJ_BUS_MESSAGE_ID(1, 0, 0)    /**< signal for session lost */
+#define AJ_SIGNAL_FOUND_ADV_NAME                AJ_BUS_MESSAGE_ID(1, 0, 1)    /**< signal for found advertising name */
+#define AJ_SIGNAL_LOST_ADV_NAME                 AJ_BUS_MESSAGE_ID(1, 0, 2)    /**< signal for lost advertising name */
+#define AJ_SIGNAL_MP_SESSION_CHANGED            AJ_BUS_MESSAGE_ID(1, 0, 3)    /**< signal for mp session changed */
+#define AJ_METHOD_ADVERTISE_NAME                AJ_BUS_MESSAGE_ID(1, 0, 4)    /**< method for advertise name */
+#define AJ_METHOD_CANCEL_ADVERTISE              AJ_BUS_MESSAGE_ID(1, 0, 5)    /**< method for cancel advertise */
+#define AJ_METHOD_FIND_NAME                     AJ_BUS_MESSAGE_ID(1, 0, 6)    /**< method for find name */
+#define AJ_METHOD_CANCEL_FIND_NAME              AJ_BUS_MESSAGE_ID(1, 0, 7)    /**< method for cancel find name */
+#define AJ_METHOD_BIND_SESSION_PORT             AJ_BUS_MESSAGE_ID(1, 0, 8)    /**< method for bind session port */
+#define AJ_METHOD_UNBIND_SESSION                AJ_BUS_MESSAGE_ID(1, 0, 9)    /**< method for unbind session */
+#define AJ_METHOD_JOIN_SESSION                  AJ_BUS_MESSAGE_ID(1, 0, 10)   /**< method for join session */
+#define AJ_METHOD_LEAVE_SESSION                 AJ_BUS_MESSAGE_ID(1, 0, 11)   /**< method for leave session */
+#define AJ_METHOD_CANCEL_SESSIONLESS            AJ_BUS_MESSAGE_ID(1, 0, 12)   /**< method for cancel sessionless */
+#define AJ_METHOD_FIND_NAME_BY_TRANSPORT        AJ_BUS_MESSAGE_ID(1, 0, 13)   /**< method for find name by specific transports */
+#define AJ_METHOD_CANCEL_FIND_NAME_BY_TRANSPORT AJ_BUS_MESSAGE_ID(1, 0, 14)   /**< method for cancel find name by specific transports */
+#define AJ_METHOD_SET_LINK_TIMEOUT              AJ_BUS_MESSAGE_ID(1, 0, 15)   /**< method for setting the link timeout for a session */
 
 /*
  * Members of /org/alljoyn/Bus/Peer interface org.alljoyn.Bus.Peer.Session

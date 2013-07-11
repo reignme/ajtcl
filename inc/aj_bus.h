@@ -212,10 +212,10 @@ AJ_Status AJ_BusCancelSessionless(AJ_BusAttachment* bus, uint32_t serialNum);
 /**
  * Possible response codes for AJ_BusCancelSessionless
  */
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_SUCCESS     1       /**< Cancel Sessionless: reply success */
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_NO_SUCH_MSG 2       /**< Cancel Sessionless: no such msg */
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_NOT_ALLOWED 3       /**< Cancel Sessionless: not allowed */
-#define ALLJOYN_CANCELSESSIONLESS_REPLY_FAILED      4       /**< Cancel Sessionless: reply failed */
+#define AJ_CANCELSESSIONLESS_REPLY_SUCCESS     1       /**< Cancel Sessionless: reply success */
+#define AJ_CANCELSESSIONLESS_REPLY_NO_SUCH_MSG 2       /**< Cancel Sessionless: no such msg */
+#define AJ_CANCELSESSIONLESS_REPLY_NOT_ALLOWED 3       /**< Cancel Sessionless: not allowed */
+#define AJ_CANCELSESSIONLESS_REPLY_FAILED      4       /**< Cancel Sessionless: reply failed */
 
 /**
  * Send a reply to an accept session method call
@@ -286,6 +286,27 @@ AJ_Status AJ_BusSetSignalRule(AJ_BusAttachment* bus, const char* ruleString, uin
  *         - An error status otherwise
  */
 AJ_Status AJ_BusSetSignalRule2(AJ_BusAttachment* bus, const char* signalName, const char* interfaceName, uint8_t rule);
+
+#define AJ_SETLINKTIMEOUT_SUCCESS          1   /**< SetLinkTimeout reply: Success */
+#define AJ_SETLINKTIMEOUT_NO_DEST_SUPPORT  2   /**< SetLinkTimeout reply: Destination endpoint does not support link monitoring */
+#define AJ_SETLINKTIMEOUT_NO_SESSION       3   /**< SetLinkTimeout reply: Session with given id does not exist */
+#define AJ_SETLINKTIMEOUT_FAILED           4   /**< SetLinkTimeout reply: Failed */
+
+/**
+ * Set a link timeout on a session. This will ensure that a session lost signal is reported by the
+ * daemon within the specified timeout period if the session peer unexpectedly leaves the bus, for
+ * example because the peer moved out of range. The application may want to handle to reply to
+ * this method call to determine if the request succeeded.
+ *
+ * @param bus          The bus attachment
+ * @param sessionId    The session id for the session to set the timeout on.
+ * @param linkTimeout  The link timeout value to set specified in milliseconds
+ *
+ * @return  Return AJ_Status
+ *         - AJ_OK if the link timwout request was sent
+ *         - An error status otherwise
+ */
+AJ_Status AJ_BusSetLinkTimeout(AJ_BusAttachment* bus, uint32_t sessionId, uint32_t linkTimeout);
 
 /**
  * Invoke a built-in handler for standard bus messages. Signals passed to this function that are

@@ -214,7 +214,7 @@ int AJ_Main(void)
                 break;
             }
             authStatus = AJ_ERR_NULL;
-            SendPing(&bus, sessionId, 1);
+            AJ_BusSetLinkTimeout(&bus, sessionId, 10 * 1000);
         }
 
         status = AJ_UnmarshalMsg(&bus, &msg, UNMARSHAL_TIMEOUT);
@@ -225,6 +225,20 @@ int AJ_Main(void)
             }
         } else {
             switch (msg.msgId) {
+
+            case AJ_REPLY_ID(AJ_METHOD_SET_LINK_TIMEOUT):
+                {
+                    uint32_t disposition;
+                    uint32_t timeout;
+                    status = AJ_UnmarshalArgs(&msg, "uu", &disposition, &timeout);
+                    if (disposition == AJ_SETLINKTIMEOUT_SUCCESS) {
+                        AJ_Printf("Link timeout set to %d\n", timeout);
+                    } else {
+                        AJ_Printf("SetLinkTimeout failed %d\n", disposition);
+                    }
+                    SendPing(&bus, sessionId, 1);
+                }
+                break;
 
             case AJ_REPLY_ID(PRX_MY_PING):
                 {

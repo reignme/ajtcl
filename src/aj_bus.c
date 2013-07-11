@@ -2,7 +2,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012,2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -234,6 +234,20 @@ AJ_Status AJ_BusLeaveSession(AJ_BusAttachment* bus, uint32_t sessionId)
         status = AJ_MarshalArgs(&msg, "u", sessionId);
     }
     if (status == AJ_OK) {
+        status = AJ_DeliverMsg(&msg);
+    }
+    return status;
+}
+
+AJ_Status AJ_BusSetLinkTimeout(AJ_BusAttachment* bus, uint32_t sessionId, uint32_t linkTimeout)
+{
+    AJ_Status status;
+    AJ_Message msg;
+
+    status = AJ_MarshalMethodCall(bus, &msg, AJ_METHOD_SET_LINK_TIMEOUT, AJ_BusDestination, 0, 0, TIMEOUT);
+    if (status == AJ_OK) {
+        (void)AJ_MarshalArgs(&msg, "u", sessionId);
+        (void)AJ_MarshalArgs(&msg, "u", linkTimeout);
         status = AJ_DeliverMsg(&msg);
     }
     return status;
