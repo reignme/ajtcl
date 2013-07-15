@@ -55,6 +55,13 @@ typedef AJ_Status (*MessageHandler)(AJ_Message* msg, AJ_Message* reply);
 typedef uint8_t (*AcceptSessionHandler)(AJ_Message* msg);
 
 /**
+ * Callback function prototype to indicate when the Daemon connection status changes
+ *
+ * @param connected     TRUE if connected, FALSE if disconnected
+ */
+typedef void (*ConnectionHandler)(uint8_t connected);
+
+/**
  *  Type to describe a mapping of message id to message handler.
  */
 typedef struct {
@@ -87,10 +94,12 @@ typedef struct {
     AJ_AuthPwdFunc password_callback;   /**< The auth password callback */
     uint32_t link_timeout;              /**< The daemon connection's link timeout */
 
-    AcceptSessionHandler acceptor;      /**< The AcceptSession callback */
+    AcceptSessionHandler acceptor;          /**< The AcceptSession callback */
+    ConnectionHandler connection_handler;   /**< A callback for when the daemon connection status changes */
 
     const MessageHandlerEntry* message_handlers;    /**< An array of message handlers */
     const PropHandlerEntry* prop_handlers;          /**< An array of property get/set handlers */
+
 } AllJoynConfiguration;
 
 /**

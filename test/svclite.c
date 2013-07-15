@@ -265,6 +265,7 @@ int AJ_Main(void)
     AJ_BusAttachment bus;
 
     AllJoynConfiguration config;
+    memset(&config, 0, sizeof(AllJoynConfiguration));
     config.daemonName = NULL;
     config.connect_timeout = CONNECT_TIMEOUT;
     config.connected = FALSE;
@@ -279,6 +280,7 @@ int AJ_Main(void)
     config.prop_handlers = PropHandlers;
 
     config.acceptor = &AcceptSession;
+    config.connection_handler = NULL;
 
 
     /*

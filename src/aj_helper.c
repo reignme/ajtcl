@@ -136,6 +136,10 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
 
             /* Configure timeout for the link to the daemon bus */
             AJ_SetBusLinkTimeout(bus, config->link_timeout);
+
+            if (config->connection_handler != NULL) {
+                (config->connection_handler)(connected);
+            }
         }
 
         // absolute time in milliseconds
@@ -232,12 +236,17 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
             AJ_Printf("Disconnected from Daemon:%s\n", AJ_GetUniqueName(bus));
             AJ_Disconnect(bus);
             connected = FALSE;
+            if (config->connection_handler != NULL) {
+                (config->connection_handler)(connected);
+            }
             /*
              * Sleep a little while before trying to reconnect
              */
             AJ_Sleep(10 * 1000);
         }
     }
+
+    // this will never actually return!
     return AJ_OK;
 }
 
