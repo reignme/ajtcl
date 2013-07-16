@@ -238,14 +238,14 @@ static const MessageHandlerEntry Handlers[] = {
     { APP_MY_SIGNAL, &AppHandleMySignal },
     { AJ_SIGNAL_SESSION_LOST, &SessionLost },
     { AJ_SIGNAL_SESSION_JOINED, &SessionJoined },
-    { NULL }
+    { 0, NULL }
 };
 
 // need a list because {Set,Get}Property could appear in multiple bus objects
 static const PropHandlerEntry PropHandlers[] = {
     { APP_SET_PROP, PropSetHandler, NULL },
     { APP_GET_PROP, PropGetHandler, NULL },
-    { NULL }
+    { 0, NULL, NULL }
 };
 
 
