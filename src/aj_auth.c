@@ -73,7 +73,7 @@ typedef struct _PinAuthContext {
  */
 static PinAuthContext context;
 
-#ifndef NDEBUG
+#ifdef AUTH_DEBUG
 static char* Hex(const uint8_t* buf, size_t len)
 {
     static char hex[128];
@@ -94,7 +94,7 @@ static AJ_Status ComputeVerifier(const char* label, char* buffer, size_t bufLen)
     lens[1] = (uint8_t)strlen(label);
 
     status = AJ_Crypto_PRF(data, lens, ArraySize(data), (uint8_t*)buffer, VERIFIER_LEN);
-#ifndef NDEBUG
+#ifdef AUTH_DEBUG
     AJ_Printf("ComputeVerifier(%s): %s\n", label, Hex((uint8_t*)buffer, VERIFIER_LEN));
 #endif
     if (status == AJ_OK) {
@@ -129,7 +129,7 @@ static AJ_Status ComputeMS(const uint8_t* nonce)
      * Use the PRF function to compute the master secret
      */
     status = AJ_Crypto_PRF(data, lens, ArraySize(data), context.masterSecret, MASTER_SECRET_LEN);
-#ifndef NDEBUG
+#ifdef AUTH_DEBUG
     AJ_Printf("MasterSecret: %s\n", Hex(context.masterSecret, MASTER_SECRET_LEN));
 #endif
     return status;
