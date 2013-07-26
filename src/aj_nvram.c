@@ -22,9 +22,6 @@
 
 extern uint8_t* AJ_NVRAM_BASE_ADDRESS;
 
-#define AJ_NV_DATASET_RD_ONLY         1
-#define AJ_NV_DATASET_WR_ONLY         2
-
 #define AJ_NVRAM_END_ADDRESS (AJ_NVRAM_BASE_ADDRESS + AJ_NVRAM_SIZE)
 
 void AJ_NVRAM_Layout_Print()
@@ -118,28 +115,16 @@ AJ_NV_DATASET* AJ_NVRAM_Open(uint16_t id, char* mode, uint16_t capacity)
     AJ_Status status = AJ_OK;
     uint8_t* entry = NULL;
     AJ_NV_DATASET* handle = NULL;
-    uint8_t access = 0;
+
     if (!id) {
-        AJ_Printf("Error: A valide id must not be 0.\n");
+        AJ_Printf("Error: A valid id must not be 0.\n");
         goto OPEN_ERR_EXIT;
     }
-
-    if (0 == strcmp(mode, "r")) {
-        access = AJ_NV_DATASET_RD_ONLY;
-    } else if (0 == strcmp(mode, "w")) {
-        access = AJ_NV_DATASET_WR_ONLY;
-    } else {
-        AJ_Printf("Error: Unsupported access mode %s\n", mode);
+    if (!mode || mode[1] || (*mode != 'r') && (*mode != 'w')) {
+        AJ_Printf("Error: Access mode must be \"r\" or \"w\"\n");
         goto OPEN_ERR_EXIT;
     }
-
-    entry = AJ_FindNVEntry(id);
-    if (!entry && (access == AJ_NV_DATASET_RD_ONLY)) {
-        AJ_Printf("Error: the data set (id = %d) doesn't exist\n", id);
-        goto OPEN_ERR_EXIT;
-    }
-
-    if (access == AJ_NV_DATASET_WR_ONLY) {
+    if (*mode == AJ_NV_DATASET_MODE_WRITE) {
         if (capacity == 0) {
             AJ_Printf("The capacity should not be 0.\n");
             goto OPEN_ERR_EXIT;
@@ -160,6 +145,12 @@ AJ_NV_DATASET* AJ_NVRAM_Open(uint16_t id, char* mode, uint16_t capacity)
         if (!entry) {
             goto OPEN_ERR_EXIT;
         }
+    } else {
+        entry = AJ_FindNVEntry(id);
+        if (!entry) {
+            AJ_Printf("Error: the data set (id = %d) doesn't exist\n", id);
+            goto OPEN_ERR_EXIT;
+        }
     }
 
     handle = (AJ_NV_DATASET*)AJ_Malloc(sizeof(AJ_NV_DATASET));
@@ -170,7 +161,8 @@ AJ_NV_DATASET* AJ_NVRAM_Open(uint16_t id, char* mode, uint16_t capacity)
 
     handle->id = id;
     handle->curPos = 0;
-    handle->mode = access;
+    handle->mode = *mode;
+    handle->capacity = ((NV_EntryHeader*)entry)->capacity;
     handle->inode = entry;
     return handle;
 
@@ -190,7 +182,7 @@ size_t AJ_NVRAM_Write(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
     uint8_t* buf = (uint8_t*)ptr;
     NV_EntryHeader* header = (NV_EntryHeader*)handle->inode;
 
-    if (!handle || handle->mode == AJ_NV_DATASET_RD_ONLY) {
+    if (!handle || handle->mode == AJ_NV_DATASET_MODE_READ) {
         AJ_Printf("AJ_NVRAM_Write() error: The access mode does not allow write.\n");
         return -1;
     }
@@ -224,7 +216,7 @@ size_t AJ_NVRAM_Read(void* ptr, uint16_t size, AJ_NV_DATASET* handle)
 {
     uint16_t bytesRead = 0;
     NV_EntryHeader* header = (NV_EntryHeader*)handle->inode;
-    if (!handle || handle->mode == AJ_NV_DATASET_WR_ONLY) {
+    if (!handle || handle->mode == AJ_NV_DATASET_MODE_WRITE) {
         AJ_Printf("AJ_NVRAM_Read() error: The access mode does not allow read.\n");
         return -1;
     }

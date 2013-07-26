@@ -26,14 +26,18 @@
 #define AJ_NVARM_ID_RESERVED_MAX     0x7FFF   /**< Last NVRAM ID reserved for AllJoyn framework and services use */
 #define AJ_NVRAM_ID_FOR_APPS         0x8000   /**< First NVRAM ID available for application used */
 
+#define AJ_NV_DATASET_MODE_READ      'r'      /**< Data set is in read mode */
+#define AJ_NV_DATASET_MODE_WRITE     'w'      /**< Data set is in write mode */
+
 /**
  * AllJoyn NVRAM dataset handle
  */
 typedef struct _AJ_NV_DATASET {
-    uint16_t id;           /**< The unique id of a data set */
-    uint8_t mode;          /**< The access mode of a data set */
+    uint8_t mode;          /**< The access mode (read or write) of a data set */
     uint16_t curPos;       /**< The current read/write offset of a data set */
-    uint8_t* inode;        /**< Point to a location of the data set in the NVRAM */
+    uint16_t capacity;     /**< The capacity of the data set established by AJ_NVRAM_Open() */
+    uint16_t id;           /**< The unique id of a data set */
+    uint8_t* inode;        /**< Pointer or offset to a location of the data set in the NVRAM */
 } AJ_NV_DATASET;
 
 /**
