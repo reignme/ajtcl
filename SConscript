@@ -95,6 +95,12 @@ if env['TARG'] in [ 'win32', 'linux', 'linux-be' ]:
     # Win/Linux programs need their own 'main' function
     env.Append(CPPDEFINES = ['AJ_MAIN'])
 
+    # Produce shared libraries for these platforms
+    srcs = env['aj_srcs'] + env['aj_targ_srcs']
+    if env['TARG'] == 'win32':
+        srcs += env['aj_sw_crypto'] + env['aj_malloc']
+
+    env.SharedLibrary('ajtcl', srcs)
 
 # Build objects for the target-specific sources and AllJoyn Thin Client sources
 if env['TARG'] == 'win32':
