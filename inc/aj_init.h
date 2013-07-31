@@ -1,6 +1,9 @@
 #ifndef _AJ_INIT_H
 #define _AJ_INIT_H
 /**
+ * @file aj_init.h
+ * @defgroup aj_init Initialization
+ * @{
  * @file
  */
 /******************************************************************************
@@ -27,4 +30,7 @@
  */
 void AJ_Initialize(void);
 
+/**
+ * @}
+ */
 #endif

@@ -1,6 +1,9 @@
 #ifndef _AJ_GUID_H
 #define _AJ_GUID_H
 /**
+ * @file aj_guid.h
+ * @defgroup aj_guid Globally Unique Identifier Support
+ * @{
  * @file
  */
 /******************************************************************************
@@ -143,4 +146,7 @@ AJ_Status AJ_GetSessionKey(const char* name, uint8_t* key, uint8_t* role);
  */
 AJ_Status AJ_GetGroupKey(const char* name, uint8_t* key);
 
+/**
+ * @}
+ */
 #endif

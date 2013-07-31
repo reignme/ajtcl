@@ -1,7 +1,9 @@
 #ifndef _AJ_BUFIO_H
 #define _AJ_BUFIO_H
 /**
- * @file
+ * @file aj_bufio.h
+ * @defgroup aj_bufio Buffer Input/Output
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.

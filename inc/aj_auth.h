@@ -1,7 +1,9 @@
 #ifndef _AJ_AUTH_H
 #define _AJ_AUTH_H
 /**
- * @file
+ * @file aj_auth.h
+ * @defgroup aj_auth Authentication
+ * @{
  */
 /******************************************************************************
  * Copyright 2012, Qualcomm Innovation Center, Inc.
@@ -27,4 +29,7 @@
  */
 extern const AJ_AuthMechanism AJ_AuthPin;
 
+/**
+ * @}
+ */
 #endif

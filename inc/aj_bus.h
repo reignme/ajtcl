@@ -1,7 +1,9 @@
 #ifndef _AJ_BUS_H
 #define _AJ_BUS_H
 /**
- * @file
+ * @file aj_bus.h
+ * @defgroup aj_bus Bus Attachment
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -416,4 +418,7 @@ typedef AJ_Status (*AJ_BusPropSetCallback)(AJ_Message* replyMsg, uint32_t propId
  */
 AJ_Status AJ_BusPropSet(AJ_Message* msg, AJ_BusPropSetCallback callback, void* context);
 
+/**
+ * @}
+ */
 #endif

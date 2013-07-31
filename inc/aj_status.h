@@ -1,7 +1,9 @@
 #ifndef _AJ_STATUS_H
 #define _AJ_STATUS_H
 /**
- * @file
+ * @file aj_status.h
+ * @defgroup aj_status AllJoyn Status (Return) Codes
+ * @{
  */
 /******************************************************************************
  * Copyright 2012,2013, Qualcomm Innovation Center, Inc.
@@ -52,4 +54,7 @@ typedef enum {
 
 } AJ_Status;
 
+/**
+ * @}
+ */
 #endif

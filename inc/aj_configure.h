@@ -1,5 +1,7 @@
 /**
- * @file
+ * @file aj_configure.h
+ * @defgroup aj_configure Wi-Fi Configuration Interface
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -40,4 +42,7 @@ extern const AJ_InterfaceDescription AJ_ConfigInterfaces[];
  **/
 AJ_Status AJ_ProcessInternal(AJ_Message* msg, IdentifyFunction identifyFunction);
 
+/**
+ * @}
+ */
 #endif

@@ -1,7 +1,9 @@
 #ifndef _AJ_CONNECT_H
 #define _AJ_CONNECT_H
 /**
- * @file
+ * @file aj_connect.h
+ * @defgroup aj_connect Bus Connection Management
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -62,4 +64,7 @@ typedef uint32_t (*BusAuthPwdFunc)(uint8_t* buffer, uint32_t bufLen);
  */
 void SetBusAuthPwdCallback(BusAuthPwdFunc callback);
 
+/**
+ * @}
+ */
 #endif

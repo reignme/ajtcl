@@ -1,7 +1,9 @@
 #ifndef _AJ_CREDS_H
 #define _AJ_CREDS_H
 /**
- * @file
+ * @file aj_creds.h
+ * @defgroup aj_creads Credentials Management
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -83,4 +85,7 @@ AJ_Status AJ_GetRemoteCredential(const AJ_GUID* peerGuid, AJ_PeerCred* peerCred)
  */
 AJ_Status AJ_GetLocalGUID(AJ_GUID* localGuid);
 
+/**
+ * @}
+ */
 #endif

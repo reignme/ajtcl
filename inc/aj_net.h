@@ -1,7 +1,9 @@
 #ifndef _AJ_NET_H
 #define _AJ_NET_H
 /**
- * @file
+ * @file aj_net.h
+ * @defgroup aj_net Network Send and Receive
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -86,4 +88,7 @@ AJ_Status AJ_Net_Send(AJ_IOBuffer* txBuf);
  */
 AJ_Status AJ_Net_Recv(AJ_IOBuffer* rxBuf, uint32_t len, uint32_t timeout);
 
+/**
+ * @}
+ */
 #endif

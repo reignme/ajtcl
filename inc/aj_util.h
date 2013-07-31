@@ -1,7 +1,9 @@
 #ifndef _AJ_UTIL_H
 #define _AJ_UTIL_H
 /**
- * @file
+ * @file aj_util.h
+ * @defgroup aj_util Utility Functions
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -161,5 +163,7 @@ uint8_t AJ_StopReadFromStdIn();
  */
 char* AJ_GetCmdLine(char* buf, size_t num);
 
-
+/**
+ * @}
+ */
 #endif

@@ -1,7 +1,9 @@
 #ifndef _AJ_VERSION_H
 #define _AJ_VERSION_H
 /**
- * @file
+ * @file aj_version.h
+ * @defgroup aj_version Current AllJoyn Thin Client Version
+ * @{
  */
 /******************************************************************************
  * Copyright 2013, Qualcomm Innovation Center, Inc.
@@ -26,4 +28,7 @@
 
 #define AJ_VERSION ((AJ_MAJOR_VERSION) << 24) | ((AJ_MINOR_VERSION) << 16) | (AJ_RELEASE_VERSION)   /**< macro to generate the version from major, minor & release */
 
+/**
+ * @}
+ */
 #endif

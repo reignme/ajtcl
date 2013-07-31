@@ -1,7 +1,9 @@
 #ifndef _AJ_SASL_H
 #define _AJ_SASL_H
 /**
- * @file
+ * @file aj_sasl.h
+ * @defgroup aj_sasl Simple Authentication and Security Layer Support
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -145,4 +147,7 @@ AJ_Status AJ_SASL_InitContext(AJ_SASL_Context* context, const AJ_AuthMechanism* 
  */
 AJ_Status AJ_SASL_Advance(AJ_SASL_Context* context, char* inStr, char* outStr, uint32_t outLen);
 
+/**
+ * @}
+ */
 #endif

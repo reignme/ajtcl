@@ -1,7 +1,9 @@
 #ifndef _AJ_LINK_TIMEOUT_H
 #define _AJ_LINK_TIMEOUT_H
 /**
- * @file
+ * @file aj_link_timeout.h
+ * @defgroup aj_link_timeout Daemon Connection Keepalive Support
+ * @{
  */
 /******************************************************************************
  * Copyright 2013, Qualcomm Innovation Center, Inc.
@@ -51,4 +53,7 @@ void AJ_NotifyLinkActive();
  */
 AJ_Status AJ_BusLinkStateProc(AJ_BusAttachment* bus);
 
+/**
+ * @}
+ */
 #endif

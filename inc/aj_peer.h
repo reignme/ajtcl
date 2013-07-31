@@ -1,8 +1,9 @@
 #ifndef _AJ_PEER_H
 #define _AJ_PEER_H
 /**
- * @file
- * Implements the org.alljoyn.Bus.Peer object
+ * @file aj_peer.h
+ * @defgroup aj_peer Implementation of org.alljoyn.Bus.Peer Object
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -133,4 +134,7 @@ typedef void (*AJ_PeerAuthenticateCallback)(const void* context, AJ_Status statu
  */
 AJ_Status AJ_PeerAuthenticate(AJ_BusAttachment* bus, const char* peerName, AJ_PeerAuthenticateCallback callback, void* cbContext);
 
+/**
+ * @}
+ */
 #endif

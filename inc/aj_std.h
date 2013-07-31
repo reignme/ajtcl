@@ -1,7 +1,9 @@
 #ifndef _AJ_STD_H
 #define _AJ_STD_H
 /**
- * @file
+ * @file aj_std.h
+ * @defgroup aj_std AllJoyn Standard Object Definitions
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -148,4 +150,7 @@ extern const char* const AJ_IntrospectionIface[3];
  */
 extern const AJ_Object AJ_StandardObjects[6];
 
+/**
+ * @}
+ */
 #endif

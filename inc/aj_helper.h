@@ -1,6 +1,9 @@
 #ifndef _AJ_HELPER_H
 #define _AJ_HELPER_H
 /**
+ * @file aj_helper.h
+ * @defgroup aj_helper Helper Functions
+ * @{
  * @file
  */
 /******************************************************************************
@@ -229,6 +232,7 @@ AJ_Status AJ_StartClient2(AJ_BusAttachment* bus,
                           uint32_t* sessionId,
                           const AJ_SessionOpts* opts);
 
-
-
+/**
+ * @}
+ */
 #endif /* _AJ_HELPER_H */

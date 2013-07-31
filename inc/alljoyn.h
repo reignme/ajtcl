@@ -1,7 +1,9 @@
 #ifndef _ALLJOYN_H
 #define _ALLJOYN_H
 /**
- * @file
+ * @file alljoyn.h
+ * @defgroup alljoyn Conveniently Include AllJoyn Headers
+ * @{
  */
 /******************************************************************************
  * Copyright 2012, Qualcomm Innovation Center, Inc.
@@ -31,4 +33,7 @@
 #include "aj_connect.h"
 #include "aj_helper.h"
 
+/**
+ * @}
+ */
 #endif

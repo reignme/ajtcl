@@ -1,5 +1,7 @@
 /**
- * @file
+ * @file aj_configureme.h
+ * @defgroup aj_configureme Device Configuration
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -159,4 +161,7 @@ void AJ_WriteConfiguration(AJ_Configuration* config);
  */
 AJ_Configuration* AJ_InitializeConfig();
 
+/**
+ * @}
+ */
 #endif /* _AJ_CONFIGUREME_H */

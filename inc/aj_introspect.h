@@ -1,7 +1,9 @@
 #ifndef _AJ_INTROSPECT_H
 #define _AJ_INTROSPECT_H
 /**
- * @file
+ * @file aj_introspect.h
+ * @defgroup aj_introspect Introspection Support
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -291,4 +293,7 @@ void AJ_PrintXML(const AJ_Object* obj);
 typedef AJ_Status (*AJ_MutterHook)(AJ_Message* msg, uint32_t msgId, uint8_t msgType);
 #endif
 
+/**
+ * @}
+ */
 #endif

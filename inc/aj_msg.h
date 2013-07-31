@@ -1,7 +1,9 @@
 #ifndef _AJ_MSG_H
 #define _AJ_MSG_H
 /**
- * @file
+ * @file aj_msg.h
+ * @defgroup aj_msg Message Marshaling and Unmarshaling
+ * @{
  */
 /******************************************************************************
  * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
@@ -506,4 +508,7 @@ AJ_Status AJ_MarshalCloseContainer(AJ_Message* msg, AJ_Arg* arg);
  */
 AJ_Status AJ_MarshalVariant(AJ_Message* msg, const char* sig);
 
+/**
+ * @}
+ */
 #endif
