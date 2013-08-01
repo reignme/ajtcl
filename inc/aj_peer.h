@@ -1,8 +1,8 @@
 #ifndef _AJ_PEER_H
 #define _AJ_PEER_H
 /**
- * @file aj_peer.h
- * @defgroup aj_peer Implementation of org.alljoyn.Bus.Peer Object
+ * @file
+ * Implements the org.alljoyn.Bus.Peer object
  * @{
  */
 /******************************************************************************
@@ -137,4 +137,26 @@ AJ_Status AJ_PeerAuthenticate(AJ_BusAttachment* bus, const char* peerName, AJ_Pe
 /**
  * @}
  */
+
+/**
+ * Generate a compression token from a message.
+ *
+ * @param msg   The message to compress
+ *
+ * @return  Returns the compression token.
+ */
+uint32_t AJ_PeerCompressionToken(AJ_Message* msg);
+
+
+/**
+ * Handle a GetExpansion method call.
+ *
+ * @param msg     The GetExpansion request message
+ * @param reply   The reply to the request
+ *
+ * @return        Return AJ_Status
+ *
+ */
+AJ_Status AJ_PeerHandleGetExpansion(AJ_Message* msg, AJ_Message* reply);
+
 #endif

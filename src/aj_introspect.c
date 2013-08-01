@@ -62,9 +62,22 @@ typedef void (*XMLWriterFunc)(void* context, const char* str, uint32_t len);
 
 #define MEMBER_TYPE(c) (((c) >> 4) - 2)
 
+#define SIGNAL_CHAR    '!'
+#define METHOD_CHAR    '?'
+#define PROPERTY_CHAR  '@'
+
 #define SIGNAL     MEMBER_TYPE('!')  /* ((0x21 >> 4) - 2) == 0 */
 #define METHOD     MEMBER_TYPE('?')  /* ((0x3F >> 4) - 2) == 1 */
 #define PROPERTY   MEMBER_TYPE('@')  /* ((0x40 >> 4) - 2) == 2 */
+
+/*
+ * Maps from the member flag to the message type
+ */
+static const uint8_t MemberMap[] = {
+    AJ_MSG_SIGNAL,
+    AJ_MSG_METHOD_CALL,
+    AJ_MSG_INVALID
+};
 
 #define SECURE_TRUE '$' /* Security is required for an interface that start with a '$' character */
 #define SECURITY_NA '#' /* Security is never required for an interface that starts with a '#' character */
@@ -653,7 +666,9 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
     if (objPath) {
         *objPath = obj->path;
     }
-    *secure = SecurityApplies(*ifc, obj, objectLists[oIndex]);
+    if (secure) {
+        *secure = SecurityApplies(*ifc, obj, objectLists[oIndex]);
+    }
     if (iface) {
         /*
          * Skip over security specifier if there is one
@@ -725,6 +740,8 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
      */
     static char msgSignature[32];
     AJ_Status status = AJ_OK;
+    const char* member = NULL;
+    char chkType = METHOD_CHAR;
 
 #ifndef NDEBUG
     if (MutterHook) {
@@ -744,8 +761,7 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
             status = UnpackMsgId(msgId, NULL, NULL, NULL, secure);
         }
     } else {
-        const char* member = NULL;
-        char direction = (msgType == AJ_MSG_METHOD_CALL) ? IN_ARG : OUT_ARG;
+        char direction = OUT_ARG;
         /*
          * The rest is just indexing into the object and interface descriptions.
          */
@@ -764,6 +780,11 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
                 }
                 msg->member = member;
             }
+            if (msgType == AJ_MSG_METHOD_CALL) {
+                direction = IN_ARG;
+            } else {
+                chkType = SIGNAL_CHAR;
+            }
         }
         /*
          * Compose the signature from information in the member encoding.
@@ -775,7 +796,14 @@ AJ_Status AJ_InitMessageFromMsgId(AJ_Message* msg, uint32_t msgId, uint8_t msgTy
             }
         }
     }
-
+    if (status == AJ_OK) {
+        /*
+         * Validate the message type
+         */
+        if (*(member - 1) != chkType) {
+            status = AJ_ERR_INVALID;
+        }
+    }
     return status;
 }
 

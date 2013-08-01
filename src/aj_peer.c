@@ -80,6 +80,26 @@ static AuthContext authContext;
  */
 static const AJ_AuthMechanism* const authMechanisms[] = { &AJ_AuthPin, NULL };
 
+
+static uint32_t compressionSeed = 0;
+
+uint32_t AJ_PeerCompressionToken(AJ_Message* msg)
+{
+    uint32_t token;
+
+    while (!compressionSeed) {
+        AJ_RandBytes((uint8_t*)&compressionSeed, sizeof(compressionSeed));
+    }
+    token = msg->msgId + compressionSeed + (msg->hdr->msgType << 28);
+    /*
+     * The compression token cannot be zero
+     */
+    if (token == 0) {
+        token += compressionSeed;
+    }
+    return token;
+}
+
 /*
  * Check that we are in an authentication with the peer
  */
@@ -545,4 +565,83 @@ AJ_Status AJ_PeerHandleExchangeGroupKeysReply(AJ_Message* msg)
     }
     PeerAuthComplete(status);
     return AJ_OK;
+}
+
+
+
+AJ_Status AJ_PeerHandleGetExpansion(AJ_Message* msg, AJ_Message* reply)
+{
+    AJ_Status status;
+    uint32_t token;
+    uint32_t msgId;
+    uint8_t msgType;
+    AJ_Message exp;
+
+    AJ_UnmarshalArgs(msg, "u", &token);
+
+    /*
+     * Decode compression token to yield msgId and msgType
+     */
+    msgId = token - compressionSeed;
+    if (msgId == 0) {
+        msgId -= compressionSeed;
+    }
+    msgType = (msgId >> 28) & 0x7F;
+    msgId ^= (msgType << 28);
+
+    status = AJ_InitMessageFromMsgId(&exp, msgId, msgType, NULL);
+    if (status == AJ_OK) {
+        uint8_t fieldId;
+        AJ_Arg expansion;
+        char* sig;
+        size_t len = strlen(exp.signature);
+        static const char* structSig = "(yv)";
+
+        sig = AJ_Malloc(len + 1);
+        memcpy(sig, exp.signature, len);
+        sig[len] = 0;
+
+        AJ_MarshalReplyMsg(msg, reply);
+        /*
+         * Compose the expansion argument
+         */
+        AJ_MarshalContainer(reply, &expansion, AJ_ARG_ARRAY);
+
+        for (fieldId = AJ_HDR_OBJ_PATH; fieldId <= AJ_HDR_SESSION_ID; ++fieldId) {
+            switch (fieldId) {
+            case AJ_HDR_OBJ_PATH:
+                AJ_MarshalArgs(reply, structSig, fieldId, "o", exp.objPath);
+                break;
+
+            case AJ_HDR_INTERFACE:
+                AJ_MarshalArgs(reply, structSig, fieldId, "s", exp.iface);
+                break;
+
+            case AJ_HDR_MEMBER:
+                {
+                    int32_t len = AJ_StringFindFirstOf(exp.member, " ");
+                    char* tmp = AJ_Malloc(len + 1);
+                    memcpy(tmp, exp.member, len);
+                    tmp[len] = 0;
+                    AJ_MarshalArgs(reply, structSig, fieldId, "s", tmp);
+                    AJ_Free(tmp);
+                }
+                break;
+
+            case AJ_HDR_SENDER:
+                AJ_MarshalArgs(reply, structSig, fieldId, "s", AJ_GetUniqueName(msg->bus));
+                break;
+
+            case AJ_HDR_SIGNATURE:
+                AJ_MarshalArgs(reply, structSig, fieldId, "g", sig);
+                break;
+
+            default:
+                continue;
+            }
+        }
+        AJ_Free(sig);
+        AJ_MarshalCloseContainer(reply, &expansion);
+    }
+    return status;
 }

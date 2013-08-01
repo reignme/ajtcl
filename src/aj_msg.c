@@ -25,6 +25,7 @@
 #include "aj_bufio.h"
 #include "aj_connect.h"
 #include "aj_guid.h"
+#include "aj_peer.h"
 #include "aj_util.h"
 #include "aj_crypto.h"
 #include "aj_introspect.h"
@@ -1207,6 +1208,7 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
     AJ_IOBuffer* ioBuf = &msg->bus->sock.tx;
     uint8_t fieldId;
     uint8_t secure = FALSE;
+    uint32_t compressionToken = 0;
 
     /*
      * Use the msgId to lookup information in the object and interface descriptions to
@@ -1229,7 +1231,12 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
     if (secure) {
         msg->hdr->flags |= AJ_FLAG_ENCRYPTED;
     }
-
+    /*
+     * If we are doing header compression we need a compression token
+     */
+    if (flags & AJ_FLAG_COMPRESSED) {
+        compressionToken = AJ_PeerCompressionToken(msg);
+    }
     /*
      * The wire-protocol calls this flag NO_AUTO_START we toggle the meaning in the API
      * so the default flags value can be zero.
@@ -1256,17 +1263,19 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
         InitArg(&hdrVal, typeId, NULL);
         switch (fieldId) {
         case AJ_HDR_OBJ_PATH:
-            if ((msgType == AJ_MSG_METHOD_CALL) || (msgType == AJ_MSG_SIGNAL)) {
+            if (((msgType == AJ_MSG_METHOD_CALL) || (msgType == AJ_MSG_SIGNAL)) && !compressionToken) {
                 hdrVal.val.v_objPath = msg->objPath;
             }
             break;
 
         case AJ_HDR_INTERFACE:
-            hdrVal.val.v_string = msg->iface;
+            if (!compressionToken) {
+                hdrVal.val.v_string = msg->iface;
+            }
             break;
 
         case AJ_HDR_MEMBER:
-            if (msgType != AJ_MSG_ERROR) {
+            if ((msgType != AJ_MSG_ERROR) && !compressionToken) {
                 int32_t len = AJ_StringFindFirstOf(msg->member, " ");
                 hdrVal.val.v_string = msg->member;
                 hdrVal.len = (len >= 0) ? len : 0;
@@ -1290,11 +1299,15 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
             break;
 
         case AJ_HDR_SENDER:
-            hdrVal.val.v_string = AJ_GetUniqueName(msg->bus);
+            if (!compressionToken) {
+                hdrVal.val.v_string = AJ_GetUniqueName(msg->bus);
+            }
             break;
 
         case AJ_HDR_SIGNATURE:
-            hdrVal.val.v_signature = msg->signature;
+            if (!compressionToken) {
+                hdrVal.val.v_signature = msg->signature;
+            }
             break;
 
         case AJ_HDR_TIMESTAMP:
@@ -1319,8 +1332,13 @@ static AJ_Status MarshalMsg(AJ_Message* msg, uint8_t msgType, uint32_t msgId, ui
             }
             break;
 
-        case AJ_HDR_HANDLES:
         case AJ_HDR_COMPRESSION_TOKEN:
+            if (compressionToken) {
+                hdrVal.val.v_uint32 = &compressionToken;
+            }
+            break;
+
+        case AJ_HDR_HANDLES:
         default:
             continue;
         }
@@ -1423,7 +1441,10 @@ AJ_Status AJ_MarshalArgs(AJ_Message* msg, const char* sig, ...)
 {
     AJ_Status status = AJ_OK;
     AJ_Arg arg;
+    AJ_Arg container;
     va_list argp;
+
+    container.typeId = AJ_ARG_INVALID;
 
     va_start(argp, sig);
     while (*sig) {
@@ -1433,7 +1454,33 @@ AJ_Status AJ_MarshalArgs(AJ_Message* msg, const char* sig, ...)
         uint64_t u64;
         uint8_t typeId = (uint8_t)*sig++;
         void* val;
+
         if (!IsBasicType(typeId)) {
+            if ((typeId == AJ_ARG_STRUCT) || (typeId == AJ_ARG_DICT_ENTRY)) {
+                if (container.typeId != AJ_ARG_INVALID) {
+                    status = AJ_ERR_MARSHAL;
+                    break;
+                }
+                AJ_MarshalContainer(msg, &container, typeId);
+                continue;
+            }
+            if ((typeId == AJ_STRUCT_CLOSE) || (typeId == AJ_DICT_ENTRY_CLOSE)) {
+                status = AJ_MarshalCloseContainer(msg, &container);
+                container.typeId = AJ_ARG_INVALID;
+                break;
+            }
+            if (typeId == AJ_ARG_VARIANT) {
+                const char* sig = va_arg(argp, const char*);
+                void* val = va_arg(argp, void*);
+
+                status = AJ_MarshalVariant(msg, sig);
+                if (status == AJ_OK) {
+                    status = AJ_MarshalArgs(msg, sig, val);
+                }
+                if (status == AJ_OK) {
+                    continue;
+                }
+            }
             status = AJ_ERR_UNEXPECTED;
             break;
         }

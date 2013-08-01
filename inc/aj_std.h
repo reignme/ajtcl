@@ -83,6 +83,11 @@
 #define AJ_METHOD_AUTH_CHALLENGE       AJ_BUS_MESSAGE_ID(2, 1, 3)    /**< method for auth challenge */
 
 /*
+ * Members of /org/alljoyn/Bus/Peer interface org.alljoyn.Bus.Peer.HeaderCompression
+ */
+#define AJ_METHOD_GET_EXPANSION        AJ_BUS_MESSAGE_ID(2, 2, 0)    /**< method for get header expansion */
+
+/*
  * Members of interface org.freedesktop.DBus.Introspectable
  */
 #define AJ_METHOD_INTROSPECT           AJ_BUS_MESSAGE_ID(3, 0, 0)    /**< method for intprospect */
