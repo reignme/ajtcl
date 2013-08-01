@@ -51,6 +51,11 @@ void _AJ_EraseNVRAM()
     *((uint32_t*)AJ_NVRAM_BASE_ADDRESS) = AJ_NV_SENTINEL;
 }
 
+void AJ_NVRAM_Clear()
+{
+    _AJ_EraseNVRAM();
+}
+
 // Compact the storage by removing invalid entries
 AJ_Status _AJ_CompactNVStorage()
 {

@@ -53,6 +53,11 @@ void _AJ_EraseNVRAM()
     _AJ_StoreNVToFile();
 }
 
+void AJ_NVRAM_Clear()
+{
+    _AJ_EraseNVRAM();
+}
+
 AJ_Status _AJ_LoadNVFromFile()
 {
     FILE* f = fopen("ajlite.nvram", "r");

@@ -184,11 +184,16 @@ _TEST_NVRAM_EXIT:
     return status;
 }
 
+
 int AJ_Main()
 {
     AJ_Status status = AJ_OK;
     AJ_Printf("AJ_Main 1\n");
     AJ_Initialize();
+
+    AJ_NVRAM_Clear();
+    AJ_Printf("Clearing NVRAM\n");
+
     AJ_Printf("AJ_Main 2\n");
     status = TestNVRAM();
     AJ_Printf("AJ_Main 3\n");

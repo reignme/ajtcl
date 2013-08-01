@@ -48,6 +48,11 @@ typedef struct _AJ_NV_DATASET {
 void AJ_NVRAM_Init();
 
 /**
+ * Completely clear NVRAM
+ */
+void AJ_NVRAM_Clear();
+
+/**
  * Open a data set
  *
  * @param id  A unique id for a data set. The value must not be 0.

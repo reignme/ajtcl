@@ -46,14 +46,19 @@ void _AJ_NV_Read(void* src, void* buf, uint16_t size)
     memcpy(buf, src, size);
 }
 
-void _AJ_EraseNVRAM()
+static void _AJ_EraseNVRAM()
 {
     memset((uint8_t*)AJ_NVRAM_BASE_ADDRESS, INVALID_DATA_BYTE, AJ_NVRAM_SIZE);
     *((uint32_t*)AJ_NVRAM_BASE_ADDRESS) = AJ_NV_SENTINEL;
     _AJ_StoreNVToFile();
 }
 
-AJ_Status _AJ_LoadNVFromFile()
+void AJ_NVRAM_Clear()
+{
+    _AJ_EraseNVRAM();
+}
+
+static AJ_Status _AJ_LoadNVFromFile()
 {
     FILE* f = fopen("ajlite.nvram", "r");
     if (f == NULL) {
