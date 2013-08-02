@@ -43,7 +43,6 @@ static const char DaemonInterface[] = "org.alljoyn.Daemon";
 static const char PeerObjectPath[] = "/org/alljoyn/Bus/Peer";
 static const char PeerSessionInterface[] = "org.alljoyn.Bus.Peer.Session";
 static const char PeerAuthInterface[] = "org.alljoyn.Bus.Peer.Authentication";
-static const char PeerHeaderCompressionInterface[] = "org.alljoyn.Bus.Peer.HeaderCompression";
 
 
 
@@ -135,15 +134,9 @@ static const char* const PeerAuthIface[] = {
     NULL
 };
 
-static const char* const PeerHeaderCompressionIface[] = {
-    PeerHeaderCompressionInterface,
-    "?GetExpansion <u >a(yv)"
-};
-
 static const AJ_InterfaceDescription PeerIfaces[] = {
     PeerSessionIface,
     PeerAuthIface,
-    PeerHeaderCompressionIface,
     NULL
 };
 
