@@ -76,7 +76,8 @@ static const char* const testSignature[] = {
     "a(uuuu)",
     "a(sss)",
     "ya{ss}",
-    "yyyyya{ys}"
+    "yyyyya{ys}",
+    "(iay)"
 };
 
 typedef struct {
@@ -340,6 +341,13 @@ int AJ_Main()
                 CHECK(AJ_MarshalCloseContainer(&txMsg, &array1));
             }
             break;
+
+        case 13:
+            CHECK(AJ_MarshalContainer(&txMsg, &struct1, AJ_ARG_STRUCT));
+            CHECK(AJ_MarshalArgs(&txMsg, "i", 3434343));
+            CHECK(AJ_MarshalArg(&txMsg, AJ_InitArg(&arg, AJ_ARG_BYTE, AJ_ARRAY_FLAG, Data8, sizeof(Data8))));
+            CHECK(AJ_MarshalCloseContainer(&txMsg, &struct1));
+            break;
         }
         if (status != AJ_OK) {
             AJ_Printf("Failed %d\n", i);
@@ -592,7 +600,23 @@ int AJ_Main()
                 CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &array1));
             }
             break;
+
+        case 13:
+            CHECK(AJ_UnmarshalContainer(&rxMsg, &struct1, AJ_ARG_STRUCT));
+            CHECK(AJ_UnmarshalArgs(&rxMsg, "i", &n));
+            AJ_ASSERT(n == 3434343);
+
+            CHECK(AJ_UnmarshalArg(&rxMsg, &arg));
+            for (j = 0; j < arg.len; ++j) {
+                uint8_t val = arg.val.v_byte[j];
+                AJ_Printf("Unmarhsalled array1[%u] = %u\n", j, val);
+                AJ_ASSERT(val == Data8[j]);
+            }
+
+            CHECK(AJ_UnmarshalCloseContainer(&rxMsg, &struct1));
+            break;
         }
+
         if (status != AJ_OK) {
             AJ_Printf("Failed %d\n", i);
             break;
