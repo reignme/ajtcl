@@ -28,102 +28,10 @@ static size_t wireBytes = 0;
 static uint8_t txBuffer[1024];
 static uint8_t rxBuffer[1024];
 
-#ifdef AJ_YIELD
-
-#include <assert.h>
-#include <pthread.h>
-
-static uint8_t ioThreadRunningWrite = FALSE;
-static uint8_t ioThreadRunningRead = FALSE;
-static uint8_t ioThreadRunningSleep = FALSE;
-static pthread_t threadIdWrite;
-static pthread_t threadIdRead;
-static pthread_t threadIdSleep;
-
-
-#if defined _WIN32
-#define AJ_SLEEP_MSEC(x) Sleep((x))
-#elif defined __linux__
-#define AJ_SLEEP_MSEC(x) usleep((x)*1000)
-#endif
-
-void* AJ_ReadReady_Mutter(void* threadArg)
-{
-    AJ_Printf("R ");
-    AJ_SLEEP_MSEC(1);  // simulate a delay
-    AJ_Schedule(AJWAITEVENT_READ);
-    return 0;
-}
-
-void* AJ_WriteReady_Mutter(void* threadArg)
-{
-    AJ_Printf("W ");
-    AJ_SLEEP_MSEC(1);  // simulate a delay
-    AJ_Schedule(AJWAITEVENT_WRITE);
-    return 0;
-}
-
-void* AJ_TimeExpired_Mutter(void* threadArg)
-{
-    AJ_Printf("T %d\n", (uint32_t)threadArg);
-    AJ_SLEEP_MSEC((uint32_t)threadArg);
-    AJ_Schedule(AJWAITEVENT_TIMER);
-    return 0;
-}
-
-
-static AJ_Status AJ_sleepFunc(uint32_t timeout)
-{
-    /// spin up a thread here to set the timeEvent
-    int ret = 0;
-    if (!ioThreadRunningSleep) {
-        ret = pthread_create(&threadIdSleep, NULL, AJ_TimeExpired_Mutter, (void*)timeout);
-        if (ret != 0) {
-            AJ_Printf("Error: fail to spin a thread for sleeping\n");
-        }
-        ioThreadRunningSleep = TRUE;
-    }
-
-    AJ_YieldUntil(AJWAITEVENT_TIMER);
-
-    /// wait for the thread to finish and then cleanup
-    void* exit_status;
-    if (ioThreadRunningSleep) {
-        pthread_join(threadIdSleep, &exit_status);
-        ioThreadRunningSleep = FALSE;
-    }
-
-    AJ_ClearEvents(AJWAITEVENT_TIMER); //reset the event once we have returned here.
-    return AJ_OK;
-}
-#endif
-
 static AJ_Status TxFunc(AJ_IOBuffer* buf)
 {
     size_t tx = AJ_IO_BUF_AVAIL(buf);;
 
-#ifdef AJ_YIELD
-    ///  spin a thread here to set the writeEvent
-    int ret = 0;
-    if (!ioThreadRunningWrite) {
-        ret = pthread_create(&threadIdWrite, NULL, AJ_WriteReady_Mutter, NULL);
-        if (ret != 0) {
-            AJ_Printf("Error: fail to spin a thread for writing\n");
-        }
-        ioThreadRunningWrite = TRUE;
-    }
-
-    AJ_YieldUntil(AJWAITEVENT_WRITE);
-
-    /// wait for the thread to finish and then cleanup
-    void* exit_status;
-    if (ioThreadRunningWrite) {
-        pthread_join(threadIdWrite, &exit_status);
-        ioThreadRunningWrite = FALSE;
-    }
-
-    AJ_ClearEvents(AJWAITEVENT_WRITE | AJWAITEVENT_TIMER); //reset the event once we have returned here.
-#endif
 
     if ((wireBytes + tx) > sizeof(wireBuffer)) {
         return AJ_ERR_WRITE;
@@ -138,29 +46,6 @@ static AJ_Status TxFunc(AJ_IOBuffer* buf)
 AJ_Status RxFunc(AJ_IOBuffer* buf, uint32_t len, uint32_t timeout)
 {
     size_t rx = AJ_IO_BUF_SPACE(buf);
-
-#ifdef AJ_YIELD
-    ///  spin a thread here to set the readEvent
-    int ret = 0;
-    if (!ioThreadRunningRead) {
-        ret = pthread_create(&threadIdRead, NULL, AJ_ReadReady_Mutter, (void*)timeout);
-        if (ret != 0) {
-            AJ_Printf("Error: fail to spin a thread for reading\n");
-        }
-        ioThreadRunningRead = TRUE;
-    }
-
-    AJ_YieldUntil(AJWAITEVENT_READ | AJWAITEVENT_TIMER);
-
-    /// wait for the thread to finish and then cleanup
-    void* exit_status;
-    if (ioThreadRunningRead) {
-        pthread_join(threadIdRead, &exit_status);
-        ioThreadRunningRead = FALSE;
-    }
-
-    AJ_ClearEvents(AJWAITEVENT_READ | AJWAITEVENT_TIMER); //reset the event once we have returned here.
-#endif
 
     rx = min(len, rx);
     rx = min(wireBytes, rx);
@@ -720,48 +605,13 @@ int AJ_Main()
         AJ_Printf("Marshal/Unmarshal unit test[%d] failed %d\n", i, status);
     }
 
-#ifdef AJ_YIELD
-    // test the sleep function.
-    AJ_sleepFunc(1);
-    AJ_Printf("slept 1\n");
-    AJ_sleepFunc(5);
-    AJ_Printf("slept 5\n");
-
-    AJ_sleepFunc(1000);
-    AJ_Printf("slept 1000\n");
-
-    // instead of returning, trigger an exitEvent and yield out
-    AJ_Schedule(AJWAITEVENT_EXIT);
-    AJ_YieldUntil(AJWAITEVENT_EXIT);
-
-    while (1) {
-        assert("Ran past the yield point. Crash!");
-    }
-#endif
-
     return status;
 }
 
-#ifdef AJ_YIELD
-extern AJ_MainRoutineType AJ_MainRoutine;
-
-int main()
-{
-    AJ_MainRoutine = AJ_Main;
-
-    while (1) {
-        AJ_Loop();
-        if (AJ_GetEventState(AJWAITEVENT_EXIT)) {
-            return(0); // got the signal, so exit the app.
-        }
-    }
-}
-#else
 #ifdef AJ_MAIN
 int main()
 {
     return AJ_Main();
 }
-#endif
 #endif
 
