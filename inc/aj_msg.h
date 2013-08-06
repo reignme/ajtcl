@@ -455,7 +455,7 @@ AJ_Status AJ_MarshalArg(AJ_Message* msg, AJ_Arg* arg);
  * AJ_DeliverMsgPartial() to establish the total length of the message in the message header.
  *
  * The simple uses cases are marshaling of long strings and arrays of bytes or integers.
- * In these two cases the application must martial a 32 bit length then then martial the data.
+ * In these two cases the application must marshal a 32 bit length then then marshal the data.
  *
  * Note that strings must be NUL terminated but NUL is not included in the length.
  *
