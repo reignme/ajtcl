@@ -21,6 +21,7 @@
 
 #include "aj_target.h"
 #include "aj_debug.h"
+#include "aj_util.h"
 
 /*
  * Set to see the raw message bytes
@@ -121,9 +122,37 @@ const char* AJ_StatusText(AJ_Status status)
         AJ_CASE(AJ_ERR_RESTART);
         AJ_CASE(AJ_ERR_LINK_TIMEOUT);
         AJ_CASE(AJ_ERR_DRIVER);
+        AJ_CASE(AJ_ERR_OBJECT_PATH);
+        AJ_CASE(AJ_ERR_BUSY);
 
     default:
         return "<unknown>";
+    }
+}
+
+AJ_DebugLevel AJ_DbgLevel = AJ_DEBUG_INFO;
+
+int _AJ_DbgHeader(AJ_DebugLevel level, const char* file, int line)
+{
+    static AJ_Time t;
+    const char* fn = file;
+    uint32_t msec;
+
+    if (!(t.seconds | t.milliseconds)) {
+        AJ_InitTimer(&t);
+    }
+    while (*fn) {
+        if ((*fn == '/') || (*fn == '\\')) {
+            file = fn + 1;
+        }
+        ++fn;
+    }
+    if (level >= AJ_DEBUG_ERROR) {
+        msec = AJ_GetElapsedTime(&t, TRUE);
+        AJ_Printf("%03d.%03d %s@%d ", msec / 1000, msec % 1000, file, line);
+        return TRUE;
+    } else {
+        return FALSE;
     }
 }
 

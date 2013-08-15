@@ -133,7 +133,7 @@ static AJ_Status AppHandlePing(AJ_Message* msg, AJ_Message* reply)
 static AJ_Status AppHandleMySignal(AJ_Message* msg, AJ_Message* reply)
 {
     AJ_Status status = AJ_OK;
-    AJ_Printf("Received my_signal\n");
+    AJ_InfoPrintf(("Received my_signal\n"));
 
     if (ReflectSignal) {
         AJ_Message out;
@@ -153,7 +153,7 @@ static uint32_t timer_id = 0;
 static AJ_Status SessionLost(AJ_Message* msg, AJ_Message* reply)
 {
     AJ_Status status = AJ_OK;
-    AJ_Printf("Session Lost\n");
+    AJ_InfoPrintf(("Session Lost\n"));
 
     if (timer_id) {
         AJ_CancelTimer(timer_id);
@@ -175,7 +175,7 @@ static AJ_Status SessionJoined(AJ_Message* msg, AJ_Message* reply)
     }
 
     timer_id = AJ_SetTimer(CB_TIMEOUT, &AppDoWork, NULL, CB_TIMEOUT);
-    AJ_Printf("Session Joined\n");
+    AJ_InfoPrintf(("Session Joined\n"));
 
     if (CancelAdvertiseName) {
         status = AJ_BusAdvertiseName(msg->bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
@@ -197,10 +197,10 @@ static uint8_t AcceptSession(AJ_Message* msg)
 
     if (port == ServicePort) {
         accepted = TRUE;
-        AJ_Printf("Accepted session session_id=%u joiner=%s\n", sessionId, joiner);
+        AJ_InfoPrintf(("Accepted session session_id=%u joiner=%s\n", sessionId, joiner));
     } else {
         accepted = FALSE;
-        AJ_Printf("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner);
+        AJ_InfoPrintf(("Accepted rejected session_id=%u joiner=%s\n", sessionId, joiner));
     }
 
     return accepted;
@@ -295,7 +295,7 @@ int AJ_Main(void)
 
     // magical function that does *everything* !!!
     status = AJ_RunAllJoynService(&bus, &config);
-    AJ_Printf("svclite EXIT %d\n", status);
+    AJ_WarnPrintf(("svclite EXIT %s\n", AJ_StatusText(status)));
     return status;
 }
 
