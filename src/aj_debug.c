@@ -130,7 +130,7 @@ const char* AJ_StatusText(AJ_Status status)
     }
 }
 
-AJ_DebugLevel AJ_DbgLevel = AJ_DEBUG_INFO;
+AJ_DebugLevel AJ_DbgLevel = AJ_DEBUG_ERROR;
 
 int _AJ_DbgHeader(AJ_DebugLevel level, const char* file, int line)
 {
