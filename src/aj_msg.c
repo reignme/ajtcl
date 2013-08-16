@@ -292,6 +292,7 @@ static AJ_Status EncryptMessage(AJ_Message* msg)
         status = AJ_GetSessionKey(msg->destination, key, &role);
     }
     if (status != AJ_OK) {
+        AJ_ErrPrintf(("Encryption required but peer %s is not authenticated", msg->destination));
         status = AJ_ERR_SECURITY;
     } else {
         InitNonce(msg, role, nonce);
