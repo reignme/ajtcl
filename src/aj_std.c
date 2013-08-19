@@ -30,8 +30,8 @@ const char AJ_ErrRejected[] = "org.alljoyn.Bus.Rejected";
 
 static const char DBusObjectPath[] = "/org/freedesktop/DBus";
 static const char DBusInterface[] = "org.freedesktop.DBus";
-static const char DBusPeerInterface[] = "org.freedesktop.DBus.Peer";
-static const char DBusPropsInterface[] = "org.freedesktop.DBus.Properties";
+static const char DBusPeerInterface[] = "#org.freedesktop.DBus.Peer";
+static const char DBusPropsInterface[] = "#org.freedesktop.DBus.Properties";
 static const char DBusIntrospectableInterface[] = "#org.freedesktop.DBus.Introspectable";
 
 static const char BusObjectPath[] = "/org/alljoyn/Bus";
