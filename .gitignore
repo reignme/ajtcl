@@ -27,4 +27,6 @@ libs
 html
 latex
 build
-
+ajlite.nvram
+libajtcl.so
+ajtcl.dll
