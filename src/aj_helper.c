@@ -151,7 +151,7 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
             timeout = timer->abs_time - now;
         }
 
-        status = AJ_UnmarshalMsg(bus, &msg, timeout);
+        status = AJ_UnmarshalMsg(bus, &msg, min(500, timeout));
         if (AJ_ERR_TIMEOUT == status && AJ_ERR_LINK_TIMEOUT == AJ_BusLinkStateProc(bus)) {
             status = AJ_ERR_READ;
         }
