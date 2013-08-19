@@ -14,18 +14,32 @@
 
 import os
 import shutil
+import platform
+
+if platform.system() == 'Linux':
+    default_target = 'linux'
+    default_msvc_version = None
+elif platform.system() == 'Windows':
+    default_target = 'win32'
+    default_msvc_version = '10.0'
 
 vars = Variables()
 
 # Common build variables
-vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino', 'linux-be')))
+vars.Add(EnumVariable('TARG', 'Target platform variant', default_target, allowed_values=('win32', 'linux', 'arduino', 'linux-be')))
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(PathVariable('GTEST_DIR', 'The path to googletest sources', os.environ.get('GTEST_DIR'), PathVariable.PathIsDir))
-vars.Add(EnumVariable('MSVC_VERSION', 'MSVC compiler version - Windows', '10.0', allowed_values=('8.0', '9.0', '10.0', '11.0', '11.0Exp')))
 vars.Add(EnumVariable('WS', 'Whitespace Policy Checker', 'check', allowed_values=('check', 'detail', 'fix', 'off')))
 
-env = Environment(variables = vars, MSVC_VERSION='${MSVC_VERSION}')
+if default_msvc_version:
+    vars.Add(EnumVariable('MSVC_VERSION', 'MSVC compiler version - Windows', default_msvc_version, allowed_values=('8.0', '9.0', '10.0', '11.0', '11.0Exp')))
+
+if ARGUMENTS.get('TARG', default_target) == 'win32':
+    msvc_version = ARGUMENTS.get('MSVC_VERSION')
+    env = Environment(variables = vars, MSVC_VERSION=msvc_version, TARGET_ARCH='x86')
+else:
+    env = Environment(variables = vars)
 Help(vars.GenerateHelpText(env))
 
 
