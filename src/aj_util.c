@@ -54,7 +54,7 @@ int32_t AJ_StringFindFirstOf(const char* str, char* chars)
 
 AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen)
 {
-    static const char nibble[] = "0123456789ABCDEF";
+    static const char nibble[] = "0123456789abcdef";
     char* h = hex + 2 * rawLen;
     const uint8_t* a = raw + rawLen;
 
