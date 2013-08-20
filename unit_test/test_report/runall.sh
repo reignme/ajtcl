@@ -162,6 +162,13 @@ else
 	gtest_bin_p="$gtest_bin"
 	# MBUS-1589: remove .alljoyn_keystore, if any
 	export HOME="$PWD"
+        LinuxLibDir="$alljoyn_dist/cpp/lib"
+        if [ -f "$LinuxLibDir/liballjoyn.so" ]; then
+            ls -ld "$LinuxLibDir/liballjoyn.so"
+            export LD_LIBRARY_PATH="$LinuxLibDir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        else
+            echo "warning, liballjoyn.so does NOT exist!"
+        fi
 fi
 # MBUS-1589: remove .alljoyn_keystore, if any
 rm -rf .alljoyn_keystore
