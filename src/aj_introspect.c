@@ -21,6 +21,7 @@
 #include "aj_introspect.h"
 #include "aj_std.h"
 #include "aj_msg.h"
+#include "aj_debug.h"
 #include "aj_util.h"
 
 /*
@@ -299,7 +300,7 @@ void AJ_PrintXML(const AJ_Object* obj)
     emptyList.interfaces = NULL;
     status = GenXML(PrintXML, NULL, obj, &emptyList);
     if (status != AJ_OK) {
-        AJ_Printf("\nFailed to generate XML - check interface descriptions for errors\n");
+        AJ_ErrPrintf(("\nFailed to generate XML - check interface descriptions for errors\n"));
     }
 }
 #endif
@@ -380,13 +381,13 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         context.len = 0;
         status = GenXML(SizeXML, &context.len, obj, objectLists[1]);
         if (status != AJ_OK) {
-            AJ_Printf("Failed to generate XML - check interface descriptions for errors\n");
+            AJ_ErrPrintf(("Failed to generate XML - check interface descriptions for errors\n"));
             return status;
         }
         /*
          * Second pass marshals the XML
          */
-        AJ_Printf("AJ_HandleIntrospectRequest() %d bytes of XML\n", context.len);
+        AJ_InfoPrintf(("AJ_HandleIntrospectRequest() %d bytes of XML\n", context.len));
         AJ_MarshalReplyMsg(msg, reply);
         /*
          * Do a partial delivery
@@ -415,7 +416,7 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
         /*
          * Return a ServiceUnknown error response
          */
-        AJ_Printf("AJ_HandleIntrospectRequest() NO MATCH for %s\n", msg->objPath);
+        AJ_WarnPrintf(("AJ_HandleIntrospectRequest() NO MATCH for %s\n", msg->objPath));
         AJ_MarshalErrorMsg(msg, reply, AJ_ErrServiceUnknown);
     }
     return status;
@@ -616,7 +617,7 @@ static uint8_t CheckIndex(const void* ptr, uint8_t index, size_t stride)
     }
     do {
         if (*((void**)ptr) == NULL) {
-            AJ_Printf("\n!!!Invalid msg identifier indicates programming error!!!\n");
+            AJ_ErrPrintf(("\n!!!Invalid msg identifier indicates programming error!!!\n"));
             return FALSE;
         }
         ptr = (((uint8_t*)ptr) + stride);
@@ -848,7 +849,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
                     if (status == AJ_OK) {
                         secure = SecurityApplies(*desc, obj, objectLists[oIndex]);
                         *propId = (oIndex << 24) | (pIndex << 16) | (iIndex << 8) | mIndex;
-                        AJ_Printf("Identified property %x sig \"%s\"\n", *propId, sig);
+                        AJ_InfoPrintf(("Identified property %x sig \"%s\"\n", *propId, sig));
                     }
                     break;
                 }
@@ -861,7 +862,7 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
      */
     if ((status == AJ_OK) && secure && !(msg->hdr->flags & AJ_FLAG_ENCRYPTED)) {
         status = AJ_ERR_SECURITY;
-        AJ_Printf("Security violation accessing property\n");
+        AJ_WarnPrintf(("Security violation accessing property\n"));
     }
     return status;
 }
@@ -886,7 +887,7 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
             status = LookupMessageId(objectLists[oIndex], msg, &secure);
             if (status == AJ_OK) {
                 msg->msgId |= (oIndex << 24);
-                AJ_Printf("Identified message %x\n", msg->msgId);
+                AJ_InfoPrintf(("Identified message %x\n", msg->msgId));
                 break;
             }
         }
@@ -901,6 +902,10 @@ AJ_Status AJ_IdentifyMessage(AJ_Message* msg)
             AJ_Message reply;
             AJ_MarshalStatusMsg(msg, &reply, status);
             status = AJ_DeliverMsg(&reply);
+            /*
+             * Cleanup the message we are ignoring.
+             */
+            AJ_CloseMsg(msg);
         }
     } else {
         ReplyContext* repCtx = FindReplyContext(msg->replySerial);
@@ -958,7 +963,7 @@ AJ_Status AJ_AllocReplyContext(AJ_Message* msg, uint32_t timeout)
             AJ_InitTimer(&repCtx->callTime);
             return AJ_OK;
         } else {
-            AJ_Printf("Failed to allocate a reply context\n");
+            AJ_ErrPrintf(("Failed to allocate a reply context\n"));
             return AJ_ERR_RESOURCES;
         }
     }

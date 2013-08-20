@@ -853,9 +853,9 @@ AJ_Status AJ_UnmarshalMsg(AJ_BusAttachment* bus, AJ_Message* msg, uint32_t timeo
         AJ_DumpMsg("RECEIVED", msg, FALSE);
     } else {
         /*
-         * TODO - should this be silent?
+         * Silently discard message unless in debug mode
          */
-        AJ_Printf("Discarding bad message %d\n", status);
+        AJ_ErrPrintf(("Discarding bad message %s\n", AJ_StatusText(status)));
         AJ_DumpMsg("DISCARDING", msg, FALSE);
         AJ_CloseMsg(msg);
     }
