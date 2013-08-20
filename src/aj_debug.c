@@ -66,33 +66,35 @@ static const char* const msgType[] = { "INVALID", "CALL", "REPLY", "ERROR", "SIG
 
 void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 {
+    if (msg->hdr && _AJ_DbgHeader(AJ_DEBUG_ERROR, NULL, 0)) {
 #if DUMP_MSG_RAW
-    uint8_t* p = (uint8_t*)msg->hdr + sizeof(AJ_MsgHeader);
-    uint32_t hdrBytes = ((msg->hdr->headerLen + 7) & ~7);
+        uint8_t* p = (uint8_t*)msg->hdr + sizeof(AJ_MsgHeader);
+        uint32_t hdrBytes = ((msg->hdr->headerLen + 7) & ~7);
 #endif
-    AJ_Printf("%s message[%d] type %s sig=\"%s\"\n", tag, msg->hdr->serialNum, msgType[(msg->hdr->msgType <= 4) ? msg->hdr->msgType : 0], msg->signature);
-    switch (msg->hdr->msgType) {
-    case AJ_MSG_SIGNAL:
-    case AJ_MSG_METHOD_CALL:
-        AJ_Printf("%s::%s\n", msg->iface, msg->member);
-        break;
+        AJ_Printf("%s message[%d] type %s sig=\"%s\"\n", tag, msg->hdr->serialNum, msgType[(msg->hdr->msgType <= 4) ? msg->hdr->msgType : 0], msg->signature);
+        switch (msg->hdr->msgType) {
+        case AJ_MSG_SIGNAL:
+        case AJ_MSG_METHOD_CALL:
+            AJ_Printf("        %s::%s\n", msg->iface, msg->member);
+            break;
 
-    case AJ_MSG_ERROR:
-        AJ_Printf("Error %s\n", msg->error);
+        case AJ_MSG_ERROR:
+            AJ_Printf("        Error %s\n", msg->error);
 
-    case AJ_MSG_METHOD_RET:
-        AJ_Printf("Reply serial %d\n", msg->replySerial);
-        break;
-    }
-    AJ_Printf("hdr len=%d\n", msg->hdr->headerLen);
+        case AJ_MSG_METHOD_RET:
+            AJ_Printf("        Reply serial %d\n", msg->replySerial);
+            break;
+        }
+        AJ_Printf("        hdr len=%d\n", msg->hdr->headerLen);
 #if DUMP_MSG_RAW
-    AJ_DumpBytes(NULL, p,  hdrBytes);
-    AJ_Printf("body len=%d\n", msg->hdr->bodyLen);
-    if (body) {
-        AJ_DumpBytes(NULL, p + hdrBytes, msg->hdr->bodyLen);
-    }
-    AJ_Printf("-----------------------\n");
+        AJ_DumpBytes(NULL, p,  hdrBytes);
+        AJ_Printf("body len=%d\n", msg->hdr->bodyLen);
+        if (body) {
+            AJ_DumpBytes(NULL, p + hdrBytes, msg->hdr->bodyLen);
+        }
+        AJ_Printf("-----------------------\n");
 #endif
+    }
 }
 
 #define AJ_CASE(_status) case _status: return # _status
@@ -130,26 +132,30 @@ const char* AJ_StatusText(AJ_Status status)
     }
 }
 
-AJ_DebugLevel AJ_DbgLevel = AJ_DEBUG_ERROR;
+AJ_DebugLevel AJ_DbgLevel = AJ_DEBUG_INFO;
 
 int _AJ_DbgHeader(AJ_DebugLevel level, const char* file, int line)
 {
     static AJ_Time t;
-    const char* fn = file;
     uint32_t msec;
 
     if (!(t.seconds | t.milliseconds)) {
         AJ_InitTimer(&t);
     }
-    while (*fn) {
-        if ((*fn == '/') || (*fn == '\\')) {
-            file = fn + 1;
-        }
-        ++fn;
-    }
-    if (level >= AJ_DEBUG_ERROR) {
+    if (level <= AJ_DbgLevel) {
         msec = AJ_GetElapsedTime(&t, TRUE);
-        AJ_Printf("%03d.%03d %s@%d ", msec / 1000, msec % 1000, file, line);
+        if (file) {
+            const char* fn = file;
+            while (*fn) {
+                if ((*fn == '/') || (*fn == '\\')) {
+                    file = fn + 1;
+                }
+                ++fn;
+            }
+            AJ_Printf("%03d.%03d %s@%d ", msec / 1000, msec % 1000, file, line);
+        } else {
+            AJ_Printf("%03d.%03d ", msec / 1000, msec % 1000);
+        }
         return TRUE;
     } else {
         return FALSE;
