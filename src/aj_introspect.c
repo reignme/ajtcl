@@ -651,6 +651,9 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
     obj = &objectLists[oIndex][pIndex];
     ifc = obj->interfaces[iIndex];
 #endif
+    if (obj->flags & AJ_OBJ_FLAG_DISABLED) {
+        return AJ_ERR_INVALID;
+    }
     if (objPath) {
         *objPath = obj->path;
     }
