@@ -174,7 +174,7 @@ static AJ_Status AJ_Net_SendTo(AJ_IOBuffer* buf)
     assert(NumMcastSocks > 0);
 
     if (tx > 0) {
-        int i;
+        size_t i;
         /*
          * Only multicasting over IPv4 for now
          */
@@ -216,7 +216,7 @@ static AJ_Status AJ_Net_RecvFrom(AJ_IOBuffer* buf, uint32_t len, uint32_t timeou
     DWORD rx = AJ_IO_BUF_SPACE(buf);
     fd_set fds;
     size_t rc = 0;
-    int i;
+    size_t i;
     const struct timeval tv = { timeout / 1000, 1000 * (timeout % 1000) };
     SOCKET sock;
 
@@ -381,7 +381,7 @@ AJ_Status AJ_Net_MCastUp(AJ_NetSocket* netSock)
 ErrorExit:
     free(parray);
     if (status != AJ_OK && McastSocks) {
-        int i;
+        size_t i;
         for (i = 0; i < NumMcastSocks; ++i) {
             closesocket(McastSocks[i]);
         }
@@ -396,7 +396,7 @@ ErrorExit:
 
 void AJ_Net_MCastDown(AJ_NetSocket* netSock)
 {
-    int i;
+    size_t i;
     struct ip_mreq mreq;
 
     /*
