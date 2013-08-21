@@ -67,8 +67,8 @@ typedef void (*XMLWriterFunc)(void* context, const char* str, uint32_t len);
 #define METHOD     MEMBER_TYPE('?')  /* ((0x3F >> 4) - 2) == 1 */
 #define PROPERTY   MEMBER_TYPE('@')  /* ((0x40 >> 4) - 2) == 2 */
 
-#define SECURE_TRUE '$' /* Security is required for an interface that start with a '$' character */
-#define SECURITY_NA '#' /* Security is never required for an interface that starts with a '#' character */
+#define SECURE_TRUE  '$' /* Security is required for an interface that start with a '$' character */
+#define SECURE_FALSE '#' /* Security is never required for an interface that starts with a '#' character */
 
 
 static const char* const MemberOpen[] = {
@@ -142,7 +142,7 @@ static AJ_Status ExpandInterfaces(XMLWriterFunc XMLWriter, void* context, const 
     while (*iface) {
         const char* const* entries = *iface;
         char flag = entries[0][0];
-        if ((flag == SECURE_TRUE) || (flag == SECURITY_NA)) {
+        if ((flag == SECURE_TRUE) || (flag == SECURE_FALSE)) {
             /*
              * if secure, skip the first char (the $) of the name
              */
@@ -424,14 +424,14 @@ AJ_Status AJ_HandleIntrospectRequest(const AJ_Message* msg, AJ_Message* reply)
 
 /*
  * Security applies if the interface is secure or if the object or it's parent object is flagged as
- * secure and the security is not N/A for the interface.
+ * secure and the security is not explicitly OFF for the interface.
  */
 static uint32_t SecurityApplies(const char* ifc, const AJ_Object* obj, const AJ_Object* objList)
 {
     if (*ifc == SECURE_TRUE) {
         return TRUE;
     }
-    if (*ifc == SECURITY_NA) {
+    if (*ifc == SECURE_FALSE) {
         return FALSE;
     }
     if (obj->flags & AJ_OBJ_FLAG_SECURE) {
@@ -555,7 +555,7 @@ static AJ_InterfaceDescription FindInterface(const AJ_InterfaceDescription* inte
                 /*
                  * Skip security specifier when comparing the interface name
                  */
-                if ((*intfName == SECURE_TRUE) || (*intfName == SECURITY_NA)) {
+                if ((*intfName == SECURE_TRUE) || (*intfName == SECURE_FALSE)) {
                     ++intfName;
                 }
                 if (strcmp(intfName, iface) == 0) {
@@ -662,7 +662,7 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
         /*
          * Skip over security specifier if there is one
          */
-        if ((ifc[0][0] == SECURE_TRUE) || (ifc[0][0] == SECURITY_NA)) {
+        if ((ifc[0][0] == SECURE_TRUE) || (ifc[0][0] == SECURE_FALSE)) {
             *iface = *ifc + 1;
         } else {
             *iface = *ifc;
@@ -846,11 +846,17 @@ AJ_Status AJ_UnmarshalPropertyArgs(AJ_Message* msg, uint32_t* propId, char* sig,
         AJ_InterfaceDescription desc = FindInterface(obj->interfaces, iface, &iIndex);
         if (desc) {
             uint8_t mIndex = 0;
+            /*
+             * Security is based on the interface the property is defined on.
+             */
+            secure = SecurityApplies(*desc, obj, objectLists[oIndex]);
+            /*
+             * Iterate over the interface members to locate the property is being accessed.
+             */
             while (*(++desc)) {
                 status = MatchProp(*desc, prop, msg->msgId & 0xFF, sig, len);
                 if (status != AJ_ERR_NO_MATCH) {
                     if (status == AJ_OK) {
-                        secure = SecurityApplies(*desc, obj, objectLists[oIndex]);
                         *propId = (oIndex << 24) | (pIndex << 16) | (iIndex << 8) | mIndex;
                         AJ_InfoPrintf(("Identified property %x sig \"%s\"\n", *propId, sig));
                     }
