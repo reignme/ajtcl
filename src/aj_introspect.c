@@ -68,7 +68,7 @@ typedef void (*XMLWriterFunc)(void* context, const char* str, uint32_t len);
 #define PROPERTY   MEMBER_TYPE('@')  /* ((0x40 >> 4) - 2) == 2 */
 
 #define SECURE_TRUE  '$' /* Security is required for an interface that start with a '$' character */
-#define SECURE_FALSE '#' /* Security is never required for an interface that starts with a '#' character */
+#define SECURE_OFF   '#' /* Security is OFF, i.e. never required for an interface that starts with a '#' character */
 
 
 static const char* const MemberOpen[] = {
@@ -102,7 +102,7 @@ static const char nodeOpen[] = "<node";
 static const char nodeClose[] = "</node>\n";
 static const char annotateSecure[] = "  <annotation name=\"org.alljoyn.Bus.Secure\" value=\"";
 static const char secureTrue[] = "true\"/>\n";
-static const char secureNA[] = "n/a\"/>\n";
+static const char secureOff[] = "off\"/>\n";
 
 
 static char ExpandAttribute(XMLWriterFunc XMLWriter, void* context, const char** str, const char* pre, const char* post)
@@ -142,13 +142,13 @@ static AJ_Status ExpandInterfaces(XMLWriterFunc XMLWriter, void* context, const 
     while (*iface) {
         const char* const* entries = *iface;
         char flag = entries[0][0];
-        if ((flag == SECURE_TRUE) || (flag == SECURE_FALSE)) {
+        if ((flag == SECURE_TRUE) || (flag == SECURE_OFF)) {
             /*
              * if secure, skip the first char (the $) of the name
              */
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0] + 1, 0, FALSE);
             XMLWriter(context, annotateSecure, 0);
-            XMLWriter(context, (flag == SECURE_TRUE) ? secureTrue : secureNA, 0);
+            XMLWriter(context, (flag == SECURE_TRUE) ? secureTrue : secureOff, 0);
         } else {
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0], 0, FALSE);
         }
@@ -431,7 +431,7 @@ static uint32_t SecurityApplies(const char* ifc, const AJ_Object* obj, const AJ_
     if (*ifc == SECURE_TRUE) {
         return TRUE;
     }
-    if (*ifc == SECURE_FALSE) {
+    if (*ifc == SECURE_OFF) {
         return FALSE;
     }
     if (obj->flags & AJ_OBJ_FLAG_SECURE) {
@@ -555,7 +555,7 @@ static AJ_InterfaceDescription FindInterface(const AJ_InterfaceDescription* inte
                 /*
                  * Skip security specifier when comparing the interface name
                  */
-                if ((*intfName == SECURE_TRUE) || (*intfName == SECURE_FALSE)) {
+                if ((*intfName == SECURE_TRUE) || (*intfName == SECURE_OFF)) {
                     ++intfName;
                 }
                 if (strcmp(intfName, iface) == 0) {
@@ -662,7 +662,7 @@ static AJ_Status UnpackMsgId(uint32_t msgId, const char** objPath, const char** 
         /*
          * Skip over security specifier if there is one
          */
-        if ((ifc[0][0] == SECURE_TRUE) || (ifc[0][0] == SECURE_FALSE)) {
+        if ((ifc[0][0] == SECURE_TRUE) || (ifc[0][0] == SECURE_OFF)) {
             *iface = *ifc + 1;
         } else {
             *iface = *ifc;

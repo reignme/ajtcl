@@ -337,9 +337,11 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
     AJ_Message reply;
 
     /*
-     * Set hdr to NULL so we can detect below if we have a reply to send.
+     * Check we actually have a message to handle
      */
-    reply.hdr = NULL;
+    if (!msg->hdr) {
+        return AJ_OK;
+    }
 
     switch (msg->msgId) {
     case AJ_METHOD_PING:
@@ -414,12 +416,12 @@ AJ_Status AJ_BusHandleBusMessage(AJ_Message* msg)
         break;
 
     default:
-        if (msg->hdr && (msg->hdr->msgType == AJ_MSG_METHOD_CALL)) {
+        if (msg->hdr->msgType == AJ_MSG_METHOD_CALL) {
             status = AJ_MarshalErrorMsg(msg, &reply, AJ_ErrRejected);
         }
         break;
     }
-    if ((status == AJ_OK) && reply.hdr) {
+    if ((status == AJ_OK) && (msg->hdr->msgType == AJ_MSG_METHOD_CALL)) {
         status = AJ_DeliverMsg(&reply);
     }
     return status;
