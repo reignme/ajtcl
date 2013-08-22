@@ -296,11 +296,14 @@ void AJ_PrintXML(const AJ_Object* obj)
     AJ_Status status;
     AJ_Object emptyList;
 
-    emptyList.path = NULL;
-    emptyList.interfaces = NULL;
-    status = GenXML(PrintXML, NULL, obj, &emptyList);
-    if (status != AJ_OK) {
-        AJ_ErrPrintf(("\nFailed to generate XML - check interface descriptions for errors\n"));
+    while (obj->path) {
+        emptyList.path = NULL;
+        emptyList.interfaces = NULL;
+        status = GenXML(PrintXML, NULL, obj, &emptyList);
+        if (status != AJ_OK) {
+            AJ_ErrPrintf(("\nFailed to generate XML - check interface descriptions of %s for errors\n", obj->path));
+        }
+        obj++;
     }
 }
 #endif
