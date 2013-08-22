@@ -194,8 +194,11 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
     AJ_Status status;
     const uint8_t* data[4];
     uint8_t lens[4];
-    const AJ_GUID* peerGuid = AJ_GUID_Find(peerName);
     AJ_PeerCred cred;
+    const AJ_GUID* peerGuid = AJ_GUID_Find(peerName);
+    if (NULL == peerGuid) {
+        return AJ_ERR_NULL;
+    }
     status = AJ_GetRemoteCredential(peerGuid, &cred);
     if (AJ_OK != status) {
         return AJ_ERR_NO_MATCH;
