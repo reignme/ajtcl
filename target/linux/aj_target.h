@@ -4,7 +4,7 @@
  * @file
  */
 /******************************************************************************
- * Copyright 2012, Qualcomm Innovation Center, Inc.
+ * Copyright 2012-2013, Qualcomm Innovation Center, Inc.
  *
  *    All rights reserved.
  *    This file is licensed under the 3-clause BSD license in the NOTICE.txt
@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <endian.h>
 
 #ifndef TRUE
 #define TRUE (1)
@@ -42,8 +43,13 @@
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #endif
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
 #define HOST_IS_LITTLE_ENDIAN  TRUE
 #define HOST_IS_BIG_ENDIAN     FALSE
+#else
+#define HOST_IS_LITTLE_ENDIAN  FALSE
+#define HOST_IS_BIG_ENDIAN     TRUE
+#endif
 
 #ifndef NDEBUG
     #define AJ_Printf(fmat, ...) \
