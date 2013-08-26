@@ -18,7 +18,7 @@ import shutil
 vars = Variables()
 
 # Common build variables
-vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino', 'linux-be')))
+vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino')))
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(PathVariable('GTEST_DIR', 'The path to googletest sources', os.environ.get('GTEST_DIR'), PathVariable.PathIsDir))
@@ -45,7 +45,7 @@ if env['TARG'] == 'win32':
         env.Append(LINKFLAGS=['/opt:ref'])
         env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
         env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
-elif env['TARG'] in [ 'linux', 'linux-be' ]:
+elif env['TARG'] == 'linux':
     if os.environ.has_key('CROSS_PREFIX'):
         env.Replace(CC = os.environ['CROSS_PREFIX'] + 'gcc')
         env.Replace(CXX = os.environ['CROSS_PREFIX'] + 'g++')
@@ -85,7 +85,7 @@ env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 env['aj_malloc'] = [Glob('malloc/*.c')]
 
 # Set-up the environment for Win/Linux
-if env['TARG'] in [ 'win32', 'linux', 'linux-be' ]:
+if env['TARG'] in [ 'win32', 'linux' ]:
     # To compile, sources need access to include files
     env.Append(CPPPATH = [env['includes']])
 
@@ -100,7 +100,7 @@ if env['TARG'] in [ 'win32', 'linux', 'linux-be' ]:
 if env['TARG'] == 'win32':
     env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'] + env['aj_sw_crypto'] + env['aj_malloc'])
 else:
-    if env['TARG'] in [ 'linux', 'linux-be' ]:
+    if env['TARG'] == 'linux':
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'])
 
 Export('env')
