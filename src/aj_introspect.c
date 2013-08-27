@@ -142,13 +142,25 @@ static AJ_Status ExpandInterfaces(XMLWriterFunc XMLWriter, void* context, const 
     while (*iface) {
         const char* const* entries = *iface;
         char flag = entries[0][0];
+        uint8_t dBus_std_iface = FALSE;
+
         if ((flag == SECURE_TRUE) || (flag == SECURE_OFF)) {
+
+            /* If it is a D-Bus interface, do not add any annotations.*/
+            if ((strcmp(entries[0], "#org.freedesktop.DBus.Introspectable") == 0) ||
+                (strcmp(entries[0], "#org.freedesktop.DBus.Properties") == 0) ||
+                (strcmp(entries[0], "#org.freedesktop.DBus.Peer") == 0)) {
+                dBus_std_iface = TRUE;
+            }
+
             /*
              * if secure, skip the first char (the $) of the name
              */
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0] + 1, 0, FALSE);
-            XMLWriter(context, annotateSecure, 0);
-            XMLWriter(context, (flag == SECURE_TRUE) ? secureTrue : secureOff, 0);
+            if (!dBus_std_iface) {
+                XMLWriter(context, annotateSecure, 0);
+                XMLWriter(context, (flag == SECURE_TRUE) ? secureTrue : secureOff, 0);
+            }
         } else {
             XMLWriteTag(XMLWriter, context, "<interface", nameAttr, entries[0], 0, FALSE);
         }
