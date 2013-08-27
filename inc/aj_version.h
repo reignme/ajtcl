@@ -21,7 +21,7 @@
 
 #define AJ_MAJOR_VERSION   3    /**< major version */
 #define AJ_MINOR_VERSION   3    /**< minor version */
-#define AJ_RELEASE_VERSION 2    /**< release version */
+#define AJ_RELEASE_VERSION 3    /**< release version */
 
 #define AJ_VERSION ((AJ_MAJOR_VERSION) << 24) | ((AJ_MINOR_VERSION) << 16) | (AJ_RELEASE_VERSION)   /**< macro to generate the version from major, minor & release */
 
