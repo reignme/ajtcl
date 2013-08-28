@@ -42,18 +42,18 @@ void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body);
  */
 void AJ_DumpBytes(const char* tag, const uint8_t* data, uint32_t len);
 
-/**
- * Debug utility function that converts numerical status to a readable string
- *
- * @param status  A status code
- */
-const char* AJ_StatusText(AJ_Status status);
-
 #else
 
 #define AJ_DumpMsg(tag, msg, body)
 #define AJ_DumpBytes(tag, data, len)
 
 #endif
+
+/**
+ * Debug utility function that converts numerical status to a readable string
+ *
+ * @param status  A status code
+ */
+const char* AJ_StatusText(AJ_Status status);
 
 #endif

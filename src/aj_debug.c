@@ -17,10 +17,11 @@
  *    limitations under the license.
  ******************************************************************************/
 
+#include "aj_debug.h"
+
 #ifndef NDEBUG
 
 #include "aj_target.h"
-#include "aj_debug.h"
 
 /*
  * Set to see the raw message bytes
@@ -94,14 +95,29 @@ void AJ_DumpMsg(const char* tag, AJ_Message* msg, uint8_t body)
 #endif
 }
 
+#endif
+
 #define AJ_CASE(_status) case _status: return # _status
 
 const char* AJ_StatusText(AJ_Status status)
 {
+#ifdef NDEBUG
+    /* Expectation is that thin client status codes will NOT go beyond 255 */
+    static char code[4];
+
+#ifdef _WIN32
+    _snprintf(code, sizeof(code), "%03u", status);
+#else
+    snprintf(code, sizeof(code), "%03u", status);
+#endif
+
+    return code;
+#else
     switch (status) {
         AJ_CASE(AJ_OK);
         AJ_CASE(AJ_ERR_NULL);
         AJ_CASE(AJ_ERR_UNEXPECTED);
+        AJ_CASE(AJ_ERR_INVALID);
         AJ_CASE(AJ_ERR_IO_BUFFER);
         AJ_CASE(AJ_ERR_READ);
         AJ_CASE(AJ_ERR_WRITE);
@@ -121,10 +137,10 @@ const char* AJ_StatusText(AJ_Status status)
         AJ_CASE(AJ_ERR_RESTART);
         AJ_CASE(AJ_ERR_LINK_TIMEOUT);
         AJ_CASE(AJ_ERR_DRIVER);
+        AJ_CASE(AJ_ERR_OBJECT_PATH);
 
     default:
         return "<unknown>";
     }
-}
-
 #endif
+}
