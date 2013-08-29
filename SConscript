@@ -21,12 +21,11 @@ if platform.system() == 'Linux':
     default_msvc_version = None
 elif platform.system() == 'Windows':
     default_target = 'win32'
-    default_msvc_version = '10.0'
 
 vars = Variables()
 
 # Common build variables
-vars.Add(EnumVariable('TARG', 'Target platform variant', default_target, allowed_values=('win32', 'linux', 'arduino')))
+vars.Add(EnumVariable('TARG', 'Target platform variant', 'win32', allowed_values=('win32', 'linux', 'arduino', 'linux-uart')))
 vars.Add(EnumVariable('VARIANT', 'Build variant', 'debug', allowed_values=('debug', 'release')))
 vars.Add(PathVariable('ALLJOYN_DIR', 'The path to the AllJoyn repositories', os.environ.get('ALLJOYN_DIR'), PathVariable.PathIsDir))
 vars.Add(PathVariable('GTEST_DIR', 'The path to googletest sources', os.environ.get('GTEST_DIR'), PathVariable.PathIsDir))
@@ -41,7 +40,6 @@ if ARGUMENTS.get('TARG', default_target) == 'win32':
 else:
     env = Environment(variables = vars)
 Help(vars.GenerateHelpText(env))
-
 
 # Define compile/link options only for win32/linux.
 # In case of target platforms, the compilation/linking does not take place
@@ -59,7 +57,7 @@ if env['TARG'] == 'win32':
         env.Append(LINKFLAGS=['/opt:ref'])
         env.Append(LFLAGS=['/NODEFAULTLIB:libcmt.lib'])
         env.Append(LINKFLAGS=['/NODEFAULTLIB:libcmt.lib'])
-elif env['TARG'] == 'linux':
+elif env['TARG'] in [ 'linux', 'linux-uart' ]:
     if os.environ.has_key('CROSS_PREFIX'):
         env.Replace(CC = os.environ['CROSS_PREFIX'] + 'gcc')
         env.Replace(CXX = os.environ['CROSS_PREFIX'] + 'g++')
@@ -85,6 +83,16 @@ elif env['TARG'] == 'linux':
         env.Append(CFLAGS='-Os')
         env.Append(LINKFLAGS='-s')
 
+if env['TARG'] in [ 'linux-uart' ]:
+    env.Append(CPPDEFINES = ['AJ_SERIAL_CONNECTION'])
+#    env.Append(CPPDEFINES = ['AJ_DEBUG_PACKET_LISTS'])
+    env.Append(CPPDEFINES = ['AJ_DEBUG_SERIAL_RECV', 'AJ_DEBUG_SERIAL_TARGET'])
+
+if env['TARG'] in [ 'linux-uart' ]:
+    env.Append(CPPDEFINES = ['AJ_SERIAL_CONNECTION'])
+#    env.Append(CPPDEFINES = ['AJ_DEBUG_PACKET_LISTS'])
+
+
 # Include paths
 env['includes'] = [ os.getcwd() + '/inc', os.getcwd() + '/target/${TARG}']
 
@@ -99,7 +107,7 @@ env['aj_sw_crypto'] = [Glob('crypto/*.c')]
 env['aj_malloc'] = [Glob('malloc/*.c')]
 
 # Set-up the environment for Win/Linux
-if env['TARG'] in [ 'win32', 'linux' ]:
+if env['TARG'] in [ 'win32', 'linux', 'linux-uart' ]:
     # To compile, sources need access to include files
     env.Append(CPPPATH = [env['includes']])
 
@@ -120,7 +128,7 @@ if env['TARG'] in [ 'win32', 'linux' ]:
 if env['TARG'] == 'win32':
     env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'] + env['aj_sw_crypto'] + env['aj_malloc'])
 else:
-    if env['TARG'] == 'linux':
+    if env['TARG'] in [ 'linux', 'linux-uart' ]:
         env['aj_obj'] = env.Object(env['aj_srcs'] + env['aj_targ_srcs'])
 
 Export('env')
