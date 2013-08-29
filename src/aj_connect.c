@@ -161,6 +161,8 @@ AJ_Status AJ_Connect(AJ_BusAttachment* bus, const char* serviceName, uint32_t ti
     if (status != AJ_OK) {
         goto ExitConnect;
     }
+#elif defined AJ_SERIAL_CONNECTION
+    // don't bother with discovery, we are connected to a daemon.
 #else
     status = AJ_Discover(serviceName, &service, timeout);
     if (status != AJ_OK) {

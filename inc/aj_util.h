@@ -51,6 +51,14 @@ uint32_t AJ_GetElapsedTime(AJ_Time* timer, uint8_t cumulative);
  */
 #define AJ_InitTimer(timer)  (void)AJ_GetElapsedTime(timer, FALSE)
 
+
+int32_t AJ_GetTimeDifference(AJ_Time* timerA, AJ_Time* timerB);
+
+void AJ_TimeAddOffset(AJ_Time* timerA, uint32_t msec);
+
+int8_t AJ_CompareTime(AJ_Time timerA, AJ_Time timerB);
+
+
 /**
  * Suspend to low-power mode on embedded devices
  *
