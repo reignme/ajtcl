@@ -212,6 +212,7 @@ AJ_Status AJ_SerialRX_Init(void)
     AJ_SetRxCB(&AJ_ReceiveCallback);
     pendingRecvBuffer = bufferRxFreeList;
     bufferRxFreeList = bufferRxFreeList->next;
+    pendingRecvBuffer->next = NULL;
     AJ_RX(pendingRecvBuffer->buffer, pendingRecvBuffer->allocatedLen);
     AJ_ResumeRX();
 
