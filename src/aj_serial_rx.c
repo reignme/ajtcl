@@ -146,12 +146,18 @@ static void DeleteRxPacket(volatile RX_PKT* pkt)
 void AJ_SerialRX_Shutdown(void)
 {
     ClearSlippedBuffer(bufferRxFreeList);
+    bufferRxFreeList = NULL;
     ClearSlippedBuffer(bufferRxQueue);
+    bufferRxQueue = NULL;
     ClearSlippedBuffer(pendingRecvBuffer);
+    pendingRecvBuffer = NULL;
 
     DeleteRxPacket(RxPacket);
+    RxPacket = NULL;
     DeleteRxPacket(RxFreeList);
+    RxFreeList = NULL;
     DeleteRxPacket(RxRecv);
+    RxRecv = NULL;
 }
 
 /**
@@ -184,7 +190,7 @@ AJ_Status AJ_SerialRX_Init(void)
      * Data packets: To maximize throughput we need as many packets as the
      * window size, plus one for the current packet
      */
-    for (i = 0; i < AJ_SerialLinkParams.maxWindowSize; ++i) {
+    for (i = 0; i < AJ_SerialLinkParams.maxWindowSize + 1; ++i) {
         prev = RxFreeList;
         RxFreeList = AJ_Malloc(sizeof(RX_PKT));
         RxFreeList->buffer = AJ_Malloc(maxRxFrameSize);
@@ -206,7 +212,6 @@ AJ_Status AJ_SerialRX_Init(void)
     AJ_SetRxCB(&AJ_ReceiveCallback);
     pendingRecvBuffer = bufferRxFreeList;
     bufferRxFreeList = bufferRxFreeList->next;
-    pendingRecvBuffer->next = NULL;
     AJ_RX(pendingRecvBuffer->buffer, pendingRecvBuffer->allocatedLen);
     AJ_ResumeRX();
 
@@ -277,7 +282,7 @@ AJ_Status AJ_SerialRecv(uint8_t* buffer,
         /*
          * Fill as many packets as we can
          */
-        while (RxRecv && len) { //Do I need readtimeout check?
+        while (RxRecv && len) {
             RX_PKT volatile* pkt = RxRecv;
             uint16_t num = min(pkt->len - 6, len);
             AJ_DebugCheckPacketList(RxFreeList, "RxFreeList serialrecv");
@@ -295,6 +300,8 @@ AJ_Status AJ_SerialRecv(uint8_t* buffer,
                 RxRecv = RxRecv->next;
                 AJ_SerialReturnPacketToFreeList(pkt);
                 AJ_DebugCheckPacketList(RxFreeList, "RxFreeList serialrecv AFTER FULL PACKET");
+                AJ_DebugCheckPacketList(RxRecv, "RxRecv serialrecv AFTER FULL PACKET");
+                AJ_DebugCheckPacketList(RxPacket, "RxFreeList serialrecv AFTER FULL PACKET");
                 --pendingRecv;
 
             } else {
@@ -303,7 +310,7 @@ AJ_Status AJ_SerialRecv(uint8_t* buffer,
                 pkt->len -= num;
             }
         }
-        // spinning through this loop, waiting for RxRecv to get another buffer.
+        // Running state machine, waiting for RxRecv to get another buffer.
         AJ_StateMachine();
         AJ_InitTimer(&now);
     }
@@ -323,8 +330,9 @@ AJ_Status AJ_SerialRecv(uint8_t* buffer,
  * This function checks packet integrity and forwards good packets to the appropriate
  * upper-layer interface.
  */
-static void CompletePacket(RX_PKT volatile* pkt)
+static void CompletePacket()
 {
+    RX_PKT volatile* pkt  = RxPacket;
     uint8_t ack;
     uint8_t seq;
     uint8_t pktType;
@@ -340,7 +348,6 @@ static void CompletePacket(RX_PKT volatile* pkt)
          * Packet is too small.
          */
         AJ_Printf("Short packet %d\n", pkt->len);
-        AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
 
@@ -356,7 +363,6 @@ static void CompletePacket(RX_PKT volatile* pkt)
     expectedLen |= (pkt->buffer[3]);
     if (expectedLen != (pkt->len - AJ_SERIAL_HDR_LEN - 2)) {
         AJ_Printf("Wrong packet length header says %d read %d bytes\n", expectedLen, pkt->len - AJ_SERIAL_HDR_LEN - 2);
-        AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
 
@@ -373,7 +379,6 @@ static void CompletePacket(RX_PKT volatile* pkt)
         AJ_Printf("Data integrity error - discarding packet\n");
         AJ_Printf("rcvdCrc = %u %u\n", rcvdCrc[0], rcvdCrc[1]);
         AJ_Printf("checkCrc = %u %u\n", checkCrc[0], checkCrc[1]);
-        AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
 
@@ -382,32 +387,20 @@ static void CompletePacket(RX_PKT volatile* pkt)
      */
     if (pktType == AJ_SERIAL_CTRL) {
         AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
-        AJ_SerialReturnPacketToFreeList(pkt);
-
-        AJ_DebugCheckPacketList(RxFreeList, "CompletePacket FREE ctrl packet");
-        AJ_DebugCheckPacketList(RxRecv, "CompletePacket RECV ctrl packet");
-        AJ_DebugCheckPacketList(RxPacket, "CompletePacket PACK ctrl packet");
         return;
     }
-
     /*
      * If the link is not active non-link packets are discarded.
      */
     if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
         AJ_Printf("Link not up - discarding data packet\n");
-        AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
 
     //AJ_Printf("Rx %d, seq=%d, ack=%d\n", pktType, seq, ack);
 
     /*
-     * Handle link control packets.
      */
-    if (pktType == AJ_SERIAL_CTRL) {
-        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
-        return;
-    }
     /*
      * If the link is not active non-link packets are discarded.
      */
@@ -435,8 +428,6 @@ static void CompletePacket(RX_PKT volatile* pkt)
                 AJ_Printf("Repeated packet seq = %d, expected %d\n", seq, expectedSeq);
                 AJ_SerialTx_ReceivedSeq(seq);
             }
-            // unexpected packet should be ignored and returned to the freelist
-            AJ_SerialReturnPacketToFreeList(pkt);
         } else {
             if (RxFreeList != NULL) {
                 // push the RxPacket on to the back of the RxRecv list.
@@ -454,16 +445,15 @@ static void CompletePacket(RX_PKT volatile* pkt)
                     }
                     last->next = pkt;
                 }
+                pkt->next = NULL;
+                RxPacket = RxFreeList;
+                RxFreeList = RxFreeList->next;
+                RxPacket->next = NULL;
 
                 ++pendingRecv; // we now have another packet enqueued.
                 AJ_SerialTx_ReceivedSeq(seq);
-            } else {
-                // free list was null, return the packet to the free list.
-                AJ_SerialReturnPacketToFreeList(pkt);
             }
         }
-    } else if (pktType == AJ_SERIAL_ACK) {
-        AJ_SerialReturnPacketToFreeList(pkt);
     }
 }
 
@@ -497,14 +487,8 @@ static uint32_t UART_RxComplete(uint8_t* buffer, uint16_t bytes)
              * rx until we see a closing packet boundary.
              */
             if (rx == BOUNDARY_BYTE) {
-                if (RxFreeList) {
-                    RxPacket = RxFreeList;  /// grab the top free packet.
-                    RxFreeList = RxFreeList->next;  /// grab the top free packet.
                     RxPacket->state = PACKET_OPEN;
                 } else {
-                    AJ_Printf("AJ_SerialRx_Receive: RxFreeList was empty, ignoring bytes!!!!\n");
-                }
-            } else {
                 RxPacket->state = PACKET_FLUSH;
                 AJ_Printf("AJ_SerialRx_Receive: Flushing input at %2x\n", rx);
             }
@@ -543,7 +527,7 @@ static uint32_t UART_RxComplete(uint8_t* buffer, uint16_t bytes)
                 pkt->state = PACKET_NEW;
                 pkt->next = NULL;
 
-                CompletePacket(pkt);
+                CompletePacket();
                 // the packet will be put back on the RxFreeList when the upper layer has retrieved it.
                 break;
             }

@@ -211,13 +211,20 @@ static void DeleteTxPacket(volatile TxPkt* pkt)
 void AJ_SerialTX_Shutdown(void)
 {
     DeleteTxPacket(txQueue);
+    txQueue = NULL;
     DeleteTxPacket(txSent);
+    txSent = NULL;
     DeleteTxPacket(txFreeList);
+    txFreeList = NULL;
     DeleteTxPacket(txUnreliable);
+    txUnreliable = NULL;
 
     ClearSlippedBuffer(bufferTxFreeList);
+    bufferTxFreeList = NULL;
     ClearSlippedBuffer(bufferTxPending);
+    bufferTxPending = NULL;
     ClearSlippedBuffer(pendingSendBuffer);
+    pendingSendBuffer = NULL;
 }
 
 /**
