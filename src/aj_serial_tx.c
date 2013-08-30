@@ -168,7 +168,7 @@ AJ_Status AJ_SerialTX_Init()
         prevBuf = bufferTxFreeList;
         bufferTxFreeList = AJ_Malloc(sizeof(AJ_SlippedBuffer));
 
-        bufferTxFreeList->buffer = AJ_Malloc(SLIPPED_LEN(AJ_SerialLinkParams.packetSize));//TODO: calculate slipped length based on packet size
+        bufferTxFreeList->buffer = AJ_Malloc(SLIPPED_LEN(AJ_SerialLinkParams.packetSize)); //TODO: calculate slipped length based on packet size
         bufferTxFreeList->actualLen = 0;
         bufferTxFreeList->allocatedLen = SLIPPED_LEN(AJ_SerialLinkParams.packetSize);
         bufferTxFreeList->next = prevBuf;
@@ -421,7 +421,7 @@ static uint16_t SlipBytes(AJ_SlippedBuffer volatile* slip,
 
     for (i = 0; i < len; ++i) {
         if (slip->actualLen == slip->allocatedLen) {
-          assert(FALSE);
+            assert(FALSE);
             break;
         }
         b = *data++;
@@ -470,7 +470,7 @@ void ConvertPacketToBytes(AJ_SlippedBuffer volatile* slip, TxPkt volatile* txCur
     slip->buffer[slip->actualLen++] = BOUNDARY_BYTE;
 
 
-   /*
+    /*
      * Compose flags
      */
     // byte 1 is the message type
@@ -487,7 +487,7 @@ void ConvertPacketToBytes(AJ_SlippedBuffer volatile* slip, TxPkt volatile* txCur
         header[0] = (txCurrent->seq << 4);
 //                AJ_Printf("Tx seq %d, ack %d\n",  txCurrent->seq, currentTxAck);
     } else {
-      header[0] = 0;
+        header[0] = 0;
 //                AJ_Printf("Tx %s seq %d\n", !txCurrent->type ? "ack" : "unreliable", txCurrent->seq);
     }
     /*
@@ -514,7 +514,7 @@ void ConvertPacketToBytes(AJ_SlippedBuffer volatile* slip, TxPkt volatile* txCur
 
     AJ_CRC16_Compute(header, ArraySize(header), &crc);
     AJ_CRC16_Compute(txCurrent->payload, txCurrent->len, &crc);
-    SlipBytes(slip, header,4);
+    SlipBytes(slip, header, 4);
     SlipBytes(slip, txCurrent->payload, txCurrent->len);
     AJ_CRC16_Complete(crc, crcBytes);
     SlipBytes(slip, crcBytes, 2);
@@ -636,7 +636,7 @@ void AJ_TransmitCallback(uint8_t* buffer, uint16_t bytesWritten)
     pendingSendBuffer->next = bufferTxFreeList;
     bufferTxFreeList = pendingSendBuffer;
     pendingSendBuffer = bufferTxPending;
-    if (pendingSendBuffer!= NULL) {
+    if (pendingSendBuffer != NULL) {
         bufferTxPending = bufferTxPending->next;
         pendingSendBuffer->next = NULL;
         AJ_TX(pendingSendBuffer->buffer, pendingSendBuffer->actualLen);

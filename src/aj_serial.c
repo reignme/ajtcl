@@ -105,15 +105,19 @@ static void ProcessNegoPacket(const uint8_t* buffer)
     case 0:
         window_size = 1;
         break;
+
     case 1:
         window_size = 2;
         break;
+
     case 2:
         window_size = 4;
         break;
+
     case 4:
         window_size = 8;
         break;
+
     default:
         AJ_Printf("Invalid window size: %u\n", window_size);
         break;
@@ -141,15 +145,19 @@ static void SendNegotiationPacket(const char* pkt_type)
     case 1:
         encoded_window_size = 0;
         break;
+
     case 2:
         encoded_window_size = 1;
         break;
+
     case 4:
         encoded_window_size = 2;
         break;
+
     case 8:
         encoded_window_size = 3;
         break;
+
     default:
         break;
     }
@@ -185,7 +193,7 @@ static void SendLinkPacket()
         break;
 
     case AJ_LINK_ACTIVE:
-         /**
+        /**
          * Do nothing. No more link control packets to be sent.
          */
         ScheduleLinkControlPacket(AJ_TIMER_FOREVER);
@@ -293,9 +301,9 @@ void AJ_Serial_LinkPacket(uint8_t* buffer, uint16_t len)
 }
 
 AJ_Status AJ_SerialInit(const char* ttyName,
-    uint16_t bitRate,
-    uint8_t windowSize,
-    uint16_t packetSize)
+                        uint16_t bitRate,
+                        uint8_t windowSize,
+                        uint16_t packetSize)
 {
     AJ_Status status;
     if ((windowSize < MIN_WINDOW_SIZE) || (windowSize > MAX_WINDOW_SIZE)) {
@@ -348,11 +356,11 @@ volatile int dataReceived;
 volatile int dataSent = 1;
 
 /** This state machine is called from AJ_SerialRecv and AJ_SerialSend.
-  * This processes any buffers copied in the Recieve Callback, adds
-  * buffers to be written in the Transmit Callback, resends packets
-  * after a timeout and sends pure acks in the case of lack of data to send.
-  * Also, this sends link control packets periodically depending on the state.
-  */
+ * This processes any buffers copied in the Recieve Callback, adds
+ * buffers to be written in the Transmit Callback, resends packets
+ * after a timeout and sends pure acks in the case of lack of data to send.
+ * Also, this sends link control packets periodically depending on the state.
+ */
 void AJ_StateMachine()
 {
     AJ_Time now;
@@ -377,12 +385,12 @@ void AJ_StateMachine()
     }
 
     if (AJ_CompareTime(ackTime, now) < 0) {
-       /* Send an ack for a received packet.(If there is data to send,
-        * the ack is sent as a part of the header, but in this case,
-        * this end didnt have data to send, so we send an explicit
-        * ack packet.)
-        */
-       SendAck();
+        /* Send an ack for a received packet.(If there is data to send,
+         * the ack is sent as a part of the header, but in this case,
+         * this end didnt have data to send, so we send an explicit
+         * ack packet.)
+         */
+        SendAck();
     }
 
     if (AJ_CompareTime(sendLinkPacketTime, now) < 0) {

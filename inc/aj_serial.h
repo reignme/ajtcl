@@ -49,7 +49,7 @@
 
 #define AJ_CRC_LEN 2
 #define AJ_BOUNDARY_BYTES 2
-#define SLIPPED_LEN(packetsize) ((AJ_SerialLinkParams.packetSize+ AJ_SERIAL_HDR_LEN + AJ_CRC_LEN)*2 + AJ_BOUNDARY_BYTES)
+#define SLIPPED_LEN(packetsize) ((AJ_SerialLinkParams.packetSize + AJ_SERIAL_HDR_LEN + AJ_CRC_LEN) * 2 + AJ_BOUNDARY_BYTES)
 
 /**
  * packets that carry transport control information
@@ -88,7 +88,7 @@ typedef struct _AJ_LinkParameters {
  * Struct used for transferring buffers to and from the Rx/Tx interrupts.
  */
 
-typedef struct __AJ_SlippedBuffer{
+typedef struct __AJ_SlippedBuffer {
     uint8_t* buffer;
     uint16_t allocatedLen;
     uint16_t actualLen;
