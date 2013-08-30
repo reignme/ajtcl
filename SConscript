@@ -21,6 +21,7 @@ if platform.system() == 'Linux':
     default_msvc_version = None
 elif platform.system() == 'Windows':
     default_target = 'win32'
+    default_msvc_version = '10.0'
 
 vars = Variables()
 
