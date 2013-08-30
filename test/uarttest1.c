@@ -103,14 +103,14 @@ int main()
         printf("iteration %d\n########################################################################\n", iter);
         AJ_SerialSend(txBuffer, sizeof(txBuffer));
         /*AJ_SerialRecv(rxBuffer, sizeof(rxBuffer), 10000, NULL);
-        if (0 == memcmp(txBuffer, rxBuffer, sizeof(rxBuffer))) {
+           if (0 == memcmp(txBuffer, rxBuffer, sizeof(rxBuffer))) {
             AJ_Printf("Passed##: buffers match.\n");
-        } else {
+           } else {
             AJ_Printf("FAILED##: buffers mismatch.\n");
             AJ_DumpBytes("RXBUFFER:", rxBuffer, sizeof(rxBuffer));
             AJ_DumpBytes("TXBUFFER:", txBuffer, sizeof(txBuffer));
             exit(-1);
-        }*/
+           }*/
 
     }
 

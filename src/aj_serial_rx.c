@@ -276,7 +276,7 @@ AJ_Status AJ_SerialRecv(uint8_t* buffer,
         /*
          * Fill as many packets as we can
          */
-      while (RxRecv && len) {//Do I need readtimeout check?
+        while (RxRecv && len) { //Do I need readtimeout check?
             RX_PKT volatile* pkt = RxRecv;
             uint16_t num = min(pkt->len - 6, len);
             AJ_DebugCheckPacketList(RxFreeList, "RxFreeList serialrecv");
@@ -557,7 +557,7 @@ void AJ_ProcessRxBufferList()
 {
     AJ_SlippedBuffer volatile* currentSlippedBuffer;
 
-    if (!RxFreeList){
+    if (!RxFreeList) {
         return;
     }
 
@@ -578,8 +578,8 @@ void AJ_ProcessRxBufferList()
             pendingRecvBuffer->next = NULL;
             AJ_RX(pendingRecvBuffer->buffer, pendingRecvBuffer->allocatedLen);
         } else {
-           currentSlippedBuffer->next = bufferRxFreeList;
-           bufferRxFreeList = currentSlippedBuffer;
+            currentSlippedBuffer->next = bufferRxFreeList;
+            bufferRxFreeList = currentSlippedBuffer;
         }
     }
 

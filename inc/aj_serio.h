@@ -32,7 +32,7 @@
  */
 typedef struct _AJ_SerIOConfig {
     uint32_t bitrate;   /**< bitrate of the port */
-    uint8_t  bits;      /**< The number of data bits */
+    uint8_t bits;       /**< The number of data bits */
     uint8_t stopBits;  /**< The number of stop bits */
     uint8_t parity;    /**< Zero disables parity checking, one means odd and two means even parity */
     void*    config;    /**< Abstracted context for device/platform specific configuration items */

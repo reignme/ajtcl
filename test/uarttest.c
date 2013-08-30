@@ -78,7 +78,7 @@ int AJ_Main()
     int i = 0;
 
     //for ( ; i < 10000; ++i) {
-    while(1){
+    while (1) {
         AJ_SerialRecv(rxBuffer, sizeof(rxBuffer), 50000, NULL);
     }
 
@@ -91,13 +91,13 @@ int AJ_Main()
     }
  */
     AJ_DumpBytes("Post serial recv", rxBuffer, sizeof(rxBuffer));
-AJ_Sleep(500);
+    AJ_Sleep(500);
 #else
     AJ_Sleep(5000);
     int i = 0;
 
 
-    while(1){
+    while (1) {
         AJ_SerialSend(txBuffer, sizeof(txBuffer));
         ++i;
         if (i % 500 == 0) {
