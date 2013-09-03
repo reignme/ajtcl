@@ -24,7 +24,7 @@
 #define AJ_MAJOR_VERSION   3    /**< major version */
 #define AJ_MINOR_VERSION   4    /**< minor version */
 #define AJ_RELEASE_VERSION 0    /**< release version */
-#define AJ_RELEASE_TAG     "R03.04.00"
+#define AJ_RELEASE_TAG     "R03.04.00c1"
 
 #define AJ_VERSION ((AJ_MAJOR_VERSION) << 24) | ((AJ_MINOR_VERSION) << 16) | (AJ_RELEASE_VERSION)   /**< macro to generate the version from major, minor & release */
 
