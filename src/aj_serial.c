@@ -76,7 +76,10 @@ static AJ_Time sendLinkPacketTime;
  */
 static uint8_t NegotiationPacket[LINK_PACKET_SIZE + NEGO_PACKET_SIZE];
 
-
+/**
+ * global function pointer for serial transmit funciton
+ */
+AJ_SerialTxFunc g_AJ_TX;
 /************ forward declarations *****************/
 
 static void ScheduleLinkControlPacket(uint32_t timeout);

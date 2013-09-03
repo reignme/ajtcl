@@ -112,6 +112,7 @@ AJ_Time resendTime;
  * When to send explicit ACK
  */
 AJ_Time ackTime;
+
 /****************** Forward declarations *******************/
 
 void ResendTimer(uint32_t timerId, void* context);
@@ -119,6 +120,9 @@ void ResendTimer(uint32_t timerId, void* context);
 void SendPureAck(uint32_t timerId, void* context);
 
 extern AJ_Status AJ_UART_Tx(uint8_t* buffer, uint16_t len);
+
+extern void __AJ_TX(uint8_t* buf, uint32_t len);
+
 
 /************** End of forward declarations *****************/
 
@@ -189,6 +193,7 @@ AJ_Status AJ_SerialTX_Init()
     AJ_InitTimer(&ackTime);
     AJ_TimeAddOffset(&ackTime, AJ_TIMER_FOREVER);
 
+    AJ_SetTxSerialTransmit(&__AJ_TX);
     AJ_SetTxCB(&AJ_TransmitCallback);
     return AJ_OK;
 }
