@@ -79,6 +79,14 @@ typedef void (*AJ_SerIORxCompleteFunc)(uint8_t* buf, uint16_t len);
 typedef void (*AJ_SerIOTxCompleteFunc)(uint8_t* buf, uint16_t len);
 
 /**
+ * Function pointer type for an abstracted serial transmit function
+ *
+ * @param buf     The buffer to be transmitted
+ * @param len     The number of bytes to write
+ */
+typedef void (*AJ_SerialTxFunc)(uint8_t* buf, uint32_t len);
+
+/**
  * @brief Initialize the Serial I/O Subsystem
  *
  * Given a serial IO config structure as a guide, initialize the serial I/O
@@ -97,6 +105,7 @@ AJ_Status AJ_SerialIOInit(AJ_SerIOConfig* config);
 
 void AJ_SetRxCB(AJ_SerIORxCompleteFunc rx_cb);
 void AJ_SetTxCB(AJ_SerIOTxCompleteFunc tx_cb);
+void AJ_SetTxSerialTransmit(AJ_SerialTxFunc tx_func);
 
 void AJ_RX(uint8_t* buf, uint32_t len);
 void AJ_PauseRX();
