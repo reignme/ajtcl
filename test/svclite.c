@@ -146,7 +146,7 @@ static AJ_Status AppHandleMySignal(AJ_Message* msg, AJ_Message* reply)
     return status;
 }
 
-#define CB_TIMEOUT (1 * 1000)
+#define CB_TIMEOUT (5 * 1000)
 
 static uint32_t timer_id = 0;
 
@@ -169,13 +169,6 @@ static AJ_Status SessionLost(AJ_Message* msg, AJ_Message* reply)
 static AJ_Status SessionJoined(AJ_Message* msg, AJ_Message* reply)
 {
     AJ_Status status = AJ_OK;
-
-    if (timer_id) {
-        AJ_CancelTimer(timer_id);
-    }
-
-    timer_id = AJ_SetTimer(CB_TIMEOUT, &AppDoWork, NULL, CB_TIMEOUT);
-    AJ_InfoPrintf(("Session Joined\n"));
 
     if (CancelAdvertiseName) {
         status = AJ_BusAdvertiseName(msg->bus, ServiceName, AJ_TRANSPORT_ANY, AJ_BUS_START_ADVERTISING);
@@ -292,6 +285,9 @@ int AJ_Main(void)
     AJ_RegisterObjects(AppObjects, NULL);
 
     SetBusAuthPwdCallback(MyBusAuthPwdCB);
+
+    timer_id = AJ_SetTimer(CB_TIMEOUT, &AppDoWork, NULL, CB_TIMEOUT);
+    AJ_InfoPrintf(("Timer Set\n"));
 
     // magical function that does *everything* !!!
     status = AJ_RunAllJoynService(&bus, &config);
