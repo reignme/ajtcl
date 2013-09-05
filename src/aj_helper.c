@@ -23,7 +23,6 @@
 #define CONNECT_TIMEOUT   (60 * 1000)
 #define CONNECT_PAUSE     (10 * 1000)
 
-
 #define MAX_TIMERS 4
 
 /**
@@ -40,26 +39,10 @@ static Timer Timers[MAX_TIMERS] = {
     { NULL }
 };
 
-static Timer* GetNextTimeout()
-{
-    Timer* next = NULL;
-    uint32_t lowest = (uint32_t) -1;
-    uint32_t i;
-
-    // find the timer with the lowest timeout value
-    for (i = 0; i < MAX_TIMERS; ++i) {
-        Timer* timer = Timers + i;
-        if (timer->abs_time != 0 && timer->abs_time < lowest) {
-            next = timer;
-        }
-    }
-
-    return next;
-}
-
-static void RunExpiredTimers(uint32_t now)
+static uint32_t RunExpiredTimers(uint32_t now)
 {
     uint32_t i = 0;
+    uint32_t next = (uint32_t) -1;
 
     for (; i < MAX_TIMERS; ++i) {
         Timer* timer = Timers + i;
@@ -72,7 +55,15 @@ static void RunExpiredTimers(uint32_t now)
                 memset(timer, 0, sizeof(Timer));
             }
         }
+
+        // track the next time we need to run
+        if (timer->handler != NULL && next > timer->abs_time) {
+            next = timer->abs_time;
+        }
     }
+
+    // return the next timeout that will run
+    return next;
 }
 
 uint32_t AJ_SetTimer(uint32_t relative_time, TimeoutHandler handler, void* context, uint32_t repeat)
@@ -114,7 +105,8 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
         AJ_Message msg;
         uint32_t now;
         // get the next timeout
-        Timer* timer = GetNextTimeout();
+        //Timer* timer = GetNextTimeout();
+        uint32_t next;
         // wait forever
         uint32_t timeout = (uint32_t) -1;
 
@@ -144,11 +136,11 @@ AJ_Status AJ_RunAllJoynService(AJ_BusAttachment* bus, AllJoynConfiguration* conf
 
         // absolute time in milliseconds
         now = AJ_GetElapsedTime(&start, FALSE);
-        RunExpiredTimers(now);
+        next = RunExpiredTimers(now);
 
-        if (timer != NULL) {
+        if (next != (uint32_t) -1) {
             // if no timers running, wait forever
-            timeout = timer->abs_time - now;
+            timeout = next;
         }
 
         status = AJ_UnmarshalMsg(bus, &msg, timeout);
