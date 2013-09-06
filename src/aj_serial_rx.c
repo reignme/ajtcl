@@ -358,29 +358,6 @@ static void CompletePacket(RX_PKT volatile* pkt)
         AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
-    /*
-     * Handle link control packets.
-     */
-    if (pktType == AJ_SERIAL_CTRL) {
-        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
-        AJ_SerialReturnPacketToFreeList(pkt);
-
-        AJ_DebugCheckPacketList(RxFreeList, "CompletePacket FREE ctrl packet");
-        AJ_DebugCheckPacketList(RxRecv, "CompletePacket RECV ctrl packet");
-        AJ_DebugCheckPacketList(RxPacket, "CompletePacket PACK ctrl packet");
-        return;
-    }
-    /*
-     * If the link is not active non-link packets are discarded.
-     */
-    if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
-        AJ_Printf("Link not up - discarding data packet\n");
-        AJ_SerialReturnPacketToFreeList(pkt);
-        return;
-    }
-
-
-    //AJ_Printf("Rx %d, seq=%d, ack=%d\n", pktType, seq, ack);
 
     /*
      * Compute the CRC on the packet header and payload.
@@ -398,6 +375,47 @@ static void CompletePacket(RX_PKT volatile* pkt)
         AJ_SerialReturnPacketToFreeList(pkt);
         return;
     }
+
+    /*
+     * Handle link control packets.
+     */
+    if (pktType == AJ_SERIAL_CTRL) {
+        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
+        AJ_SerialReturnPacketToFreeList(pkt);
+
+        AJ_DebugCheckPacketList(RxFreeList, "CompletePacket FREE ctrl packet");
+        AJ_DebugCheckPacketList(RxRecv, "CompletePacket RECV ctrl packet");
+        AJ_DebugCheckPacketList(RxPacket, "CompletePacket PACK ctrl packet");
+        return;
+    }
+
+    /*
+     * If the link is not active non-link packets are discarded.
+     */
+    if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
+        AJ_Printf("Link not up - discarding data packet\n");
+        AJ_SerialReturnPacketToFreeList(pkt);
+        return;
+    }
+
+    //AJ_Printf("Rx %d, seq=%d, ack=%d\n", pktType, seq, ack);
+
+    /*
+     * Handle link control packets.
+     */
+    if (pktType == AJ_SERIAL_CTRL) {
+        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
+        return;
+    }
+    /*
+     * If the link is not active non-link packets are discarded.
+     */
+    if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
+        AJ_Printf("Link not up - discarding data packet\n");
+        return;
+    }
+
+
     /*
      * Pass the ACK to the transmit side.
      */
