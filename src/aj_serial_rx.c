@@ -366,20 +366,6 @@ static void CompletePacket()
         AJ_Printf("Wrong packet length header says %d read %d bytes\n", expectedLen, pkt->len - AJ_SERIAL_HDR_LEN - 2);
         return;
     }
-    /*
-     * Handle link control packets.
-     */
-    if (pktType == AJ_SERIAL_CTRL) {
-        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
-        return;
-    }
-    /*
-     * If the link is not active non-link packets are discarded.
-     */
-    if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
-        AJ_Printf("Link not up - discarding data packet\n");
-        return;
-    }
 
 
     //AJ_Printf("Rx %d, seq=%d, ack=%d\n", pktType, seq, ack);
@@ -399,6 +385,23 @@ static void CompletePacket()
         AJ_Printf("checkCrc = %u %u\n", checkCrc[0], checkCrc[1]);
         return;
     }
+
+    /*
+     * Handle link control packets.
+     */
+    if (pktType == AJ_SERIAL_CTRL) {
+        AJ_Serial_LinkPacket(pkt->buffer + AJ_SERIAL_HDR_LEN, expectedLen);
+        return;
+    }
+    /*
+     * If the link is not active non-link packets are discarded.
+     */
+    if (AJ_SerialLinkParams.linkState != AJ_LINK_ACTIVE) {
+        AJ_Printf("Link not up - discarding data packet\n");
+        return;
+    }
+
+
     /*
      * Pass the ACK to the transmit side.
      */
