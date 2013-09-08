@@ -487,8 +487,8 @@ static uint32_t UART_RxComplete(uint8_t* buffer, uint16_t bytes)
              * rx until we see a closing packet boundary.
              */
             if (rx == BOUNDARY_BYTE) {
-                    RxPacket->state = PACKET_OPEN;
-                } else {
+                RxPacket->state = PACKET_OPEN;
+            } else {
                 RxPacket->state = PACKET_FLUSH;
                 AJ_Printf("AJ_SerialRx_Receive: Flushing input at %2x\n", rx);
             }
