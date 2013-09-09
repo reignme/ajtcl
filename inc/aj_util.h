@@ -111,12 +111,13 @@ int32_t AJ_StringFindFirstOf(const char* str, char* chars);
  * @param rawLen  The number of bytes to convert
  * @param hex     The buffer to receive the converted hex data
  * @param hexLen  The length of the hex buffer
+ * @param lower   TRUE for lower-case, FALSE for upper-case
  *
  * @return
  *          - AJ_OK if the string was converted
  *          - AJ_ERR_RESOURCES if the hexLen is too small to fit the converted string.
  */
-AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen);
+AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen, uint8_t lower);
 
 /**
  * Convert a NUL terminated ascii hex string to raw bytes. It is permitted for raw and hex buffer to

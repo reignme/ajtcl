@@ -159,7 +159,7 @@ static AJ_Status PrependStr(const char* str, char* buf, uint32_t bufLen, uint8_t
     size_t sz = strlen(str);
 
     if (hexify && (used > 0)) {
-        AJ_Status status = AJ_RawToHex((uint8_t*)buf, used, buf, bufLen);
+        AJ_Status status = AJ_RawToHex((uint8_t*) buf, used, buf, bufLen, FALSE);
         if (status != AJ_OK) {
             return status;
         }

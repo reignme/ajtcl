@@ -30,6 +30,8 @@ static uint8_t A2H(char hex, AJ_Status* status)
     hex |= 0x20;
     if (hex >= 'a' && hex <= 'f') {
         return 10 + hex - 'a';
+    } else if (hex >= 'A' && hex <= 'F') {
+        return 10 + hex - 'A';
     } else {
         *status = AJ_ERR_INVALID;
         return 0;
@@ -52,9 +54,11 @@ int32_t AJ_StringFindFirstOf(const char* str, char* chars)
     return -1;
 }
 
-AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen)
+AJ_Status AJ_RawToHex(const uint8_t* raw, size_t rawLen, char* hex, size_t hexLen, uint8_t lower)
 {
-    static const char nibble[] = "0123456789ABCDEF";
+    static const char nibble_upper[] = "0123456789ABCDEF";
+    static const char nibble_lower[] = "0123456789abcdef";
+    const char* nibble = lower ? nibble_lower : nibble_upper;
     char* h = hex + 2 * rawLen;
     const uint8_t* a = raw + rawLen;
 

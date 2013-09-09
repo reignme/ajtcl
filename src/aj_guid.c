@@ -40,7 +40,7 @@ static NameToGUID nameMap[NAME_MAP_GUID_SIZE];
 
 AJ_Status AJ_GUID_ToString(const AJ_GUID* guid, char* buffer, uint32_t bufLen)
 {
-    return AJ_RawToHex(guid->val, 16, buffer, bufLen);
+    return AJ_RawToHex(guid->val, 16, buffer, bufLen, TRUE);
 }
 
 AJ_Status AJ_GUID_FromString(AJ_GUID* guid, const char* str)
