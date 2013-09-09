@@ -229,7 +229,7 @@ static AJ_Status KeyGen(const char* peerName, uint8_t role, const char* nonce1, 
     }
     if (status == AJ_OK) {
         memmove(outBuf, outBuf + AES_KEY_LEN, VERIFIER_LEN);
-        status = AJ_RawToHex(outBuf, VERIFIER_LEN, (char*)outBuf, len);
+        status = AJ_RawToHex(outBuf, VERIFIER_LEN, (char*) outBuf, len, FALSE);
     }
     return status;
 }

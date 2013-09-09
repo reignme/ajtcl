@@ -77,7 +77,7 @@ static PinAuthContext context;
 static char* Hex(const uint8_t* buf, size_t len)
 {
     static char hex[128];
-    AJ_RawToHex(buf, len, hex, sizeof(hex));
+    AJ_RawToHex(buf, len, hex, sizeof(hex), FALSE);
     return hex;
 }
 #endif
@@ -98,7 +98,7 @@ static AJ_Status ComputeVerifier(const char* label, char* buffer, size_t bufLen)
     AJ_Printf("ComputeVerifier(%s): %s\n", label, Hex((uint8_t*)buffer, VERIFIER_LEN));
 #endif
     if (status == AJ_OK) {
-        status = AJ_RawToHex((uint8_t*)buffer, VERIFIER_LEN, buffer, bufLen);
+        status = AJ_RawToHex((uint8_t*) buffer, VERIFIER_LEN, buffer, bufLen, FALSE);
     }
     return status;
 }
@@ -147,7 +147,7 @@ static AJ_AuthResult AuthResponse(const char* inStr, char* outStr, uint32_t outL
      */
     if (!inStr) {
         AJ_RandBytes(context.nonce, NONCE_LEN);
-        AJ_RawToHex(context.nonce, NONCE_LEN, outStr, outLen);
+        AJ_RawToHex(context.nonce, NONCE_LEN, outStr, outLen, FALSE);
         return AJ_AUTH_STATUS_CONTINUE;
     }
     /*
@@ -222,7 +222,7 @@ static AJ_AuthResult AuthChallenge(const char* inStr, char* outStr, uint32_t out
              * Write nonce to the output string
              */
             if (status == AJ_OK) {
-                status = AJ_RawToHex((uint8_t*)outStr, NONCE_LEN, outStr, outLen - (1 + VERIFIER_LEN));
+                status = AJ_RawToHex((uint8_t*) outStr, NONCE_LEN, outStr, outLen - (1 + VERIFIER_LEN), FALSE);
             }
             /*
              * Append verifier to the nonce

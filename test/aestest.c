@@ -328,7 +328,7 @@ int AJ_Main(void)
             AJ_Printf("Encryption failed (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen + testVector[i].authLen, out, sizeof(out));
+        AJ_RawToHex(msg, mlen + testVector[i].authLen, out, sizeof(out), FALSE);
         if (strcmp(out, testVector[i].output) != 0) {
             AJ_Printf("Encrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
@@ -341,7 +341,7 @@ int AJ_Main(void)
             AJ_Printf("Authentication failure (%d) for test #%zu\n", status, i);
             goto ErrorExit;
         }
-        AJ_RawToHex(msg, mlen, out, sizeof(out));
+        AJ_RawToHex(msg, mlen, out, sizeof(out), FALSE);
         if (strcmp(out, testVector[i].input) != 0) {
             AJ_Printf("Decrypt verification failure for test #%zu\n%s\n", i, out);
             goto ErrorExit;
@@ -371,7 +371,7 @@ int AJ_Main(void)
             AJ_Printf("AJ_Crypto_PRF %d\n", status);
             goto ErrorExit;
         }
-        AJ_RawToHex(key, sizeof(key), out, sizeof(out));
+        AJ_RawToHex(key, sizeof(key), out, sizeof(out), FALSE);
         if (strcmp(out, expect) != 0) {
             AJ_Printf("AJ_Crypto_PRF failed: %d\n", status);
             goto ErrorExit;

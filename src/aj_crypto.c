@@ -331,5 +331,5 @@ AJ_Status AJ_Crypto_PRF(const uint8_t** inputs,
 AJ_Status AJ_RandHex(char* rand, uint32_t bufLen, uint32_t len)
 {
     AJ_RandBytes((uint8_t*)rand, len);
-    return AJ_RawToHex((const uint8_t*)rand, len, rand, bufLen);
+    return AJ_RawToHex((const uint8_t*) rand, len, rand, bufLen, FALSE);
 }
