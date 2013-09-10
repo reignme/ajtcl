@@ -41,7 +41,7 @@ static uint8_t rxBuffer[RANDOM_BYTES_MAX];
 int AJ_Main()
 {
     AJ_Status status;
-    
+
     status = AJ_SerialInit("/dev/ttyUSB1", BITRATE, AJ_SERIAL_WINDOW_SIZE, AJ_SERIAL_PACKET_SIZE);
     AJ_Printf("serial init was %u\n", status);
     uint16_t txlen;
@@ -50,56 +50,54 @@ int AJ_Main()
 
 #ifdef ECHO
     while (1) {
-        AJ_Printf("Iteration %d\n",i++);
+        AJ_Printf("Iteration %d\n", i++);
         status = AJ_SerialRecv(rxBuffer, RANDOM_BYTES_MAX, 5000, &rxlen);
-        if(status == AJ_ERR_TIMEOUT){
-          continue;
+        if (status == AJ_ERR_TIMEOUT) {
+            continue;
         }
-        if(status != AJ_OK){
-          AJ_Printf("AJ_SerialRecv returned %d\n",status);
-          exit(1);
+        if (status != AJ_OK) {
+            AJ_Printf("AJ_SerialRecv returned %d\n", status);
+            exit(1);
         }
         AJ_Sleep(rand() % 5000);
-        
+
         status = AJ_SerialSend(rxBuffer, rxlen);
-        if(status != AJ_OK){
-          AJ_Printf("AJ_SerialSend returned %d\n",status);
-          exit(1);
+        if (status != AJ_OK) {
+            AJ_Printf("AJ_SerialSend returned %d\n", status);
+            exit(1);
         }
-        
-        AJ_Sleep(rand() % 5000);        
+
+        AJ_Sleep(rand() % 5000);
     }
 #else
     txlen = 0;
     while (1) {
-        AJ_Printf("Iteration %d\n",i++);
-        for(int i = 0;i<txlen;i++){
-          txBuffer[i] = rand() % 256;
-          rxBuffer[i] = 1;
+        AJ_Printf("Iteration %d\n", i++);
+        txlen = rand() % 5000;
+        for (int i = 0; i < txlen; i++) {
+            txBuffer[i] = rand() % 256;
+            rxBuffer[i] = 1;
         }
         status = AJ_SerialSend(txBuffer, txlen);
-        if(status != AJ_OK){
-          AJ_Printf("AJ_SerialSend returned %d\n",status);
-          exit(1);
+        if (status != AJ_OK) {
+            AJ_Printf("AJ_SerialSend returned %d\n", status);
+            exit(1);
         }
         AJ_Sleep(rand() % 5000);
         status = AJ_SerialRecv(rxBuffer, txlen, 50000, &rxlen);
-        if(status != AJ_OK){
-          AJ_Printf("AJ_SerialRecv returned %d\n",status);
-          exit(1);
+        if (status != AJ_OK) {
+            AJ_Printf("AJ_SerialRecv returned %d\n", status);
+            exit(1);
         }
-        if(rxlen != txlen){
-            AJ_Printf("Failed: length match rxlen=%d txlen=%d.\n",rxlen,txlen);
+        if (rxlen != txlen) {
+            AJ_Printf("Failed: length match rxlen=%d txlen=%d.\n", rxlen, txlen);
             exit(-1);
         }
         if (0 != memcmp(txBuffer, rxBuffer, rxlen)) {
             AJ_Printf("Failed: buffers match.\n");
             exit(-1);
         }
-        txlen++;
-        if(txlen==1001){
-        break;
-        }
+
     }
 #endif
     return(0);
